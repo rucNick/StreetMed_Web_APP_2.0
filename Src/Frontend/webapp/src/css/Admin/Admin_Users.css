@@ -1,0 +1,24 @@
+@import '../Admin/Cargo_Admin.css';
+
+.cargo-error {
+  color: #f5222d;
+  margin-bottom: 10px;
+}
+
+.table-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.table-scroll thead th {
+  position: sticky;
+  top: 0;
+  background-color: #edf1f5;
+  z-index: 1;
+}
+
+.cargo-input {
+  min-width: 140px;
+}
+.cargo-button {
+  flex-shrink: 0;
+}

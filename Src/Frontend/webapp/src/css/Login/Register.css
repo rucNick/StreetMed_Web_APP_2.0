@@ -1,0 +1,236 @@
+/* Base styles */
+body {
+  background-color: #C8C9C7;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.signup-page-container {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Helper text styles */
+.form-note {
+  font-size: 12px;
+  color: #666;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* Go back button */
+.go-back-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: #003e7e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.go-back-btn:hover {
+  background-color: #002d5f;
+}
+
+/* Container for the signup card */
+.signup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Signup card styling */
+.signup-card {
+  background-color: #DECDA7;
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.15);
+}
+
+.signup-title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* Form input styling */
+.signup-card form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Row for inputs that should be side by side */
+.input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input-row input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* Divider styling */
+.divider {
+  position: relative;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #888;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.divider span {
+  background: #DECDA7;
+  padding: 0 10px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sign up button */
+.signup-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #003594;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.signup-btn:hover {
+  background-color: #002d73;
+}
+
+/* Error and success messages */
+.error-text {
+  color: #d32f2f;
+  font-size: 14px;
+  line-height: 1.4;
+  background-color: #fde9e9;
+  padding: 12px;
+  border-radius: 5px;
+  margin: 20px 0;
+  text-align: center;
+  border: 1px solid #ffcdd2;
+}
+
+.success-text {
+  color: #2e7d32;
+  font-size: 14px;
+  line-height: 1.4;
+  background-color: #ebf5eb;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 15px 0;
+  text-align: center;
+}
+
+/* Security indicator */
+.security-indicator {
+  font-size: 12px;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.security-indicator.success {
+  color: #2e7d32;
+}
+
+.security-indicator.fail {
+  color: #d32f2f;
+}
+
+/* Modal styling */
+.session-error-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #d32f2f;
+}
+
+.modal-content button {
+  background-color: #003594;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 500px) {
+  .signup-card {
+    padding: 25px;
+  }
+  
+  .input-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .error-text, .success-text {
+    font-size: 12px;
+    padding: 8px;
+  }
+}

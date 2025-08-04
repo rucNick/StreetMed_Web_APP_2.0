@@ -1,0 +1,103 @@
+body {
+  background-color: #C8C9C7;
+  font-family: Arial, sans-serif;
+}
+
+.feedback-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #D1DAE2;
+  border-radius: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  margin: 60px auto;
+}
+
+.feedback-container h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.feedback-formGroup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.feedback-formGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.feedback-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.feedback-textarea {
+  height: 150px;
+  resize: vertical;
+}
+
+.feedback-errorText {
+  color: #c0392b;
+  font-size: 14px;
+  margin-top: -8px;
+  margin-bottom: 10px;
+}
+
+.feedback-successText {
+  color: #27ae60;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.feedback-button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 25px;
+  background-color: #003e7e;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.feedback-cancelButton {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 25px;
+  background-color: #f78702;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+  .feedback-container {
+    margin: 20px;
+    padding: 20px;
+  }
+  .feedback-button,
+  .feedback-cancelButton {
+    padding: 12px;
+    font-size: 14px;
+  }
+}

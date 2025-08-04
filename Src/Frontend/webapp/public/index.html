@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="StreetMed Go Application"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!-- Environment variables for authentication testing -->
+    <script>
+      window.REACT_APP_USE_LOCAL_AUTH = '%REACT_APP_USE_LOCAL_AUTH%';
+      window.REACT_APP_LOCAL_AUTH_TOKEN = '%REACT_APP_LOCAL_AUTH_TOKEN%';
+      window.REACT_APP_BASE_URL = '%REACT_APP_BASE_URL%';
+    </script>
+    <!-- Authentication Setup Script -->
+    <script src="%PUBLIC_URL%/auth-setup.js"></script>
+    <title>StreetMed Go</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
