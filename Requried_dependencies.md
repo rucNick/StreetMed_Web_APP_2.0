@@ -6,18 +6,15 @@ Before setting up the project, make sure you have the following dependencies ins
 
 #### 1. Java Development Kit (JDK) 22+
 - **Download**: [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://openjdk.org/install/)
-- **Alternative**: Use [SDKMAN](https://sdkman.io/) for easy Java version management
 - **Verify installation**: `java -version`
 
 #### 2. Apache Maven 3.6+
 - **Download**: [Apache Maven](https://maven.apache.org/download.cgi)
 - **Installation Guide**: [Maven Installation](https://maven.apache.org/install.html)
-- **Alternative**: The project includes Maven Wrapper (`./mvnw`), so Maven installation is optional
 - **Verify installation**: `mvn -version`
 
 #### 3. Node.js 16+ and npm
 - **Download**: [Node.js Official Website](https://nodejs.org/)
-- **Alternative**: Use [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm)
 - **Verify installation**: `node -version` and `npm -version`
 
 #### 4. MySQL 8.0+
