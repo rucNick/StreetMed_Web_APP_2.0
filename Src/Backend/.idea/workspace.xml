@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/application-local.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/DatabaseConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/DatabaseConfig.java" afterDir="false" />
-    </list>
+    <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -94,7 +90,7 @@
       <workItem from="1744830606536" duration="4000" />
       <workItem from="1754146784009" duration="2507000" />
       <workItem from="1754329855883" duration="763000" />
-      <workItem from="1754497079016" duration="1259000" />
+      <workItem from="1754497079016" duration="1745000" />
     </task>
     <servers />
   </component>
