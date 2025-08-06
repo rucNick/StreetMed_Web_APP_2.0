@@ -35,7 +35,7 @@ StreetMed/
 
 Before setting up the project, please install all required dependencies listed in:
 
-📋 **[Required Dependencies Guide](Required_dependencies.md)**
+📋 **[Required Dependencies Guide](Requried_dependencies.md)**
 
 ## Quick Start
 
@@ -58,5 +58,5 @@ npm start
 
 ## Documentation
 
-- **Setup Guide**: [Required_dependencies.md](Required_dependencies.md)
+- **Setup Guide**: [Required_dependencies.md](Requried_dependencies.md)
 - **Technical Guide**: [Backend Technical Guide](Docs/BackendTechGuide.md)
