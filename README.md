@@ -59,4 +59,4 @@ npm start
 ## Documentation
 
 - **Setup Guide**: [Required_dependencies.md](Required_dependencies.md)
-- **Technical Guide**: [Backend Technical Guide](docs/BackendTechGuide.md)
+- **Technical Guide**: [Backend Technical Guide](Docs/BackendTechGuide.md)
