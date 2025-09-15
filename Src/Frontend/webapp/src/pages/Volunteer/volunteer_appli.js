@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { publicAxios } from '../../config/axiosConfig';
 
 const VolunteerAppli = () => {
-  const baseURL = process.env.REACT_APP_BASE_URL;
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState('');
@@ -78,7 +77,8 @@ const VolunteerAppli = () => {
     };
 
     try {
-      const response = await axios.post(`${baseURL}/api/volunteer/apply`, payload);
+      // Use publicAxios for volunteer application (public endpoint)
+      const response = await publicAxios.post('/api/volunteer/apply', payload);
       if (response.data.status === 'success') {
         setMessage('Application submitted successfully!');
         setFirstName('');
@@ -90,7 +90,15 @@ const VolunteerAppli = () => {
         setMessage(response.data.message || 'Submission failed');
       }
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Submission failed');
+      // Handle certificate errors if needed
+      if (error.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setMessage('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        setMessage(error.response?.data?.message || 'Submission failed');
+      }
     }
   };
 

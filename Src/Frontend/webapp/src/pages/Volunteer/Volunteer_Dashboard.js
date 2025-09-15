@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import axios from "axios";
+import { publicAxios } from "../../config/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import "../../css/Volunteer/Volunteer_Dashboard.css";
 
 const Volunteer_Dashboard = ({ userData, onLogout }) => {
-  const baseURL = process.env.REACT_APP_BASE_URL;
   const navigate = useNavigate();
 
   const [myUpcomingRounds, setMyUpcomingRounds] = useState([]);
@@ -34,7 +33,8 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const loadMyRounds = useCallback(async () => {
     if (!userData || !userData.userId) return;
     try {
-      const r = await axios.get(`${baseURL}/api/rounds/my-rounds`, {
+      // Use publicAxios for volunteer rounds endpoints
+      const r = await publicAxios.get('/api/rounds/my-rounds', {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       const d = r.data;
@@ -45,14 +45,22 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         setMyRoundsError(d.message || "Failed to load my rounds");
       }
     } catch (e) {
-      setMyRoundsError(e.response?.data?.message || e.message);
+      // Handle certificate errors
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setMyRoundsError('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        setMyRoundsError(e.response?.data?.message || e.message);
+      }
     }
-  }, [userData, baseURL]);
+  }, [userData]);
 
   const loadAllUpcomingRounds = useCallback(async () => {
     if (!userData || !userData.userId) return;
     try {
-      const r = await axios.get(`${baseURL}/api/rounds/all`, {
+      const r = await publicAxios.get('/api/rounds/all', {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       const d = r.data;
@@ -62,26 +70,40 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         setAllRoundsError(d.message || "Failed to load upcoming rounds");
       }
     } catch (e) {
-      setAllRoundsError(e.response?.data?.message || e.message);
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setAllRoundsError('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        setAllRoundsError(e.response?.data?.message || e.message);
+      }
     }
-  }, [userData, baseURL]);
+  }, [userData]);
 
   const loadAssignedOrders = useCallback(async () => {
     if (!userData || !userData.userId) return;
     try {
-      const r = await axios.get(`${baseURL}/api/orders/volunteer/assigned`, {
+      const r = await publicAxios.get('/api/orders/volunteer/assigned', {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       const d = r.data;
       setAssignedOrders(d.orders || []);
     } catch (e) {
-      setOrdersError(e.response?.data?.message || e.message);
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setOrdersError('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        setOrdersError(e.response?.data?.message || e.message);
+      }
     }
-  }, [userData, baseURL]);
+  }, [userData]);
 
   const signupForRound = async (roundId, requestedRole = "VOLUNTEER") => {
     try {
-      const r = await axios.post(`${baseURL}/api/rounds/${roundId}/signup`, {
+      const r = await publicAxios.post(`/api/rounds/${roundId}/signup`, {
         authenticated: true,
         userId: userData.userId,
         userRole: "VOLUNTEER",
@@ -92,7 +114,14 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       loadAllUpcomingRounds();
       handleDateClick(selectedDate);
     } catch (e) {
-      alert(e.response?.data?.message || e.message);
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        alert('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        alert(e.response?.data?.message || e.message);
+      }
     }
   };
 
@@ -119,7 +148,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
 
   const openFullViewModal = async (roundId) => {
     try {
-      const r = await axios.get(`${baseURL}/api/rounds/${roundId}`, {
+      const r = await publicAxios.get(`/api/rounds/${roundId}`, {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       if (r.data.status === "success") {
@@ -129,7 +158,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         alert(r.data.message);
         return;
       }
-      const ordersRes = await axios.get(`${baseURL}/api/rounds/${roundId}/orders`, {
+      const ordersRes = await publicAxios.get(`/api/rounds/${roundId}/orders`, {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       if (ordersRes.data.status === "success") {
@@ -138,7 +167,14 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         alert(ordersRes.data.message);
       }
     } catch (e) {
-      alert(e.response?.data?.message || e.message);
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        alert('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        alert(e.response?.data?.message || e.message);
+      }
     }
   };
 
@@ -158,7 +194,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       return;
     }
     try {
-      const r = await axios.delete(`${baseURL}/api/rounds/signup/${s}`, {
+      const r = await publicAxios.delete(`/api/rounds/signup/${s}`, {
         data: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       alert(r.data.message);
@@ -166,7 +202,14 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       loadMyRounds();
       loadAllUpcomingRounds();
     } catch (e) {
-      alert(e.response?.data?.message || e.message);
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        alert('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        alert(e.response?.data?.message || e.message);
+      }
     }
   };
 
@@ -182,7 +225,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
 
   const handleCompleteOrder = async (orderId) => {
     try {
-      const r = await axios.put(`${baseURL}/api/orders/${orderId}/status`, {
+      const r = await publicAxios.put(`/api/orders/${orderId}/status`, {
         authenticated: true,
         userId: userData.userId,
         userRole: "VOLUNTEER",
@@ -191,7 +234,14 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       alert(r.data.message);
       loadAssignedOrders();
     } catch (e) {
-      alert(e.response?.data?.message || e.message);
+      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        alert('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        alert(e.response?.data?.message || e.message);
+      }
     }
   };
 

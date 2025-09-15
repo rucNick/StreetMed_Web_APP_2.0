@@ -1,23 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { publicAxios } from '../../config/axiosConfig';
 import "../../css/Volunteer/Cargo_Volunteer.css";
 
 const Cargo_Volunteer = () => {
-  const baseURL = process.env.REACT_APP_BASE_URL;
   const navigate = useNavigate();
   const [allItems, setAllItems] = useState([]);
   const [error, setError] = useState('');
 
   const fetchAllItems = useCallback(async () => {
     try {
-      const response = await axios.get(`${baseURL}/api/cargo/items`);
+      // Use publicAxios for cargo items (public endpoint)
+      const response = await publicAxios.get('/api/cargo/items');
       setAllItems(response.data);
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      // Handle certificate errors
+      if (err.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setError('Certificate error. Please accept the certificate and try again.');
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_BASE_URL }
+        }));
+      } else {
+        setError(err.response?.data?.message || err.message);
+      }
     }
-  }, [baseURL]);
+  }, []);
 
   useEffect(() => {
     fetchAllItems();
