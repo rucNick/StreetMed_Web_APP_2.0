@@ -1,8 +1,8 @@
 // Home_Profile.js
 import React, { useState } from "react";
-import axios from "axios";
-import { encrypt, decrypt, getSessionId, isInitialized } from "../../security/ecdhClient";
 import { useNavigate } from "react-router-dom";
+import { encrypt, decrypt, getSessionId, isInitialized } from "../../security/ecdhClient";
+import { secureAxios } from "../../config/axiosConfig";
 import "../../css/Home/Home_Profile.css";
 
 const Home_Profile = ({
@@ -26,56 +26,96 @@ const Home_Profile = ({
   const [newPhone, setNewPhone] = useState("");
   const [profileError, setProfileError] = useState("");
   const [profileMessage, setProfileMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const baseURL = process.env.REACT_APP_BASE_URL;
+  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
+
+  // Get auth token from storage
+  const getAuthToken = () => {
+    const storedUser = sessionStorage.getItem("auth_user") || localStorage.getItem("auth_user");
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      return userData.authToken;
+    }
+    return null;
+  };
+
+  // Handle HTTPS requirement errors
+  const handleHttpsError = (error) => {
+    if (error.response?.status === 403 && error.response?.data?.httpsRequired) {
+      setProfileError("Secure connection required for profile updates.");
+      if (window.location.protocol !== 'https:') {
+        setTimeout(() => {
+          window.location.href = window.location.href.replace('http:', 'https:');
+        }, 1500);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  // Handle certificate errors
+  const handleCertificateError = (error) => {
+    if (error.code === 'ERR_CERT_AUTHORITY_INVALID' || 
+        error.message?.includes('certificate')) {
+      setProfileError("Certificate error. Please accept the certificate and try again.");
+      window.dispatchEvent(new CustomEvent('certificate-error', { 
+        detail: { url: baseURL }
+      }));
+      return true;
+    }
+    return false;
+  };
 
   // Handle submission of profile update
   const handleSubmitProfile = async () => {
-
     setProfileError("");
     setProfileMessage("");
+    setIsLoading(true);
 
-    // --- For username update ---
-    if (profileOption === "username") {
-      const usernameRegex = /^[A-Za-z]+$/;
-      if (!newUsername.trim() || !usernameRegex.test(newUsername.trim())) {
-        setProfileError("Username must contain only letters.");
-        return;
-      }
-      if (newUsername.trim() === username) {
-        setProfileError("New username must be different from the current one.");
-        return;
-      }
+    try {
+      // --- For username update ---
+      if (profileOption === "username") {
+        const usernameRegex = /^[A-Za-z]+$/;
+        if (!newUsername.trim() || !usernameRegex.test(newUsername.trim())) {
+          setProfileError("Username must contain only letters.");
+          setIsLoading(false);
+          return;
+        }
+        if (newUsername.trim() === username) {
+          setProfileError("New username must be different from the current one.");
+          setIsLoading(false);
+          return;
+        }
 
-      try {
         const userData = {
           userId: userId.toString(),
           newUsername: newUsername.trim(),
           authenticated: "true",
         };
 
-    
         if (isInitialized() && getSessionId()) {
+          // Use encrypted request over HTTPS
           const encryptedData = await encrypt(JSON.stringify(userData));
           const response = await fetch(`${baseURL}/api/auth/update/username`, {
             method: "PUT",
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
+              "X-Auth-Token": getAuthToken() || ""
             },
             body: encryptedData,
+            credentials: 'include',
+            mode: 'cors'
           });
 
-  
           const encryptedResponse = await response.text();
           const decryptedResponse = await decrypt(encryptedResponse);
           const data = JSON.parse(decryptedResponse);
 
           if (!response.ok || data.status !== "success") {
-      
             throw new Error(data.message || `Username update failed: ${response.status}`);
           }
-
 
           setProfileMessage("Profile updated successfully.");
           if (onProfileUpdate) {
@@ -89,10 +129,14 @@ const Home_Profile = ({
           setTimeout(() => {
             navigate("/");
           }, 1500);
-        }
-
-        else {
-          const response = await axios.put(`${baseURL}/api/auth/update/username`, userData);
+        } else {
+          // Use secureAxios for non-encrypted HTTPS request
+          const response = await secureAxios.put('/api/auth/update/username', userData, {
+            headers: {
+              "X-Auth-Token": getAuthToken() || ""
+            }
+          });
+          
           if (response.data.status === "success") {
             setProfileMessage("Profile updated successfully.");
             if (onProfileUpdate) {
@@ -110,30 +154,27 @@ const Home_Profile = ({
             setProfileError(response.data.message || "Failed to update username.");
           }
         }
-      } catch (error) {
-        console.error("Error updating username", error);
-
-        setProfileError(error.message || "Failed to update username.");
-      }
-    }
-
-    // --- For email update ---
-    else if (profileOption === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!newEmail.trim() || !emailRegex.test(newEmail.trim())) {
-        setProfileError("Please enter a valid email address.");
-        return;
-      }
-      if (newEmail.trim() === email) {
-        setProfileError("New email must be different from the current one.");
-        return;
-      }
-      if (!currentPassword.trim()) {
-        setProfileError("Current password is required.");
-        return;
       }
 
-      try {
+      // --- For email update ---
+      else if (profileOption === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!newEmail.trim() || !emailRegex.test(newEmail.trim())) {
+          setProfileError("Please enter a valid email address.");
+          setIsLoading(false);
+          return;
+        }
+        if (newEmail.trim() === email) {
+          setProfileError("New email must be different from the current one.");
+          setIsLoading(false);
+          return;
+        }
+        if (!currentPassword.trim()) {
+          setProfileError("Current password is required.");
+          setIsLoading(false);
+          return;
+        }
+
         const userData = {
           userId: userId.toString(),
           currentPassword: currentPassword.trim(),
@@ -148,8 +189,11 @@ const Home_Profile = ({
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
+              "X-Auth-Token": getAuthToken() || ""
             },
             body: encryptedData,
+            credentials: 'include',
+            mode: 'cors'
           });
 
           const encryptedResponse = await response.text();
@@ -173,7 +217,12 @@ const Home_Profile = ({
             navigate("/");
           }, 1500);
         } else {
-          const response = await axios.put(`${baseURL}/api/auth/update/email`, userData);
+          const response = await secureAxios.put('/api/auth/update/email', userData, {
+            headers: {
+              "X-Auth-Token": getAuthToken() || ""
+            }
+          });
+          
           if (response.data.status === "success") {
             setProfileMessage("Profile updated successfully.");
             if (onProfileUpdate) {
@@ -191,32 +240,37 @@ const Home_Profile = ({
             setProfileError(response.data.message || "Failed to update email.");
           }
         }
-      } catch (error) {
-        console.error("Error updating email", error);
-        setProfileError(error.message || "Failed to update email.");
-      }
-    }
-
-    // --- For password update ---
-    else if (profileOption === "password") {
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-      // 1) check new password format
-      if (!newPassword.trim() || !passwordRegex.test(newPassword.trim())) {
-        setProfileError("Password must be alphanumeric and at least 8 characters long.");
-        return;
-      }
-      // 2) confirm new password
-      if (newPassword.trim() !== confirmPassword.trim()) {
-        setProfileError("The two passwords do not match.");
-        return;
-      }
-      // 3) check input
-      if (!currentPassword.trim()) {
-        setProfileError("Current password is required.");
-        return;
       }
 
-      try {
+      // --- For password update (ALWAYS requires HTTPS) ---
+      else if (profileOption === "password") {
+        // Check if we're on HTTPS
+        if (window.location.protocol !== 'https:') {
+          setProfileError("Password updates require a secure HTTPS connection. Redirecting...");
+          setTimeout(() => {
+            window.location.href = window.location.href.replace('http:', 'https:');
+          }, 1500);
+          setIsLoading(false);
+          return;
+        }
+
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!newPassword.trim() || !passwordRegex.test(newPassword.trim())) {
+          setProfileError("Password must be alphanumeric and at least 8 characters long.");
+          setIsLoading(false);
+          return;
+        }
+        if (newPassword.trim() !== confirmPassword.trim()) {
+          setProfileError("The two passwords do not match.");
+          setIsLoading(false);
+          return;
+        }
+        if (!currentPassword.trim()) {
+          setProfileError("Current password is required.");
+          setIsLoading(false);
+          return;
+        }
+
         const userData = {
           userId: userId.toString(),
           currentPassword: currentPassword.trim(),
@@ -231,8 +285,11 @@ const Home_Profile = ({
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
+              "X-Auth-Token": getAuthToken() || ""
             },
             body: encryptedData,
+            credentials: 'include',
+            mode: 'cors'
           });
 
           const encryptedResponse = await response.text();
@@ -246,43 +303,46 @@ const Home_Profile = ({
           setProfileMessage("Password updated successfully. Redirecting to login...");
           setTimeout(() => {
             onLogout();
-            navigate("/");
+            navigate("/login");
           }, 1500);
         } else {
-          const response = await axios.put(`${baseURL}/api/auth/update/password`, userData);
+          const response = await secureAxios.put('/api/auth/update/password', userData, {
+            headers: {
+              "X-Auth-Token": getAuthToken() || ""
+            }
+          });
+          
           if (response.data.status === "success") {
             setProfileMessage("Password updated successfully. Redirecting to login...");
             setTimeout(() => {
               onLogout();
-              navigate("/");
+              navigate("/login");
             }, 1500);
           } else {
             setProfileError(response.data.message || "Failed to update password.");
           }
         }
-      } catch (error) {
-        console.error("Error updating password", error);
-        setProfileError(error.message || "Failed to update password.");
-      }
-    }
-
-    // --- For phone update ---
-    else if (profileOption === "phone") {
-      const phoneRegex = /^\d{10}$/;
-      if (!newPhone.trim() || !phoneRegex.test(newPhone.trim())) {
-        setProfileError("Phone number must be a 10-digit US number.");
-        return;
-      }
-      if (newPhone.trim() === phone) {
-        setProfileError("New phone number must be different from the current one.");
-        return;
-      }
-      if (!currentPassword.trim()) {
-        setProfileError("Current password is required.");
-        return;
       }
 
-      try {
+      // --- For phone update ---
+      else if (profileOption === "phone") {
+        const phoneRegex = /^\d{10}$/;
+        if (!newPhone.trim() || !phoneRegex.test(newPhone.trim())) {
+          setProfileError("Phone number must be a 10-digit US number.");
+          setIsLoading(false);
+          return;
+        }
+        if (newPhone.trim() === phone) {
+          setProfileError("New phone number must be different from the current one.");
+          setIsLoading(false);
+          return;
+        }
+        if (!currentPassword.trim()) {
+          setProfileError("Current password is required.");
+          setIsLoading(false);
+          return;
+        }
+
         const userData = {
           userId: userId.toString(),
           currentPassword: currentPassword.trim(),
@@ -297,8 +357,11 @@ const Home_Profile = ({
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
+              "X-Auth-Token": getAuthToken() || ""
             },
             body: encryptedData,
+            credentials: 'include',
+            mode: 'cors'
           });
 
           const encryptedResponse = await response.text();
@@ -322,7 +385,12 @@ const Home_Profile = ({
             navigate("/");
           }, 1500);
         } else {
-          const response = await axios.put(`${baseURL}/api/auth/update/phone`, userData);
+          const response = await secureAxios.put('/api/auth/update/phone', userData, {
+            headers: {
+              "X-Auth-Token": getAuthToken() || ""
+            }
+          });
+          
           if (response.data.status === "success") {
             setProfileMessage("Profile updated successfully.");
             if (onProfileUpdate) {
@@ -340,10 +408,20 @@ const Home_Profile = ({
             setProfileError(response.data.message || "Failed to update phone number.");
           }
         }
-      } catch (error) {
-        console.error("Error updating phone number", error);
-        setProfileError(error.message || "Failed to update phone number.");
       }
+    } catch (error) {
+      console.error("Error updating profile", error);
+      
+      // Check for certificate errors first
+      if (handleCertificateError(error)) {
+        // Error already handled
+      } else if (handleHttpsError(error)) {
+        // Error already handled
+      } else {
+        setProfileError(error.message || "Failed to update profile.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -351,6 +429,16 @@ const Home_Profile = ({
     <div className="profile-container">
       <h2>Update Profile</h2>
       <br></br>
+      
+      {/* Security indicator */}
+      <div style={{ marginBottom: '15px', fontSize: '14px' }}>
+        {window.location.protocol === 'https:' ? (
+          <span style={{color: '#27ae60'}}>🔒 Secure Connection</span>
+        ) : (
+          <span style={{color: '#e67e22'}}>⚠️ Consider using HTTPS for secure profile updates</span>
+        )}
+      </div>
+      
       <p>Current Username: <strong>{username}</strong></p>
       <div className="profile-formGroup">
         <label>Select field to update:</label>
@@ -361,6 +449,7 @@ const Home_Profile = ({
               value="username"
               checked={profileOption === "username"}
               onChange={(e) => setProfileOption(e.target.value)}
+              disabled={isLoading}
             />
             Username
           </label>
@@ -370,6 +459,7 @@ const Home_Profile = ({
               value="email"
               checked={profileOption === "email"}
               onChange={(e) => setProfileOption(e.target.value)}
+              disabled={isLoading}
             />
             Email
           </label>
@@ -379,8 +469,9 @@ const Home_Profile = ({
               value="password"
               checked={profileOption === "password"}
               onChange={(e) => setProfileOption(e.target.value)}
+              disabled={isLoading}
             />
-            Password
+            Password {window.location.protocol !== 'https:' && <span style={{color: '#c0392b'}}>(HTTPS Required)</span>}
           </label>
           <label>
             <input
@@ -388,6 +479,7 @@ const Home_Profile = ({
               value="phone"
               checked={profileOption === "phone"}
               onChange={(e) => setProfileOption(e.target.value)}
+              disabled={isLoading}
             />
             Phone Number
           </label>
@@ -404,6 +496,7 @@ const Home_Profile = ({
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             className="profile-input"
+            disabled={isLoading}
           />
         </div>
       )}
@@ -417,6 +510,7 @@ const Home_Profile = ({
             onChange={(e) => setNewUsername(e.target.value)}
             className="profile-input"
             placeholder="Only letters"
+            disabled={isLoading}
           />
         </div>
       )}
@@ -430,6 +524,7 @@ const Home_Profile = ({
             onChange={(e) => setNewEmail(e.target.value)}
             className="profile-input"
             placeholder="example@domain.com"
+            disabled={isLoading}
           />
         </div>
       )}
@@ -444,6 +539,7 @@ const Home_Profile = ({
               onChange={(e) => setNewPassword(e.target.value)}
               className="profile-input"
               placeholder="Alphanumeric, min 8 chars"
+              disabled={isLoading}
             />
           </div>
           <div className="profile-formGroup">
@@ -454,6 +550,7 @@ const Home_Profile = ({
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="profile-input"
               placeholder="Confirm new password"
+              disabled={isLoading}
             />
           </div>
         </>
@@ -468,6 +565,7 @@ const Home_Profile = ({
             onChange={(e) => setNewPhone(e.target.value)}
             className="profile-input"
             placeholder="10-digit number"
+            disabled={isLoading}
           />
         </div>
       )}
@@ -475,10 +573,19 @@ const Home_Profile = ({
       {profileError && <p className="profile-errorText">{profileError}</p>}
       {profileMessage && <p className="profile-successText">{profileMessage}</p>}
 
-      <button className="profile-button" onClick={handleSubmitProfile}>
-        Submit Profile Update
+      <button 
+        className="profile-button" 
+        onClick={handleSubmitProfile}
+        disabled={isLoading}
+        style={{ opacity: isLoading ? 0.6 : 1 }}
+      >
+        {isLoading ? 'Updating...' : 'Submit Profile Update'}
       </button>
-      <button className="profile-cancelButton" onClick={() => navigate(-1)}>
+      <button 
+        className="profile-cancelButton" 
+        onClick={() => navigate(-1)}
+        disabled={isLoading}
+      >
         Cancel
       </button>
     </div>

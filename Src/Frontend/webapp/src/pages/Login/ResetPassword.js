@@ -1,9 +1,7 @@
 // File: Reset_Password.js
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-
-const baseURL = process.env.REACT_APP_BASE_URL || 'https://streetmedgo.uc.r.appspot.com/'
+import { secureAxios } from '../../config/axiosConfig'
 
 const Reset_Password = () => {
   const navigate = useNavigate()
@@ -13,6 +11,7 @@ const Reset_Password = () => {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleGoBack = () => {
     navigate('/')
@@ -25,18 +24,40 @@ const Reset_Password = () => {
       setError('Email is required')
       return
     }
+    
+    setIsLoading(true)
     try {
-      const response = await axios.post(`${baseURL}/api/auth/password/request-reset`, {
+      // Use secureAxios for HTTPS connection
+      const response = await secureAxios.post('/api/auth/password/request-reset', {
         email: email.trim()
       })
+      
       if (response.data.status === 'success') {
-        setMessage(response.data.message)
+        setMessage(response.data.message || 'Recovery code sent to your email')
         setStep(2)
       } else {
         setError(response.data.message || 'Failed to send recovery code.')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send recovery code.')
+      // Handle certificate errors
+      if (err.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setError('Certificate error. Please accept the certificate and try again.')
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_SECURE_BASE_URL }
+        }))
+      } else if (err.response?.status === 403 && err.response?.data?.httpsRequired) {
+        setError('Secure connection required for password recovery.')
+        // Redirect to HTTPS if not already
+        if (window.location.protocol !== 'https:') {
+          setTimeout(() => {
+            window.location.href = window.location.href.replace('http:', 'https:')
+          }, 1500)
+        }
+      } else {
+        setError(err.response?.data?.message || 'Failed to send recovery code.')
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -47,19 +68,50 @@ const Reset_Password = () => {
       setError('Email, OTP, and new password are required.')
       return
     }
+    
+    // Validate password strength
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long')
+      return
+    }
+    
+    setIsLoading(true)
     try {
-      const response = await axios.post(`${baseURL}/api/auth/password/verify-reset`, {
+      // Use secureAxios for HTTPS connection
+      const response = await secureAxios.post('/api/auth/password/verify-reset', {
         email: email.trim(),
         otp: otp.trim(),
         newPassword: newPassword.trim()
       })
+      
       if (response.data.status === 'success') {
-        setMessage('Password reset successfully! You can go back to login now.')
+        setMessage('Password reset successfully! Redirecting to login...')
+        setTimeout(() => {
+          navigate('/login')
+        }, 2000)
       } else {
         setError(response.data.message || 'Failed to reset password.')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reset password.')
+      // Handle certificate errors
+      if (err.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setError('Certificate error. Please accept the certificate and try again.')
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: process.env.REACT_APP_SECURE_BASE_URL }
+        }))
+      } else if (err.response?.status === 403 && err.response?.data?.httpsRequired) {
+        setError('Secure connection required for password reset.')
+        // Redirect to HTTPS if not already
+        if (window.location.protocol !== 'https:') {
+          setTimeout(() => {
+            window.location.href = window.location.href.replace('http:', 'https:')
+          }, 1500)
+        }
+      } else {
+        setError(err.response?.data?.message || 'Failed to reset password.')
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -71,6 +123,16 @@ const Reset_Password = () => {
         </button>
       </div>
       <h2 style={styles.title}>Reset Your Password</h2>
+      
+      {/* Security indicator */}
+      <div style={styles.securityIndicator}>
+        {window.location.protocol === 'https:' ? (
+          <span style={{color: '#27ae60'}}>🔒 Secure Connection</span>
+        ) : (
+          <span style={{color: '#c0392b'}}>⚠️ Insecure Connection - HTTPS Required</span>
+        )}
+      </div>
+      
       {step === 1 && (
         <div style={styles.formContainer}>
           <h3 style={styles.stepTitle}>Step 1: Request a Recovery Code</h3>
@@ -81,14 +143,20 @@ const Reset_Password = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your registered email"
+            disabled={isLoading}
           />
           {error && <p style={styles.errorText}>{error}</p>}
           {message && <p style={styles.successText}>{message}</p>}
-          <button style={styles.actionButton} onClick={handleRequestReset}>
-            Send Recovery Code
+          <button 
+            style={{...styles.actionButton, opacity: isLoading ? 0.6 : 1}}
+            onClick={handleRequestReset}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Sending...' : 'Send Recovery Code'}
           </button>
         </div>
       )}
+      
       {step === 2 && (
         <div style={styles.formContainer}>
           <h3 style={styles.stepTitle}>Step 2: Enter OTP & New Password</h3>
@@ -99,6 +167,7 @@ const Reset_Password = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Re-enter your email"
+            disabled={isLoading}
           />
           <label style={styles.label}>OTP (Recovery Code):</label>
           <input
@@ -107,6 +176,7 @@ const Reset_Password = () => {
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             placeholder="Enter the code you received"
+            disabled={isLoading}
           />
           <label style={styles.label}>New Password:</label>
           <input
@@ -114,12 +184,28 @@ const Reset_Password = () => {
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Enter your new password"
+            placeholder="Enter your new password (min 8 characters)"
+            disabled={isLoading}
           />
           {error && <p style={styles.errorText}>{error}</p>}
           {message && <p style={styles.successText}>{message}</p>}
-          <button style={styles.actionButton} onClick={handleVerifyReset}>
-            Reset Password
+          <button 
+            style={{...styles.actionButton, opacity: isLoading ? 0.6 : 1}}
+            onClick={handleVerifyReset}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Resetting...' : 'Reset Password'}
+          </button>
+          <button 
+            style={styles.backButton}
+            onClick={() => {
+              setStep(1)
+              setError('')
+              setMessage('')
+            }}
+            disabled={isLoading}
+          >
+            Back to Step 1
           </button>
         </div>
       )}
@@ -152,6 +238,12 @@ const styles = {
     fontSize: '24px',
     marginTop: '60px',
     color: '#333'
+  },
+  securityIndicator: {
+    marginTop: '10px',
+    marginBottom: '20px',
+    fontSize: '14px',
+    fontWeight: '600'
   },
   formContainer: {
     display: 'inline-block',
@@ -193,15 +285,31 @@ const styles = {
     borderRadius: '25px',
     backgroundColor: '#f78702',
     color: '#fff',
+    cursor: 'pointer',
+    transition: 'opacity 0.3s'
+  },
+  backButton: {
+    width: '100%',
+    padding: '14px',
+    marginTop: '10px',
+    fontSize: '14px',
+    fontWeight: '600',
+    border: '2px solid #003e7e',
+    borderRadius: '25px',
+    backgroundColor: 'transparent',
+    color: '#003e7e',
     cursor: 'pointer'
   },
   errorText: {
     color: '#c0392b',
-    marginBottom: '10px'
+    marginBottom: '10px',
+    fontSize: '14px'
   },
   successText: {
     color: '#27ae60',
-    marginBottom: '10px'
+    marginBottom: '10px',
+    fontSize: '14px',
+    fontWeight: '600'
   }
 }
 

@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { secureAxios } from '../../config/axiosConfig';
 
 import '../../css/Admin/Admin.css';
 
 const Admin = ({ onLogout, userData }) => {
   const navigate = useNavigate();
-  const baseURL = process.env.REACT_APP_BASE_URL;
 
   const [outOfStockCount, setOutOfStockCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [pendingAppsCount, setPendingAppsCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchAlerts = useCallback(async () => {
     try {
-      const itemsResp = await axios.get(`${baseURL}/api/cargo/items`, {
+      setIsLoading(true);
+      setError(null);
+      
+      // Use secureAxios for admin operations (HTTPS required)
+      const itemsResp = await secureAxios.get('/api/cargo/items', {
         headers: {
           "Admin-Username": userData.username,
           "Authentication-Status": "true",
@@ -41,7 +46,8 @@ const Admin = ({ onLogout, userData }) => {
         }).length
       );
   
-      const ordersResp = await axios.get(`${baseURL}/api/orders/all`, {
+      // Fetch orders using secure connection
+      const ordersResp = await secureAxios.get('/api/orders/all', {
         params: {
           authenticated: true,
           userId: userData.userId,
@@ -51,7 +57,8 @@ const Admin = ({ onLogout, userData }) => {
       const orders = ordersResp.data.orders || [];
       setPendingOrdersCount(orders.filter((o) => o.status === "PENDING").length);
   
-      const appsResp = await axios.get(`${baseURL}/api/volunteer/pending`, {
+      // Fetch volunteer applications using secure connection
+      const appsResp = await secureAxios.get('/api/volunteer/pending', {
         headers: {
           "Admin-Username": userData.username,
           "Authentication-Status": "true",
@@ -60,8 +67,16 @@ const Admin = ({ onLogout, userData }) => {
       setPendingAppsCount((appsResp.data.data || []).length);
     } catch (e) {
       console.error("Failed to fetch alerts", e);
+      setError(e.response?.data?.message || e.message);
+      
+      // Check if it's an HTTPS requirement error
+      if (e.response?.data?.httpsRequired) {
+        setError("Secure HTTPS connection required for admin operations. Please ensure you're using HTTPS.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }, [baseURL, userData]);
+  }, [userData]);
   
 
   useEffect(() => {
@@ -87,6 +102,18 @@ const Admin = ({ onLogout, userData }) => {
           <h1 className="admin-greeting">
             Hello, {userData.firstName || userData.username}
           </h1>
+
+          {error && (
+            <div style={{ 
+              padding: '10px', 
+              margin: '10px 0', 
+              backgroundColor: '#ffebee', 
+              color: '#c62828', 
+              borderRadius: '4px' 
+            }}>
+              {error}
+            </div>
+          )}
 
           <div
             className="admin-card light-blue"
@@ -143,22 +170,30 @@ const Admin = ({ onLogout, userData }) => {
           <div className="alerts-card">
             <h2 className="alerts-title">Alerts</h2>
             <hr />
-            <div className="alert-entry">
-              <span>Items out of stock</span>
-              <span className="card-badge red-badge">{outOfStockCount}</span>
-            </div>
-            <div className="alert-entry">
-              <span>Items running low</span>
-              <span className="card-badge yellow-badge">{lowStockCount}</span>
-            </div>
-            <div className="alert-entry">
-              <span>New orders</span>
-              <span className="card-badge blue-badge">{pendingOrdersCount}</span>
-            </div>
-            <div className="alert-entry">
-              <span>New volunteer applications</span>
-              <span className="card-badge blue-badge">{pendingAppsCount}</span>
-            </div>
+            {isLoading ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                Loading alerts...
+              </div>
+            ) : (
+              <>
+                <div className="alert-entry">
+                  <span>Items out of stock</span>
+                  <span className="card-badge red-badge">{outOfStockCount}</span>
+                </div>
+                <div className="alert-entry">
+                  <span>Items running low</span>
+                  <span className="card-badge yellow-badge">{lowStockCount}</span>
+                </div>
+                <div className="alert-entry">
+                  <span>New orders</span>
+                  <span className="card-badge blue-badge">{pendingOrdersCount}</span>
+                </div>
+                <div className="alert-entry">
+                  <span>New volunteer applications</span>
+                  <span className="card-badge blue-badge">{pendingAppsCount}</span>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </main>
