@@ -62,14 +62,14 @@ public class RequestCorsFilter implements Filter {
 
     private void setCorsHeaders(HttpServletResponse response, String origin) {
         response.setHeader("Access-Control-Allow-Origin", origin);
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH");
 
-        // Include ALL custom headers in the Allow-Headers
+        // Include ALL custom headers including X-Auth-Token
         response.setHeader("Access-Control-Allow-Headers",
-                "Content-Type, Authorization, X-Session-ID, X-Client-ID, X-Timestamp, X-Signature, " +
-                        "Admin-Username, Authentication-Status, X-Requested-With, Origin, Accept");
+                "Content-Type, Authorization, X-Session-ID, X-Auth-Token, X-Client-ID, X-Timestamp, X-Signature, " +
+                        "Admin-Username, Authentication-Status, X-User-Role, X-User-Id, X-Requested-With, Origin, Accept");
 
-        response.setHeader("Access-Control-Expose-Headers", "X-Session-ID");
+        response.setHeader("Access-Control-Expose-Headers", "X-Session-ID, X-Auth-Token");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");
     }

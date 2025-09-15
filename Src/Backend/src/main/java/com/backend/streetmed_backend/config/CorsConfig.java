@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class CorsConfig {
@@ -34,21 +35,34 @@ public class CorsConfig {
             config.addAllowedOrigin(origin);
         }
 
-        // Allow common HTTP methods
-        config.addAllowedMethod("GET");
-        config.addAllowedMethod("POST");
-        config.addAllowedMethod("PUT");
-        config.addAllowedMethod("DELETE");
-        config.addAllowedMethod("OPTIONS");
+        // Allow all common HTTP methods
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
 
-        // Allow all headers
-        config.addAllowedHeader("*");
+        // Allow all headers including X-Auth-Token
+        config.setAllowedHeaders(Arrays.asList(
+                "Content-Type",
+                "Authorization",
+                "X-Session-ID",
+                "X-Auth-Token",
+                "X-Client-ID",
+                "X-Timestamp",
+                "X-Signature",
+                "X-User-Role",
+                "X-User-Id",
+                "Admin-Username",
+                "Authentication-Status",
+                "X-Requested-With",
+                "Origin",
+                "Accept",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
 
         // Important: Allow authentication
         config.setAllowCredentials(true);
 
-        // Allow specific headers needed for your security implementation
-        config.addExposedHeader("X-Session-ID");
+        // Expose headers needed for your security implementation
+        config.setExposedHeaders(Arrays.asList("X-Session-ID", "X-Auth-Token", "Authorization"));
 
         // Set the max age for the preflight request cache (in seconds)
         config.setMaxAge(3600L);

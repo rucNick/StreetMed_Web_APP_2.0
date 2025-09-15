@@ -19,17 +19,16 @@ const getBaseURL = (requireSecure = false) => {
   return process.env.REACT_APP_BASE_URL_HTTP || 'http://localhost:8080';
 };
 
-// Helper to get auth headers
+// Helper to get auth headers - UPDATED to be more selective
 const getAuthHeaders = () => {
   const authData = sessionStorage.getItem('auth_user');
   if (authData) {
     try {
       const user = JSON.parse(authData);
+      // Only return the headers that the backend expects
       return {
         'Admin-Username': user.username,
-        'Authentication-Status': 'true',
-        'X-User-Role': user.role,
-        'X-User-Id': user.userId
+        'Authentication-Status': 'true'
       };
     } catch (e) {
       console.error('Error parsing auth data:', e);
@@ -91,12 +90,34 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Request interceptor for secure instance
+// Request interceptor for secure instance - UPDATED
 secureAxios.interceptors.request.use(
   (config) => {
-    // Add auth headers
-    const authHeaders = getAuthHeaders();
-    config.headers = { ...config.headers, ...authHeaders };
+    // Get auth data directly to avoid problematic headers
+    const authData = sessionStorage.getItem('auth_user');
+    if (authData) {
+      try {
+        const user = JSON.parse(authData);
+        
+        // For admin endpoints, only add the required headers
+        if (config.url && config.url.includes('/admin')) {
+          config.headers['Admin-Username'] = user.username;
+          config.headers['Authentication-Status'] = 'true';
+        }
+        
+        // For other authenticated endpoints, add appropriate headers
+        if (config.params && (config.params.authenticated || config.params.userId)) {
+          // Parameters are already in the request, no need for headers
+        }
+        
+        // Add auth token if available
+        if (user.authToken) {
+          config.headers['X-Auth-Token'] = user.authToken;
+        }
+      } catch (e) {
+        console.error('Error setting auth headers:', e);
+      }
+    }
     
     // Ensure we're using HTTPS
     if (config.url && !config.url.startsWith('https')) {
@@ -105,6 +126,7 @@ secureAxios.interceptors.request.use(
     
     if (process.env.REACT_APP_DEBUG_MODE === 'true') {
       console.log('Secure Request:', config.method?.toUpperCase(), config.url);
+      console.log('Headers being sent:', config.headers);
     }
     
     return config;

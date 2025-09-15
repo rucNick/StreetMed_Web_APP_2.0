@@ -15,11 +15,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(allowedOrigins.split(","))
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Content-Type", "Authorization", "X-Session-ID",
-                        "X-Client-ID", "X-Timestamp", "X-Signature",
-                        "Admin-Username", "Authentication-Status")
-                .exposedHeaders("X-Session-ID")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH")
+                .allowedHeaders("Content-Type", "Authorization", "X-Session-ID", "X-Auth-Token",
+                        "X-Client-ID", "X-Timestamp", "X-Signature", "X-User-Role", "X-User-Id",
+                        "Admin-Username", "Authentication-Status", "X-Requested-With", "Origin", "Accept",
+                        "Access-Control-Request-Method", "Access-Control-Request-Headers")
+                .exposedHeaders("X-Session-ID", "X-Auth-Token", "Authorization")
                 .allowCredentials(true)
                 .maxAge(3600);
     }
