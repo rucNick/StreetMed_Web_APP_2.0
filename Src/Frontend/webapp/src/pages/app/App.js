@@ -3,13 +3,12 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "../Login/Login";
 import Home from "../Home/Home";
-import HomeFeedback from "../Home/Home_Feedback"; // Feedback page component
-import HomeProfile from "../Home/Home_Profile"; // profile page component
-import HomeOrderHistory from "../Home/Home_OrderHistory"; // Order History page component
+import HomeFeedback from "../Home/Home_Feedback";
+import HomeProfile from "../Home/Home_Profile";
+import HomeOrderHistory from "../Home/Home_OrderHistory";
 import Register from "../Register/Register";
 import Guest from "../Guest/Guest";
 import VolunteerAppli from "../Volunteer/volunteer_appli";
-//import Volunteer from "../Volunteer/Volunteer";
 import Admin from "../Admin/Admin";
 import CargoAdmin from "../Admin/Cargo_Admin";
 import CargoVolunteer from "../Volunteer/Cargo_Volunteer";
@@ -21,10 +20,29 @@ import AdminUsers from "../Admin/Admin_Users";
 import AdminOrders from "../Admin/Admin_Orders";
 import AdminViewAppli from "../Admin/Admin_ViewAppli";
 import AdminFeedback from "../Admin/Admin_Feedback";
+import CertificateHelper from "../../components/CertificateHelper";
+import { checkTLSConnection } from "../../config/axiosConfig";
 
 function App({ securityInitialized = false }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState({ username: "", userId: null, role: "" });
+  const [tlsStatus, setTlsStatus] = useState(null);
+
+  // Check TLS connection on app load
+  useEffect(() => {
+    const checkTLS = async () => {
+      if (process.env.REACT_APP_USE_TLS === 'true') {
+        const result = await checkTLSConnection();
+        setTlsStatus(result);
+        
+        if (!result.success && process.env.REACT_APP_ENVIRONMENT === 'development') {
+          console.warn('TLS connection check failed:', result.error);
+        }
+      }
+    };
+    
+    checkTLS();
+  }, []);
 
   // Rehydrate state when App mounts
   useEffect(() => {
@@ -51,7 +69,14 @@ function App({ securityInitialized = false }) {
     localStorage.removeItem("ecdh_session_id");
   };
 
-  if (!securityInitialized) {
+  // Handle profile updates
+  const handleProfileUpdate = (updatedData) => {
+    setUserData(updatedData);
+    sessionStorage.setItem("auth_user", JSON.stringify(updatedData));
+  };
+
+  // Show security initialization error if needed
+  if (!securityInitialized && process.env.REACT_APP_USE_AUTH === 'true') {
     return (
       <div
         style={{
@@ -65,14 +90,66 @@ function App({ securityInitialized = false }) {
       >
         <h2>Security Error</h2>
         <p>Secure connection could not be established.</p>
-        <p>Please refresh the page to try again.</p>
-        <button onClick={() => window.location.reload()}>Reload</button>
+        {process.env.REACT_APP_ENVIRONMENT === 'development' && (
+          <>
+            <p>Make sure the backend is running on https://localhost:8443</p>
+            <p>You may need to accept the self-signed certificate.</p>
+            <button 
+              onClick={() => window.open('https://localhost:8443/api/test/tls/status', '_blank')}
+              style={{
+                padding: '10px 20px',
+                margin: '10px',
+                backgroundColor: '#ff6b00',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Accept Certificate
+            </button>
+          </>
+        )}
+        <button 
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '10px 20px',
+            margin: '10px',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Reload Page
+        </button>
       </div>
     );
   }
 
   return (
     <Router>
+      {/* Certificate Helper Component - shows only in development when needed */}
+      <CertificateHelper />
+      
+      {/* TLS Status Indicator (optional - for debugging) */}
+      {process.env.REACT_APP_DEBUG_MODE === 'true' && tlsStatus && (
+        <div style={{
+          position: 'fixed',
+          bottom: '10px',
+          right: '10px',
+          padding: '5px 10px',
+          backgroundColor: tlsStatus.success ? '#4caf50' : '#f44336',
+          color: 'white',
+          borderRadius: '4px',
+          fontSize: '12px',
+          zIndex: 9999
+        }}>
+          TLS: {tlsStatus.success ? '✓ Secure' : '✗ Not Connected'}
+        </div>
+      )}
+      
       <Routes>
         <Route
           path="/"
@@ -87,19 +164,32 @@ function App({ securityInitialized = false }) {
               ) : (
                 <Home
                   username={userData.username}
+                  email={userData.email}
+                  phone={userData.phone}
                   userId={userData.userId}
                   onLogout={handleLogout}
                 />
               )
             ) : (
-              <BeforeLogin/>
-              //<Login onLoginSuccess={handleLoginSuccess}/>
+              <BeforeLogin />
             )
           }
         />
         <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} /> 
         <Route path="/feedback" element={<HomeFeedback username={userData.username} />} />
-        <Route path="/profile" element={<HomeProfile username={userData.username} email={userData.email} phone={userData.phone} userId={userData.userId} onLogout={handleLogout} />} />
+        <Route 
+          path="/profile" 
+          element={
+            <HomeProfile 
+              username={userData.username} 
+              email={userData.email} 
+              phone={userData.phone} 
+              userId={userData.userId} 
+              onLogout={handleLogout}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          } 
+        />
         <Route path="/orderhistory" element={<HomeOrderHistory userId={userData.userId} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/guest" element={<Guest onLogout={handleLogout} />} />
@@ -108,7 +198,6 @@ function App({ securityInitialized = false }) {
         <Route path="/cargo_volunteer" element={<CargoVolunteer />} />
         <Route path="/reset_password" element={<ResetPassword />} />
         <Route path="/round_admin" element={<RoundAdmin />} />
-        {/* <Route path="/volunteer_dashboard" element={<VolunteerDashboard userData={userData} />} /> */}
         <Route path="/admin/users" element={<AdminUsers userData={userData} />} />
         <Route path="/admin/orders" element={<AdminOrders userData={userData} />} />
         <Route path="/admin/applications" element={<AdminViewAppli userData={userData} />} />

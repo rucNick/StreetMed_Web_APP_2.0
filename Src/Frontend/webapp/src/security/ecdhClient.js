@@ -1,9 +1,22 @@
 /**
- * Enhanced ECDH client for secure key exchange with the backend
- * Updated with proper CORS and comprehensive error handling
+ * Enhanced ECDH client for secure key exchange with TLS-enabled backend
+ * Updated with HTTPS support and certificate handling
  */
 const crypto = window.crypto.subtle;
-const baseURL = process.env.REACT_APP_BASE_URL;
+
+// Use HTTPS for security endpoints
+const getSecureBaseURL = () => {
+  const environment = process.env.REACT_APP_ENVIRONMENT;
+  
+  if (environment === 'production') {
+    return process.env.REACT_APP_BASE_URL;
+  }
+  
+  // Always use HTTPS for security endpoints in development
+  return process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443';
+};
+
+const baseURL = getSecureBaseURL();
 
 // Utility functions for Base64 conversion
 export const arrayBufferToBase64 = (buffer) => {
@@ -83,10 +96,38 @@ const createClientSignature = async (timestamp) => {
 };
 
 /**
- * Performs the ECDH key exchange with the backend
+ * Handle certificate errors in development
+ */
+const handleCertificateError = (error) => {
+  if (process.env.REACT_APP_ENVIRONMENT === 'development' && 
+      process.env.REACT_APP_ALLOW_SELF_SIGNED_CERT === 'true') {
+    
+    console.warn('Self-signed certificate detected. Opening certificate acceptance page...');
+    
+    // Dispatch event to show certificate helper
+    window.dispatchEvent(new CustomEvent('certificate-error', { 
+      detail: { 
+        url: baseURL,
+        error: error.message 
+      }
+    }));
+    
+    return {
+      success: false,
+      error: 'Please accept the self-signed certificate and try again',
+      requiresCertAcceptance: true
+    };
+  }
+  
+  throw error;
+};
+
+/**
+ * Performs the ECDH key exchange with the TLS-enabled backend
  */
 export const performKeyExchange = async () => {
-  console.log('Starting ECDH key exchange...');
+  console.log('Starting ECDH key exchange with TLS-enabled backend...');
+  console.log('Using base URL:', baseURL);
   
   try {
     // Step 1: Generate client key pair
@@ -107,8 +148,8 @@ export const performKeyExchange = async () => {
     
     console.log('Prepared client authentication');
     
-    // Step 3: Initiate handshake with server
-    console.log('Requesting server public key...');
+    // Step 3: Initiate handshake with server over HTTPS
+    console.log('Requesting server public key over HTTPS...');
     
     // Prepare headers with client authentication
     const headers = {
@@ -136,6 +177,10 @@ export const performKeyExchange = async () => {
       console.log('Handshake response status:', response.status);
       
       if (!response.ok) {
+        // Check if it's a certificate error
+        if (response.status === 0 || response.type === 'opaque') {
+          return handleCertificateError(new Error('Certificate validation failed'));
+        }
         throw new Error(`Server handshake failed: ${response.status}`);
       }
       
@@ -218,7 +263,7 @@ export const performKeyExchange = async () => {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
       
-      console.log('ECDH key exchange completed successfully!');
+      console.log('ECDH key exchange completed successfully over HTTPS!');
       console.log(`Session ID: ${sessionId}`);
       console.log(`Shared Secret (hex): ${hexSharedSecret.substring(0, 10)}...`); // Only show part for security
       
@@ -231,6 +276,9 @@ export const performKeyExchange = async () => {
       securityContext.aesKey = aesKey;
       securityContext.initialized = true;
       
+      // Store session ID in localStorage for persistence
+      localStorage.setItem('ecdh_session_id', sessionId);
+      
       return {
         success: true,
         sessionId,
@@ -238,21 +286,26 @@ export const performKeyExchange = async () => {
       };
     } catch (error) {
       console.error('Fetch error during key exchange:', error);
-      // Attempt fallback - try fetch with fewer CORS restrictions
-      console.log('Attempting fallback request...');
       
-      const fallbackResponse = await fetch(`${baseURL}/api/security/initiate-handshake`, {
-        method: 'GET',
-        headers: headers,
-        mode: 'no-cors' // This will result in an "opaque" response that cannot be read
-      });
+      // Check for certificate errors
+      if (error.message.includes('Failed to fetch') || 
+          error.message.includes('NetworkError') ||
+          error.message.includes('ERR_CERT_AUTHORITY_INVALID')) {
+        return handleCertificateError(error);
+      }
       
-      // Since we can't read the response with no-cors mode, we just log the attempt
-      console.log('Fallback request completed with status:', fallbackResponse.type);
-      throw new Error(`Server communication failed: ${error.message} (fallback attempted)`);
+      throw error;
     }
   } catch (error) {
     console.error('ECDH key exchange failed:', error);
+    
+    // Check for certificate-related errors
+    if (error.message.includes('self signed certificate') || 
+        error.message.includes('certificate') ||
+        error.message.includes('ERR_CERT_AUTHORITY_INVALID')) {
+      return handleCertificateError(error);
+    }
+    
     return {
       success: false,
       error: error.message
@@ -378,7 +431,7 @@ export const decrypt = async (encryptedData) => {
  * Get the current session ID
  */
 export const getSessionId = () => {
-  return securityContext.sessionId;
+  return securityContext.sessionId || localStorage.getItem('ecdh_session_id');
 };
 
 /**
@@ -389,11 +442,41 @@ export const isInitialized = () => {
 };
 
 /**
+ * Restore session from localStorage
+ */
+export const restoreSession = () => {
+  const storedSessionId = localStorage.getItem('ecdh_session_id');
+  if (storedSessionId && !securityContext.initialized) {
+    console.log('Found stored session ID, but keys need to be re-established');
+    // In a real implementation, you might want to re-establish the session
+    // For now, we'll just clear it
+    localStorage.removeItem('ecdh_session_id');
+  }
+};
+
+/**
+ * Clear the security context
+ */
+export const clearSecurityContext = () => {
+  securityContext.sessionId = null;
+  securityContext.sharedSecret = null;
+  securityContext.aesKey = null;
+  securityContext.initialized = false;
+  localStorage.removeItem('ecdh_session_id');
+};
+
+/**
  * Alternative initialization that bypasses ECDH (for development only)
+ * Should NOT be used when TLS is enabled
  */
 export const bypassKeyExchangeForDevelopment = () => {
   if (process.env.NODE_ENV !== 'development') {
     console.error('Bypass method should only be used in development!');
+    return false;
+  }
+  
+  if (process.env.REACT_APP_USE_TLS === 'true') {
+    console.error('Cannot bypass key exchange when TLS is enabled!');
     return false;
   }
   
@@ -404,7 +487,7 @@ export const bypassKeyExchangeForDevelopment = () => {
 };
 
 /**
- * Performs an encrypted API call with client authentication
+ * Performs an encrypted API call with client authentication over HTTPS
  */
 export const secureApiCall = async (url, method, data) => {
   if (!isInitialized()) {
@@ -412,6 +495,12 @@ export const secureApiCall = async (url, method, data) => {
   }
   
   try {
+    // Ensure we're using HTTPS
+    const secureUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
+    if (!secureUrl.startsWith('https') && process.env.REACT_APP_ENVIRONMENT !== 'development') {
+      throw new Error('Secure API calls must use HTTPS');
+    }
+    
     // Add client authentication
     const timestamp = Date.now().toString();
     const clientId = window.CLIENT_ID || 'default-client-id';
@@ -442,7 +531,7 @@ export const secureApiCall = async (url, method, data) => {
     }
     
     // Make the request with the headers
-    const response = await fetch(url, {
+    const response = await fetch(secureUrl, {
       method: method,
       headers: headers,
       body: payload,
@@ -473,29 +562,16 @@ export const secureApiCall = async (url, method, data) => {
     }
   } catch (error) {
     console.error('Secure API call failed:', error);
+    
+    // Handle certificate errors
+    if (error.message.includes('Failed to fetch') || 
+        error.message.includes('NetworkError')) {
+      return handleCertificateError(error);
+    }
+    
     throw error;
   }
 };
 
-/**
- * handle potential CORS errors, falling back to no-cors mode if needed
- * Note: no-cors mode will not allow reading the response
- */
-export const fetchWithCorsHandling = async (url, options = {}) => {
-  try {
-    // First try with standard CORS settings
-    return await fetch(url, {
-      ...options,
-      credentials: 'include',
-      mode: 'cors'
-    });
-  } catch (error) {
-    console.warn('CORS fetch failed, attempting fallback:', error);
-    
-    // Fall back to no-cors mode (won't be able to read response)
-    return await fetch(url, {
-      ...options,
-      mode: 'no-cors'
-    });
-  }
-};
+// Initialize session restoration on module load
+restoreSession();

@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="Implement 2 Util classes and updater the AdminController using the util classes">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/util/RequestResponseUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/PasswordRecoveryController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/PasswordRecoveryController.java" afterDir="false" />
-    </list>
+    <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -133,7 +128,7 @@
       <workItem from="1757372831261" duration="616000" />
       <workItem from="1757548731902" duration="371000" />
       <workItem from="1757884310062" duration="4033000" />
-      <workItem from="1757921276910" duration="6556000" />
+      <workItem from="1757921276910" duration="7210000" />
     </task>
     <task id="LOCAL-00001" summary="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService">
       <option name="closed" value="true" />
@@ -159,7 +154,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757927994673</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="move the private methods from controllers to the util class">
+      <option name="closed" value="true" />
+      <created>1757928996824</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1757928996824</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,6 +173,7 @@
     <MESSAGE value="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService" />
     <MESSAGE value="refine the emailservice" />
     <MESSAGE value="Implement 2 Util classes and updater the AdminController using the util classes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implement 2 Util classes and updater the AdminController using the util classes" />
+    <MESSAGE value="move the private methods from controllers to the util class" />
+    <option name="LAST_COMMIT_MESSAGE" value="move the private methods from controllers to the util class" />
   </component>
 </project>
