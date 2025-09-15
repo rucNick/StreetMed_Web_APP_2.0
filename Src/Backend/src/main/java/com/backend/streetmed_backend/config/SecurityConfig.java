@@ -15,7 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 /**
- * Security configuration that allows your existing endpoints to work
+ * Security configuration that allows existing endpoints to work
  * while also permitting access to TLS test endpoints
  */
 @Configuration
@@ -66,7 +66,6 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
 
                         // All other requests can be accessed without authentication for now
-                        // Change this to .authenticated() when you want to enforce security
                         .anyRequest().permitAll()
                 )
 

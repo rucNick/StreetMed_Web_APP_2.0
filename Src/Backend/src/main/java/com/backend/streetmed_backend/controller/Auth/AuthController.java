@@ -9,10 +9,12 @@ import com.backend.streetmed_backend.service.VolunteerSubRoleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +22,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 @Tag(name = "Authentication", description = "APIs for user authentication and profile management")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     private final UserService userService;
     private final Executor authExecutor;
     private final Executor readOnlyExecutor;
@@ -34,7 +40,27 @@ public class AuthController {
     private final SecurityManager securityManager;
     private final VolunteerSubRoleService volunteerSubRoleService;
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    // Temporary token store for development - REPLACE WITH PROPER AUTH IN PRODUCTION
+    // WARNING: This is NOT secure and should NEVER be used in production
+    private static final Map<String, Integer> DEV_TOKEN_STORE = new ConcurrentHashMap<>();
+    private static final Map<String, String> DEV_TOKEN_ROLES = new ConcurrentHashMap<>();
+
+    // TLS configuration
+    @Value("${server.ssl.enabled:false}")
+    private boolean sslEnabled;
+
+    @Value("${tls.enforce.auth:false}")
+    private boolean enforceHttpsForAuth;
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
+
+    @Value("${tls.allow.http.in.dev:false}")
+    private boolean allowHttpInDev;
+
+    // Security configuration for development
+    @Value("${auth.dev.token.enabled:true}")
+    private boolean devTokenEnabled;
 
     @Autowired
     public AuthController(
@@ -50,17 +76,136 @@ public class AuthController {
         this.readOnlyExecutor = readOnlyExecutor;
         this.securityManager = securityManager;
         this.objectMapper = objectMapper;
-        logger.info("AuthController initialized with SecurityManager");
+        logger.info("AuthController initialized - SSL: {}, Enforce HTTPS: {}, Dev Token: {}",
+                sslEnabled, enforceHttpsForAuth, devTokenEnabled);
+
+        // Log security warning in development
+        if (devTokenEnabled) {
+            logger.warn("⚠️ DEV TOKEN MODE ENABLED - This is NOT secure for production!");
+            logger.warn("⚠️ Using in-memory token store - tokens will be lost on restart");
+        }
     }
 
     /**
-     * Parses the request body. If a session ID is provided, it attempts to decrypt the body first.
-     *
-     * @param sessionId the session ID (can be null)
-     * @param body the request body
-     * @param logPrefix a string to identify the request type in logs
-     * @return a map representing the parsed JSON data
-     * @throws Exception if parsing (or decryption and then parsing) fails
+     * Check if connection is secure (HTTPS)
+     */
+    private boolean isSecureConnection(HttpServletRequest request) {
+        boolean isSecure = request.isSecure() ||
+                "https".equalsIgnoreCase(request.getScheme()) ||
+                "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto")) ||
+                "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Protocol"));
+
+        logger.debug("Auth connection check - Scheme: {}, Secure: {}, Port: {}, X-Forwarded-Proto: {}",
+                request.getScheme(),
+                request.isSecure(),
+                request.getServerPort(),
+                request.getHeader("X-Forwarded-Proto"));
+
+        return isSecure;
+    }
+
+    /**
+     * Check if the connection meets security requirements
+     */
+    private boolean isConnectionAllowed(HttpServletRequest request, boolean isProtectedEndpoint) {
+        boolean isSecure = isSecureConnection(request);
+
+        // For protected endpoints (update operations), enforce HTTPS if configured
+        if (isProtectedEndpoint && sslEnabled && enforceHttpsForAuth) {
+            if (!isSecure) {
+                logger.warn("Insecure auth request blocked from: {} - Endpoint: {}",
+                        request.getRemoteAddr(), request.getRequestURI());
+                return false;
+            }
+        }
+
+        // In development, optionally allow HTTP
+        if (isLocalEnvironment() && allowHttpInDev) {
+            logger.debug("Local environment with HTTP allowed - accepting connection");
+            return true;
+        }
+
+        // For non-protected endpoints (login/register), allow based on configuration
+        if (!isProtectedEndpoint) {
+            return true; // Allow login/register over HTTP in dev
+        }
+
+        // For protected endpoints, require HTTPS when SSL is enabled
+        if (!isSecure && sslEnabled) {
+            logger.warn("HTTP request blocked for protected endpoint when HTTPS is available");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if running in local environment
+     */
+    private boolean isLocalEnvironment() {
+        return activeProfile.contains("local") ||
+                activeProfile.contains("dev") ||
+                activeProfile.contains("default");
+    }
+
+    /**
+     * Standard HTTPS error response
+     */
+    private ResponseEntity<Map<String, Object>> createHttpsRequiredResponse() {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", "error");
+        errorResponse.put("message", "This operation requires secure HTTPS connection");
+        errorResponse.put("httpsRequired", true);
+        errorResponse.put("sslEnabled", sslEnabled);
+        errorResponse.put("hint", sslEnabled ? "Use HTTPS on port 8443" : "SSL is not enabled on server");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    /**
+     * Validate authentication token (Development version)
+     * WARNING: This is NOT secure - replace with JWT or proper session management in production
+     */
+    private boolean validateAuthToken(String authToken, Integer expectedUserId) {
+        if (!devTokenEnabled) {
+            // In production mode, this should validate JWT or session
+            logger.error("Dev token mode disabled but no production auth implemented!");
+            return false;
+        }
+
+        if (authToken == null || authToken.isEmpty()) {
+            logger.warn("No auth token provided");
+            return false;
+        }
+
+        Integer storedUserId = DEV_TOKEN_STORE.get(authToken);
+        if (storedUserId == null) {
+            logger.warn("Invalid or expired auth token");
+            return false;
+        }
+
+        // If expectedUserId is provided, verify it matches
+        if (expectedUserId != null && !storedUserId.equals(expectedUserId)) {
+            logger.warn("Token user ID mismatch - expected: {}, actual: {}", expectedUserId, storedUserId);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Generate development auth token
+     * WARNING: Replace with JWT in production
+     */
+    private String generateDevToken(Integer userId, String role) {
+        String token = UUID.randomUUID().toString();
+        DEV_TOKEN_STORE.put(token, userId);
+        DEV_TOKEN_ROLES.put(token, role);
+        logger.info("Generated dev token for user {} with role {}", userId, role);
+        return token;
+    }
+
+    /**
+     * Parses the request body with encryption support
      */
     private Map<String, String> parseRequestBody(String sessionId, String body, String logPrefix) throws Exception {
         if (sessionId != null && !sessionId.isEmpty()) {
@@ -84,12 +229,7 @@ public class AuthController {
     }
 
     /**
-     * Builds a ResponseEntity. If a session ID and key are provided, the response body will be encrypted.
-     *
-     * @param sessionId the session ID (can be null)
-     * @param response the response object to be serialized as JSON
-     * @param status the HTTP status to be used for the response
-     * @return a ResponseEntity containing either the encrypted or plain response body
+     * Builds a ResponseEntity with encryption support
      */
     private ResponseEntity<?> buildResponse(String sessionId, Object response, HttpStatus status) {
         if (sessionId != null && !sessionId.isEmpty() && securityManager.getSessionKey(sessionId) != null) {
@@ -103,17 +243,23 @@ public class AuthController {
         return ResponseEntity.status(status).body(response);
     }
 
-    @Operation(summary = "Register a new user")
+    @Operation(summary = "Register a new user (HTTPS recommended)")
     @PostMapping("/register")
     public CompletableFuture<ResponseEntity<?>> register(
             @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
-            @RequestBody String body) {
+            @RequestBody String body,
+            HttpServletRequest request) {
+
+        // Registration is allowed over HTTP in dev, but log warning
+        if (!isSecureConnection(request) && sslEnabled) {
+            logger.warn("⚠️ User registration over insecure HTTP connection - should use HTTPS");
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, String> userData = parseRequestBody(sessionId, body, "registration");
 
-                if (userData.get("username") == null ||
-                        userData.get("password") == null) {
+                if (userData.get("username") == null || userData.get("password") == null) {
                     throw new RuntimeException("Missing required fields");
                 }
 
@@ -145,6 +291,7 @@ public class AuthController {
                 response.put("status", "success");
                 response.put("message", "User registered successfully");
                 response.put("userId", savedUser.getUserId());
+                response.put("secure", isSecureConnection(request));
 
                 return buildResponse(sessionId, response, HttpStatus.OK);
 
@@ -158,11 +305,18 @@ public class AuthController {
         }, authExecutor);
     }
 
-    @Operation(summary = "User login")
+    @Operation(summary = "User login (HTTPS recommended)")
     @PostMapping("/login")
     public CompletableFuture<ResponseEntity<?>> login(
             @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
-            @RequestBody String body) {
+            @RequestBody String body,
+            HttpServletRequest request) {
+
+        // Login is allowed over HTTP in dev, but log warning
+        if (!isSecureConnection(request) && sslEnabled) {
+            logger.warn("⚠️ User login over insecure HTTP connection - credentials may be exposed!");
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, String> credentials = parseRequestBody(sessionId, body, "login");
@@ -184,6 +338,12 @@ public class AuthController {
                 if (user != null && userService.verifyUserPassword(password, user.getPassword())) {
                     CompletableFuture.runAsync(() -> userService.updateLastLogin(user.getUserId()), authExecutor);
 
+                    // Generate auth token (dev mode)
+                    String authToken = null;
+                    if (devTokenEnabled) {
+                        authToken = generateDevToken(user.getUserId(), user.getRole());
+                    }
+
                     Map<String, Object> response = new HashMap<>();
                     response.put("status", "success");
                     response.put("message", "Login successful");
@@ -195,10 +355,18 @@ public class AuthController {
                         response.put("email", user.getEmail());
                     }
 
+                    // Include auth token if dev mode is enabled
+                    if (authToken != null) {
+                        response.put("authToken", authToken);
+                        response.put("tokenType", "dev");
+                        response.put("warning", "Dev token mode - NOT secure for production!");
+                    }
+
+                    response.put("secure", isSecureConnection(request));
+
                     // Enrich volunteer users with sub role details
                     if ("VOLUNTEER".equals(user.getRole())) {
                         Optional<VolunteerSubRole> subRoleOpt = volunteerSubRoleService.getVolunteerSubRole(user.getUserId());
-                        // Default to REGULAR if no sub role is assigned.
                         String subRoleStr = subRoleOpt.map(vsr -> vsr.getSubRole().toString())
                                 .orElse(VolunteerSubRole.SubRoleType.REGULAR.toString());
                         response.put("volunteerSubRole", subRoleStr);
@@ -222,22 +390,32 @@ public class AuthController {
         }, readOnlyExecutor);
     }
 
-
-    @Operation(summary = "Update username")
+    @Operation(summary = "Update username (HTTPS required for production)")
     @PutMapping("/update/username")
     public CompletableFuture<ResponseEntity<?>> updateUsername(
             @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
-            @RequestBody String body) {
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestBody String body,
+            HttpServletRequest request) {
+
+        // Protected endpoint - check HTTPS requirement
+        if (!isConnectionAllowed(request, true)) {
+            return CompletableFuture.completedFuture(createHttpsRequiredResponse());
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, String> updateData = parseRequestBody(sessionId, body, "username update");
 
                 String userId = updateData.get("userId");
                 String newUsername = updateData.get("newUsername");
-                String authStatus = updateData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
-                    throw new RuntimeException("Not authenticated");
+                // Validate auth token if dev mode enabled
+                if (devTokenEnabled && !validateAuthToken(authToken, Integer.parseInt(userId))) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Invalid or expired auth token");
+                    return buildResponse(sessionId, errorResponse, HttpStatus.UNAUTHORIZED);
                 }
 
                 if (userId == null || newUsername == null) {
@@ -257,6 +435,7 @@ public class AuthController {
                 response.put("status", "success");
                 response.put("message", "Username updated successfully");
                 response.put("username", updatedUser.getUsername());
+                response.put("secure", isSecureConnection(request));
 
                 return buildResponse(sessionId, response, HttpStatus.OK);
 
@@ -270,11 +449,19 @@ public class AuthController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Update phone number")
+    @Operation(summary = "Update phone number (HTTPS required for production)")
     @PutMapping("/update/phone")
     public CompletableFuture<ResponseEntity<?>> updatePhone(
             @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
-            @RequestBody String body) {
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestBody String body,
+            HttpServletRequest request) {
+
+        // Protected endpoint - check HTTPS requirement
+        if (!isConnectionAllowed(request, true)) {
+            return CompletableFuture.completedFuture(createHttpsRequiredResponse());
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, String> updateData = parseRequestBody(sessionId, body, "phone update");
@@ -282,10 +469,13 @@ public class AuthController {
                 String userId = updateData.get("userId");
                 String currentPassword = updateData.get("currentPassword");
                 String newPhone = updateData.get("newPhone");
-                String authStatus = updateData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
-                    throw new RuntimeException("Not authenticated");
+                // Validate auth token if dev mode enabled
+                if (devTokenEnabled && !validateAuthToken(authToken, Integer.parseInt(userId))) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Invalid or expired auth token");
+                    return buildResponse(sessionId, errorResponse, HttpStatus.UNAUTHORIZED);
                 }
 
                 if (userId == null || currentPassword == null || newPhone == null) {
@@ -314,6 +504,7 @@ public class AuthController {
                 response.put("status", "success");
                 response.put("message", "Phone number updated successfully");
                 response.put("phone", updatedUser.getPhone());
+                response.put("secure", isSecureConnection(request));
 
                 return buildResponse(sessionId, response, HttpStatus.OK);
 
@@ -327,11 +518,20 @@ public class AuthController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Update password")
+    @Operation(summary = "Update password (HTTPS required)")
     @PutMapping("/update/password")
     public CompletableFuture<ResponseEntity<?>> updatePassword(
             @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
-            @RequestBody String body) {
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestBody String body,
+            HttpServletRequest request) {
+
+        // Password update ALWAYS requires HTTPS when SSL is enabled
+        if (sslEnabled && !isSecureConnection(request)) {
+            logger.error("Password update attempted over insecure connection!");
+            return CompletableFuture.completedFuture(createHttpsRequiredResponse());
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, String> updateData = parseRequestBody(sessionId, body, "password update");
@@ -339,10 +539,13 @@ public class AuthController {
                 String userId = updateData.get("userId");
                 String currentPassword = updateData.get("currentPassword");
                 String newPassword = updateData.get("newPassword");
-                String authStatus = updateData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
-                    throw new RuntimeException("Not authenticated");
+                // Validate auth token if dev mode enabled
+                if (devTokenEnabled && !validateAuthToken(authToken, Integer.parseInt(userId))) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Invalid or expired auth token");
+                    return buildResponse(sessionId, errorResponse, HttpStatus.UNAUTHORIZED);
                 }
 
                 if (userId == null || currentPassword == null || newPassword == null) {
@@ -366,6 +569,7 @@ public class AuthController {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
                 response.put("message", "Password updated successfully");
+                response.put("secure", isSecureConnection(request));
 
                 return buildResponse(sessionId, response, HttpStatus.OK);
 
@@ -379,11 +583,19 @@ public class AuthController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Update email")
+    @Operation(summary = "Update email (HTTPS required for production)")
     @PutMapping("/update/email")
     public CompletableFuture<ResponseEntity<?>> updateEmail(
             @RequestHeader(value = "X-Session-ID", required = false) String sessionId,
-            @RequestBody String body) {
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestBody String body,
+            HttpServletRequest request) {
+
+        // Protected endpoint - check HTTPS requirement
+        if (!isConnectionAllowed(request, true)) {
+            return CompletableFuture.completedFuture(createHttpsRequiredResponse());
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, String> updateData = parseRequestBody(sessionId, body, "email update");
@@ -391,10 +603,13 @@ public class AuthController {
                 String userId = updateData.get("userId");
                 String currentPassword = updateData.get("currentPassword");
                 String newEmail = updateData.get("newEmail");
-                String authStatus = updateData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
-                    throw new RuntimeException("Not authenticated");
+                // Validate auth token if dev mode enabled
+                if (devTokenEnabled && !validateAuthToken(authToken, Integer.parseInt(userId))) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Invalid or expired auth token");
+                    return buildResponse(sessionId, errorResponse, HttpStatus.UNAUTHORIZED);
                 }
 
                 if (userId == null || currentPassword == null || newEmail == null) {
@@ -426,6 +641,7 @@ public class AuthController {
                 response.put("status", "success");
                 response.put("message", "Email updated successfully");
                 response.put("email", updatedUser.getEmail());
+                response.put("secure", isSecureConnection(request));
 
                 return buildResponse(sessionId, response, HttpStatus.OK);
 
@@ -437,5 +653,73 @@ public class AuthController {
                 return buildResponse(sessionId, errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }, authExecutor);
+    }
+
+    @Operation(summary = "Logout user")
+    @PostMapping("/logout")
+    public CompletableFuture<ResponseEntity<?>> logout(
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestBody(required = false) Map<String, String> body) {
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // In dev mode, remove token from store
+                if (devTokenEnabled && authToken != null) {
+                    Integer userId = DEV_TOKEN_STORE.remove(authToken);
+                    DEV_TOKEN_ROLES.remove(authToken);
+                    if (userId != null) {
+                        logger.info("User {} logged out, token invalidated", userId);
+                    }
+                }
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("message", "Logged out successfully");
+                response.put("authenticated", false);
+
+                return ResponseEntity.ok(response);
+
+            } catch (Exception e) {
+                logger.error("Error during logout: {}", e.getMessage());
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", "Logout failed");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, authExecutor);
+    }
+
+    @Operation(summary = "Get authentication status")
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getAuthStatus(
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            HttpServletRequest request) {
+
+        Map<String, Object> status = new HashMap<>();
+
+        if (devTokenEnabled && authToken != null) {
+            Integer userId = DEV_TOKEN_STORE.get(authToken);
+            String role = DEV_TOKEN_ROLES.get(authToken);
+
+            if (userId != null) {
+                status.put("authenticated", true);
+                status.put("userId", userId);
+                status.put("role", role);
+                status.put("tokenValid", true);
+            } else {
+                status.put("authenticated", false);
+                status.put("tokenValid", false);
+                status.put("message", "Invalid or expired token");
+            }
+        } else {
+            status.put("authenticated", false);
+            status.put("message", "No authentication token provided");
+        }
+
+        status.put("secure", isSecureConnection(request));
+        status.put("authMode", devTokenEnabled ? "dev-token" : "none");
+        status.put("sslEnabled", sslEnabled);
+
+        return ResponseEntity.ok(status);
     }
 }

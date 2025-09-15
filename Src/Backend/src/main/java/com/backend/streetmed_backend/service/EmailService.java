@@ -336,6 +336,38 @@ public class EmailService {
         return dateTime.format(dateTimeFormatter);
     }
 
+    //Password Change Confirmation
+    public void sendPasswordChangeConfirmation(String email) {
+        if (emailServiceEnabled) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    SimpleMailMessage message = new SimpleMailMessage();
+                    message.setTo(email);
+                    message.setSubject("StreetMed Password Changed Successfully");
+
+                    StringBuilder messageText = new StringBuilder();
+                    messageText.append("Your StreetMed account password has been successfully changed.\n\n");
+                    messageText.append("If you made this change, no further action is needed.\n\n");
+                    messageText.append("If you did NOT make this change, please contact us immediately ");
+                    messageText.append("as your account may have been compromised.\n\n");
+                    messageText.append("For security reasons, we recommend:\n");
+                    messageText.append("• Using a strong, unique password\n");
+                    messageText.append("• Not sharing your password with anyone\n");
+                    messageText.append("• Changing your password regularly\n\n");
+                    messageText.append("Best regards,\nStreetMed@Pitt Team");
+
+                    message.setText(messageText.toString());
+                    mailSender.send(message);
+                    logger.info("Password change confirmation email sent to: {}", email);
+                } catch (Exception e) {
+                    logger.error("Failed to send password change confirmation email to {}: {}", email, e.getMessage());
+                }
+            }, emailExecutor);
+        } else {
+            logger.info("Email service is disabled. Would have sent password change confirmation to: {}", email);
+        }
+    }
+
     // Check if email service is enabled
     public boolean isEmailServiceEnabled() {
         return emailServiceEnabled;

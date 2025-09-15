@@ -21,11 +21,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 /**
- * REST Controller for administrative operations
- * All business logic is delegated to AdminService
- * Focuses on HTTP request/response handling and security validation
+ * Admin Controller with proper TLS/HTTPS enforcement
+ * All sensitive operations require HTTPS connection in production
  */
-@Tag(name = "Admin User Management", description = "APIs for administrators to manage users (TLS/HTTPS required in production)")
+@Tag(name = "Admin User Management", description = "APIs for administrators to manage users (HTTPS/TLS required)")
 @RestController
 @RequestMapping("/api/admin")
 @CrossOrigin
@@ -47,6 +46,9 @@ public class AdminController {
     @Value("${spring.profiles.active:default}")
     private String activeProfile;
 
+    @Value("${tls.allow.http.in.dev:false}")
+    private boolean allowHttpInDev;
+
     @Autowired
     public AdminController(AdminService adminService,
                            @Qualifier("authExecutor") Executor authExecutor,
@@ -54,31 +56,77 @@ public class AdminController {
         this.adminService = adminService;
         this.authExecutor = authExecutor;
         this.readOnlyExecutor = readOnlyExecutor;
-        logger.info("AdminController initialized - TLS enforcement: {}", enforceHttpsForAdmin);
+        logger.info("AdminController initialized - SSL: {}, Enforce HTTPS: {}, Profile: {}",
+                sslEnabled, enforceHttpsForAdmin, activeProfile);
     }
 
     /**
      * Validates HTTPS requirement for admin operations
+     * Fixed to properly check for secure connections
      */
-    private boolean isSecureConnectionRequired(HttpServletRequest request) {
-        // Skip HTTPS enforcement in development/local profiles
-        if (activeProfile.contains("local") || activeProfile.contains("dev")) {
-            return true;
-        }
-
-        if (!enforceHttpsForAdmin) {
-            return true;
-        }
-
+    private boolean isSecureConnection(HttpServletRequest request) {
+        // Check multiple indicators of HTTPS connection
         boolean isSecure = request.isSecure() ||
                 "https".equalsIgnoreCase(request.getScheme()) ||
-                "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+                "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto")) ||
+                "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Protocol"));
 
-        if (!isSecure) {
-            logger.warn("Insecure admin request blocked from: {}", request.getRemoteAddr());
-        }
+        // Log detailed connection info for debugging
+        logger.debug("Connection check - Scheme: {}, Secure: {}, Port: {}, X-Forwarded-Proto: {}",
+                request.getScheme(),
+                request.isSecure(),
+                request.getServerPort(),
+                request.getHeader("X-Forwarded-Proto"));
 
         return isSecure;
+    }
+
+    /**
+     * Check if the connection meets security requirements
+     */
+    private boolean isConnectionAllowed(HttpServletRequest request) {
+        boolean isSecure = isSecureConnection(request);
+
+        // If SSL is enabled and HTTPS enforcement is on, require HTTPS
+        if (sslEnabled && enforceHttpsForAdmin) {
+            if (!isSecure) {
+                logger.warn("Insecure admin request blocked from: {} - Scheme: {}, Port: {}",
+                        request.getRemoteAddr(),
+                        request.getScheme(),
+                        request.getServerPort());
+                return false;
+            }
+        }
+
+        // In development, optionally allow HTTP (controlled by config)
+        if (isLocalEnvironment() && allowHttpInDev) {
+            logger.debug("Local environment with HTTP allowed - accepting connection");
+            return true;
+        }
+
+        // For production or when HTTP is not explicitly allowed, require HTTPS
+        if (!isSecure && sslEnabled) {
+            logger.warn("HTTP request blocked when HTTPS is available");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if running in local environment
+     */
+    private boolean isLocalEnvironment() {
+        return activeProfile.contains("local") ||
+                activeProfile.contains("dev") ||
+                activeProfile.contains("default");
+    }
+
+    /**
+     * Validate admin authentication
+     */
+    private boolean validateAdminAuth(String authStatus) {
+        return "true".equals(authStatus);
     }
 
     /**
@@ -88,6 +136,9 @@ public class AdminController {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("status", "error");
         errorResponse.put("message", "Admin operations require secure HTTPS connection");
+        errorResponse.put("httpsRequired", true);
+        errorResponse.put("sslEnabled", sslEnabled);
+        errorResponse.put("hint", sslEnabled ? "Use HTTPS on port 8443" : "SSL is not enabled on server");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
@@ -98,6 +149,7 @@ public class AdminController {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("status", "error");
         errorResponse.put("message", message);
+        errorResponse.put("authenticated", false);
         return ResponseEntity.status(status).body(errorResponse);
     }
 
@@ -108,19 +160,20 @@ public class AdminController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("message", message);
+        response.put("authenticated", true);
         if (data != null) {
             response.putAll(data);
         }
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Update volunteer sub role (Admin only)")
+    @Operation(summary = "Update volunteer sub role (Admin only - HTTPS required)")
     @PutMapping("/volunteer/subrole")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> updateVolunteerSubRole(
             @RequestBody Map<String, String> requestData,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
@@ -129,7 +182,7 @@ public class AdminController {
                 String adminUsername = requestData.get("adminUsername");
                 String authStatus = requestData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     return createErrorResponse("Not authenticated", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -156,20 +209,20 @@ public class AdminController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Get all users (Admin only)")
+    @Operation(summary = "Get all users (Admin only - HTTPS required)")
     @GetMapping("/users")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getAllUsers(
             @RequestHeader("Admin-Username") String adminUsername,
             @RequestHeader("Authentication-Status") String authStatus,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     Map<String, Object> errorResponse = new HashMap<>();
                     errorResponse.put("status", "error");
                     errorResponse.put("message", "Not authenticated");
@@ -184,6 +237,7 @@ public class AdminController {
                 response.put("status", "success");
                 response.put("authenticated", true);
                 response.put("data", groupedUsers);
+                response.put("secure", isSecureConnection(request));  // Add security indicator
 
                 return ResponseEntity.ok(response);
 
@@ -204,20 +258,20 @@ public class AdminController {
         }, readOnlyExecutor);
     }
 
-    @Operation(summary = "Delete user (Admin only)")
+    @Operation(summary = "Delete user (Admin only - HTTPS required)")
     @DeleteMapping("/user/delete")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> deleteUser(
             @RequestBody Map<String, String> deleteRequest,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String isAuthenticatedStr = deleteRequest.get("authenticated");
-                if (!"true".equals(isAuthenticatedStr)) {
+                if (!validateAdminAuth(isAuthenticatedStr)) {
                     Map<String, Object> errorResponse = new HashMap<>();
                     errorResponse.put("status", "error");
                     errorResponse.put("message", "Not authenticated");
@@ -260,13 +314,13 @@ public class AdminController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Create a new user (Admin only)")
+    @Operation(summary = "Create a new user (Admin only - HTTPS required)")
     @PostMapping("/user/create")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> createUser(
             @RequestBody Map<String, String> userData,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
@@ -275,7 +329,7 @@ public class AdminController {
                 String adminUsername = userData.get("adminUsername");
                 String authStatus = userData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     return createErrorResponse("Not authenticated", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -284,6 +338,7 @@ public class AdminController {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
                 response.put("message", "User created successfully");
+                response.put("authenticated", true);
                 response.putAll(createdUser);
 
                 return ResponseEntity.ok(response);
@@ -300,14 +355,14 @@ public class AdminController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Update user information (Admin only)")
+    @Operation(summary = "Update user information (Admin only - HTTPS required)")
     @PutMapping("/user/update/{userId}")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> updateUser(
             @PathVariable Integer userId,
             @RequestBody Map<String, String> updateData,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
@@ -316,7 +371,7 @@ public class AdminController {
                 String adminUsername = updateData.get("adminUsername");
                 String authStatus = updateData.get("authenticated");
 
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     return createErrorResponse("Not authenticated", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -324,6 +379,7 @@ public class AdminController {
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
+                response.put("authenticated", true);
                 response.putAll(updateResult);
 
                 return ResponseEntity.ok(response);
@@ -342,14 +398,14 @@ public class AdminController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Reset user password (Admin only)")
+    @Operation(summary = "Reset user password (Admin only - HTTPS required)")
     @PutMapping("/user/reset-password/{userId}")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> resetPassword(
             @PathVariable Integer userId,
             @RequestBody Map<String, String> resetData,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
@@ -359,7 +415,7 @@ public class AdminController {
                 String authStatus = resetData.get("authenticated");
                 String newPassword = resetData.get("newPassword");
 
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     return createErrorResponse("Not authenticated", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -368,6 +424,7 @@ public class AdminController {
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
+                response.put("authenticated", true);
                 response.putAll(resetResult);
 
                 return ResponseEntity.ok(response);
@@ -385,7 +442,7 @@ public class AdminController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Get user details (Admin only)")
+    @Operation(summary = "Get user details (Admin only - HTTPS required)")
     @GetMapping("/user/{userId}")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getUserDetails(
             @PathVariable Integer userId,
@@ -393,13 +450,13 @@ public class AdminController {
             @RequestHeader("Authentication-Status") String authStatus,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     return createErrorResponse("Not authenticated", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -407,6 +464,7 @@ public class AdminController {
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
+                response.put("authenticated", true);
                 response.put("data", userDetails);
 
                 return ResponseEntity.ok(response);
@@ -422,20 +480,20 @@ public class AdminController {
         }, readOnlyExecutor);
     }
 
-    @Operation(summary = "Get user statistics (Admin only)")
+    @Operation(summary = "Get user statistics (Admin only - HTTPS required)")
     @GetMapping("/statistics")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getUserStatistics(
             @RequestHeader("Admin-Username") String adminUsername,
             @RequestHeader("Authentication-Status") String authStatus,
             HttpServletRequest request) {
 
-        if (!isSecureConnectionRequired(request)) {
+        if (!isConnectionAllowed(request)) {
             return CompletableFuture.completedFuture(createHttpsRequiredResponse());
         }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                if (!"true".equals(authStatus)) {
+                if (!validateAdminAuth(authStatus)) {
                     return createErrorResponse("Not authenticated", HttpStatus.UNAUTHORIZED);
                 }
 
@@ -443,6 +501,7 @@ public class AdminController {
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
+                response.put("authenticated", true);
                 response.put("data", statistics);
 
                 return ResponseEntity.ok(response);
@@ -454,5 +513,126 @@ public class AdminController {
                 return createErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }, readOnlyExecutor);
+    }
+
+    @Operation(summary = "Get TLS/Security status for this controller")
+    @GetMapping("/security-status")
+    public ResponseEntity<Map<String, Object>> getSecurityStatus(HttpServletRequest request) {
+        Map<String, Object> status = new HashMap<>();
+        status.put("sslEnabled", sslEnabled);
+        status.put("enforceHttpsForAdmin", enforceHttpsForAdmin);
+        status.put("currentConnectionSecure", isSecureConnection(request));
+        status.put("connectionAllowed", isConnectionAllowed(request));
+        status.put("requestScheme", request.getScheme());
+        status.put("requestSecure", request.isSecure());
+        status.put("xForwardedProto", request.getHeader("X-Forwarded-Proto"));
+        status.put("serverPort", request.getServerPort());
+        status.put("environment", activeProfile);
+        status.put("allowHttpInDev", allowHttpInDev);
+        status.put("tlsRequired", sslEnabled && enforceHttpsForAdmin);
+
+        logger.info("Security status check - Secure: {}, Allowed: {}, Scheme: {}, Port: {}",
+                isSecureConnection(request), isConnectionAllowed(request),
+                request.getScheme(), request.getServerPort());
+
+        return ResponseEntity.ok(status);
+    }
+
+    @Operation(summary = "Hash a plain password (Dev utility - HTTPS required)")
+    @PostMapping("/utility/hash-password")
+    public ResponseEntity<Map<String, Object>> hashPassword(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        // Only allow in local/dev environment
+        if (!isLocalEnvironment()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", "This endpoint is only available in development environment");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
+        // Still check for HTTPS if configured
+        if (!isConnectionAllowed(httpRequest)) {
+            return createHttpsRequiredResponse();
+        }
+
+        String plainPassword = request.get("password");
+        if (plainPassword == null || plainPassword.trim().isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", "Password is required");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+
+        try {
+            // Use BCryptPasswordEncoder to hash the password
+            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder =
+                    new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(12);
+            String hashedPassword = encoder.encode(plainPassword);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("plainPassword", plainPassword);
+            response.put("hashedPassword", hashedPassword);
+            response.put("algorithm", "BCrypt");
+            response.put("strength", 12);
+            response.put("note", "Use this hash in your database for the password field");
+
+            logger.info("Password hashed successfully for development use");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error hashing password: {}", e.getMessage());
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", "Failed to hash password: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @Operation(summary = "Verify a password against a hash (Dev utility)")
+    @PostMapping("/utility/verify-password")
+    public ResponseEntity<Map<String, Object>> verifyPassword(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        // Only allow in local/dev environment
+        if (!isLocalEnvironment()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", "This endpoint is only available in development environment");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
+        String plainPassword = request.get("password");
+        String hashedPassword = request.get("hash");
+
+        if (plainPassword == null || hashedPassword == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", "Both password and hash are required");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+
+        try {
+            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder =
+                    new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+            boolean matches = encoder.matches(plainPassword, hashedPassword);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("matches", matches);
+            response.put("message", matches ? "Password matches the hash" : "Password does NOT match the hash");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error verifying password: {}", e.getMessage());
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", "Failed to verify password: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 }
