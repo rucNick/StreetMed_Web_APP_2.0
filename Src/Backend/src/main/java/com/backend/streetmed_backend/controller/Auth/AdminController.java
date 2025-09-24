@@ -340,4 +340,53 @@ public class AdminController {
             }
         }, readOnlyExecutor);
     }
+
+    /**
+     * DEV ONLY - Creates a default admin user without authentication
+     * Username: admin, Password: admin
+     * WARNING: Remove or disable this endpoint in production!
+     */
+    @Operation(summary = "Create default admin user (DEV ONLY - NO AUTH REQUIRED)")
+    @PostMapping("/dev/quick-admin")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> createQuickAdminUser(
+            HttpServletRequest request) {
+
+        logger.warn("DEV ENDPOINT: Creating admin user without authentication!");
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Prepare admin user data with minimal required fields
+                Map<String, String> adminData = new HashMap<>();
+                adminData.put("username", "admin");
+                adminData.put("password", "admin");
+                adminData.put("email", "");  //
+                adminData.put("firstName", "");  // blank
+                adminData.put("lastName", "");  // blank
+                adminData.put("role", "ADMIN");
+                adminData.put("phone", "");  // blank
+
+                // Bypass authentication by using a system identifier
+                // The service will need to handle this special case
+                Map<String, Object> createdUser = adminService.createUser("SYSTEM", adminData);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Admin user created successfully (DEV MODE)");
+                response.put("username", "admin");
+                response.put("password", "admin");
+                response.put("warning", "This is a DEV endpoint - DO NOT use in production!");
+
+                logger.info("Dev admin user created: username=admin");
+                return ResponseUtil.success("Admin user created (DEV)", response);
+
+            } catch (Exception e) {
+                logger.error("Failed to create dev admin user: {}", e.getMessage());
+
+                if (e.getMessage() != null && e.getMessage().contains("already exists")) {
+                    return ResponseUtil.conflict("Admin user already exists");
+                }
+
+                return ResponseUtil.internalError("Failed to create admin user: " + e.getMessage());
+            }
+        }, authExecutor);
+    }
 }
