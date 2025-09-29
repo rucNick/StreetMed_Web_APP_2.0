@@ -5,11 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/service/AdminInitializationService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/CorsConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/WebMvcConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/WebMvcConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/OptionsRequestFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/OptionsRequestFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/RequestCorsFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/RequestCorsFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/repository/User/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/repository/User/UserRepository.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,6 +134,8 @@
       <workItem from="1757884310062" duration="4033000" />
       <workItem from="1757921276910" duration="8502000" />
       <workItem from="1757959205174" duration="2442000" />
+      <workItem from="1758939915544" duration="1134000" />
+      <workItem from="1759186005413" duration="188000" />
     </task>
     <task id="LOCAL-00001" summary="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService">
       <option name="closed" value="true" />
