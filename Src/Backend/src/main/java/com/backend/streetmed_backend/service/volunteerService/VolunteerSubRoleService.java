@@ -1,4 +1,4 @@
-package com.backend.streetmed_backend.service;
+package com.backend.streetmed_backend.service.volunteerService;
 
 import com.backend.streetmed_backend.entity.user_entity.VolunteerSubRole; import com.backend.streetmed_backend.entity.user_entity.VolunteerSubRole.SubRoleType; import com.backend.streetmed_backend.repository.User.VolunteerSubRoleRepository; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.stereotype.Service; import java.time.LocalDateTime; import java.util.List; import java.util.Optional;
 

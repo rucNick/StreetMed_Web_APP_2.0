@@ -5,7 +5,7 @@ import com.backend.streetmed_backend.entity.user_entity.UserMetadata;
 import com.backend.streetmed_backend.entity.user_entity.VolunteerSubRole;
 import com.backend.streetmed_backend.security.TLSService;
 import com.backend.streetmed_backend.service.UserService;
-import com.backend.streetmed_backend.service.VolunteerSubRoleService;
+import com.backend.streetmed_backend.service.volunteerService.VolunteerSubRoleService;
 import com.backend.streetmed_backend.util.RequestResponseUtil;
 import com.backend.streetmed_backend.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;

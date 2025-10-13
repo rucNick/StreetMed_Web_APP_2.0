@@ -1,4 +1,4 @@
-package com.backend.streetmed_backend.service;
+package com.backend.streetmed_backend.service.orderService;
 
 import com.backend.streetmed_backend.entity.CargoItem;
 import com.backend.streetmed_backend.entity.order_entity.Order;
@@ -8,6 +8,7 @@ import com.backend.streetmed_backend.entity.user_entity.User;
 import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
 import com.backend.streetmed_backend.repository.User.UserRepository;
+import com.backend.streetmed_backend.service.cargoService.CargoItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

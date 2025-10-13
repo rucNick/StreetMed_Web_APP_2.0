@@ -4,7 +4,7 @@ import com.backend.streetmed_backend.entity.user_entity.User;
 import com.backend.streetmed_backend.entity.user_entity.UserMetadata;
 import com.backend.streetmed_backend.entity.user_entity.VolunteerApplication;
 import com.backend.streetmed_backend.service.EmailService;
-import com.backend.streetmed_backend.service.VolunteerApplicationService;
+import com.backend.streetmed_backend.service.volunteerService.VolunteerApplicationService;
 import com.backend.streetmed_backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,6 +1,6 @@
 package com.backend.streetmed_backend.scheduler;
 
-import com.backend.streetmed_backend.service.OrderRoundAssignmentService;
+import com.backend.streetmed_backend.service.orderService.OrderRoundAssignmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

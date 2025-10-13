@@ -1,4 +1,4 @@
-package com.backend.streetmed_backend.service;
+package com.backend.streetmed_backend.service.adminService;
 
 import com.backend.streetmed_backend.entity.user_entity.User;
 import com.backend.streetmed_backend.entity.user_entity.UserMetadata;

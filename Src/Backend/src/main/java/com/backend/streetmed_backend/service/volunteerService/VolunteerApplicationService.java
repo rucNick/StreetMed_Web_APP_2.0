@@ -1,5 +1,5 @@
 // VolunteerApplicationService.java
-package com.backend.streetmed_backend.service;
+package com.backend.streetmed_backend.service.volunteerService;
 
 import com.backend.streetmed_backend.entity.user_entity.User;
 import com.backend.streetmed_backend.entity.user_entity.VolunteerApplication;

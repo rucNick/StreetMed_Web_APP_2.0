@@ -1,4 +1,4 @@
-package com.backend.streetmed_backend.service;
+package com.backend.streetmed_backend.service.roundService;
 
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
@@ -6,6 +6,7 @@ import com.backend.streetmed_backend.entity.user_entity.User;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundSignupRepository;
 import com.backend.streetmed_backend.repository.User.UserRepository;
+import com.backend.streetmed_backend.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

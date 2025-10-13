@@ -2,8 +2,8 @@ package com.backend.streetmed_backend.controller.Rounds;
 
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
-import com.backend.streetmed_backend.service.RoundsService;
-import com.backend.streetmed_backend.service.RoundSignupService;
+import com.backend.streetmed_backend.service.roundService.RoundsService;
+import com.backend.streetmed_backend.service.roundService.RoundSignupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

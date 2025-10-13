@@ -1,4 +1,4 @@
-package com.backend.streetmed_backend.service;
+package com.backend.streetmed_backend.service.cargoService;
 
 import com.backend.streetmed_backend.document.CargoImage;
 import com.backend.streetmed_backend.repository.Cargo.CargoImageRepository;

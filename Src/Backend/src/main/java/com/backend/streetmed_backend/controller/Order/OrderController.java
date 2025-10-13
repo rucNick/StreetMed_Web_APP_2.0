@@ -2,7 +2,7 @@ package com.backend.streetmed_backend.controller.Order;
 
 import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.order_entity.OrderItem;
-import com.backend.streetmed_backend.service.OrderService;
+import com.backend.streetmed_backend.service.orderService.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
