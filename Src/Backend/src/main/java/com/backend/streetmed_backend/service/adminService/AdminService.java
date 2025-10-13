@@ -47,7 +47,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> updateVolunteerSubRole(UpdateVolunteerSubRoleRequest request) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthenticated())) {
+            if (isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -92,7 +92,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> getAllUsersGroupedByRole(GetAllUsersRequest request, boolean isSecure) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthStatus())) {
+            if (isAuthenticated(request.getAuthStatus())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -125,7 +125,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> deleteUser(DeleteUserRequest request) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthenticated())) {
+            if (isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -162,7 +162,6 @@ public class AdminService {
      */
     public ResponseEntity<Map<String, Object>> createUser(CreateUserRequest request) {
         try {
-            // Validate authentication
             if (!isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
@@ -172,7 +171,6 @@ public class AdminService {
                 validateAdminAccess(request.getAdminUsername());
             }
 
-            // Extract and validate user data
             Map<String, String> userData = request.getUserData();
             String username = userData.get("username");
             String role = userData.get("role");
@@ -199,7 +197,6 @@ public class AdminService {
             if (userService.findByUsername(username) != null) {
                 return ResponseUtil.conflict("Username already exists: " + username);
             }
-
             // Create user
             Map<String, Object> createdUser = performUserCreation(userData, request.getAdminUsername());
 
@@ -219,7 +216,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> updateUser(UpdateUserRequest request) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthenticated())) {
+            if (isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -257,7 +254,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> resetUserPassword(ResetPasswordRequest request) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthenticated())) {
+            if (isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -300,7 +297,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> getUserDetails(GetUserDetailsRequest request) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthStatus())) {
+            if (isAuthenticated(request.getAuthStatus())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -335,7 +332,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> getUserStatistics(GetStatisticsRequest request) {
         try {
             // Validate authentication
-            if (!isAuthenticated(request.getAuthStatus())) {
+            if (isAuthenticated(request.getAuthStatus())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -362,7 +359,7 @@ public class AdminService {
     // Private helper methods
 
     private boolean isAuthenticated(String authStatus) {
-        return "true".equals(authStatus);
+        return !"true".equals(authStatus);
     }
 
     private void validateAdminAccess(String username) throws SecurityException {
@@ -382,7 +379,7 @@ public class AdminService {
     }
 
     private boolean isValidRole(String role) {
-        return "CLIENT".equals(role) || "VOLUNTEER".equals(role) || "ADMIN".equals(role);
+        return !"CLIENT".equals(role) && !"VOLUNTEER".equals(role) && !"ADMIN".equals(role);
     }
 
     private Map<String, List<Map<String, Object>>> fetchUsersGroupedByRole() {
@@ -420,50 +417,79 @@ public class AdminService {
     }
 
     private Map<String, Object> performUserCreation(Map<String, String> userData, String adminUsername) {
-        String generatedPassword = userData.get("password");
-        if (generatedPassword == null || generatedPassword.trim().isEmpty()) {
-            generatedPassword = generateRandomPassword();
+        // Get or generate password
+        String rawPassword = userData.get("password");
+        if (isNullOrEmpty(rawPassword)) {
+            rawPassword = generateRandomPassword();
         }
 
+        // Store the generated/provided password for email
+        String passwordForEmail = rawPassword;
+
+        // Build user entity
         User newUser = new User();
         newUser.setUsername(userData.get("username"));
-        newUser.setPassword(generatedPassword);
+        newUser.setPassword(rawPassword);
         newUser.setRole(userData.get("role"));
 
+        // Set email - use username as fallback for CLIENT role
         String email = userData.get("email");
-        newUser.setEmail(!isNullOrEmpty(email) ? email : userData.get("username"));
+        if (!isNullOrEmpty(email)) {
+            newUser.setEmail(email);
+        } else if ("CLIENT".equals(userData.get("role"))) {
+            newUser.setEmail(userData.get("username"));
+        }
 
+        // Set phone if provided
         String phone = userData.get("phone");
         if (!isNullOrEmpty(phone)) {
             newUser.setPhone(phone);
         }
 
+        // Create metadata
         UserMetadata metadata = new UserMetadata();
-        metadata.setFirstName(userData.get("firstName"));
-        metadata.setLastName(userData.get("lastName"));
+        String firstName = userData.get("firstName");
+        if (!isNullOrEmpty(firstName)) {
+            metadata.setFirstName(firstName);
+        }
+
+        String lastName = userData.get("lastName");
+        if (!isNullOrEmpty(lastName)) {
+            metadata.setLastName(lastName);
+        }
+
         metadata.setCreatedAt(LocalDateTime.now());
         metadata.setLastLogin(LocalDateTime.now());
         newUser.setMetadata(metadata);
 
+        // Save user (UserService will handle password hashing)
         User savedUser = userService.createUser(newUser);
 
-        // Send email if provided
-        if (!isNullOrEmpty(email)) {
+        // Send email notification if email exists
+        if (!isNullOrEmpty(savedUser.getEmail()) && !savedUser.getEmail().equals(savedUser.getUsername())) {
             try {
-                emailService.sendNewUserCredentials(email, savedUser.getUsername(), generatedPassword);
+                emailService.sendNewUserCredentials(
+                        savedUser.getEmail(),
+                        savedUser.getUsername(),
+                        passwordForEmail
+                );
             } catch (Exception e) {
-                logger.error("Failed to send credentials email to {}: {}", email, e.getMessage());
+                logger.error("Failed to send credentials email to {}: {}",
+                        savedUser.getEmail(), e.getMessage());
             }
         }
 
         logger.info("New user {} created by admin {}", savedUser.getUsername(), adminUsername);
 
+        // Build response
         Map<String, Object> response = new HashMap<>();
         response.put("userId", savedUser.getUserId());
         response.put("username", savedUser.getUsername());
         response.put("role", savedUser.getRole());
-        response.put("generatedPassword", generatedPassword);
-        response.put("email", savedUser.getEmail());
+        response.put("generatedPassword", passwordForEmail);
+        if (!isNullOrEmpty(savedUser.getEmail())) {
+            response.put("email", savedUser.getEmail());
+        }
 
         return response;
     }
@@ -499,7 +525,7 @@ public class AdminService {
         // Update role
         String role = updateData.get("role");
         if (!isNullOrEmpty(role) && !role.equals(user.getRole())) {
-            if (!isValidRole(role)) {
+            if (isValidRole(role)) {
                 throw new IllegalArgumentException("Invalid role: " + role);
             }
             user.setRole(role);
