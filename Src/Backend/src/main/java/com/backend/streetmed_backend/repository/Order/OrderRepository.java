@@ -1,32 +1,56 @@
 package com.backend.streetmed_backend.repository.Order;
 
 import com.backend.streetmed_backend.entity.order_entity.Order;
-import org.apache.ibatis.annotations.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import jakarta.persistence.LockModeType;
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
-    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderItems")
-    List<Order> findAllWithItems();
 
-    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderItems WHERE o.userId = :userId")
-    List<Order> findByUserIdWithItems(@Param("userId") Integer userId);
+    // Priority Queue Queries
+    @Query("SELECT o FROM Order o WHERE o.roundId IS NULL " +
+            "AND o.status IN ('PENDING', 'PENDING_ACCEPT') " +
+            "ORDER BY o.requestTime ASC")
+    Page<Order> findPendingOrdersPrioritized(Pageable pageable);
 
-    List<Order> findByStatus(String status);
-    List<Order> findByUserId(Integer userId);
+    @Query("SELECT o FROM Order o WHERE o.roundId IS NULL " +
+            "AND o.status IN ('PENDING', 'PENDING_ACCEPT') " +
+            "ORDER BY o.requestTime ASC")
+    List<Order> findPendingOrdersWithPriority();
 
-    List<Order> findByRoundIdIsNull();
-    List<Order> findByRoundId(Integer roundId);
+    // Pessimistic locking for concurrency control
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Order o WHERE o.orderId = :orderId")
+    Optional<Order> findByIdWithLock(@Param("orderId") Integer orderId);
 
-    // Add to OrderRepository.java
+    // Statistics queries - using native query for date calculations
+    @Query(value = "SELECT TIMESTAMPDIFF(HOUR, MIN(request_time), NOW()) " +
+            "FROM orders WHERE round_id IS NULL AND status = 'PENDING'",
+            nativeQuery = true)
+    Integer findOldestPendingOrderHours();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.roundId IS NULL " +
+            "AND o.status IN ('PENDING', 'PENDING_ACCEPT')")
+    Long countPendingOrders();
+
+    @Query("SELECT MIN(o.requestTime) FROM Order o WHERE o.roundId IS NULL " +
+            "AND o.status = 'PENDING'")
+    LocalDateTime findOldestPendingOrderTime();
+
+    // Existing methods
     List<Order> findByRoundIdIsNullOrderByRequestTimeAsc();
+    List<Order> findByRoundId(Integer roundId);
     long countByRoundId(Integer roundId);
-
-    List<Order> findByVolunteerId(Integer volunteerId);
-
-    List<Order> findByVolunteerIdAndStatus(Integer volunteerId, String status);
-    List<Order> findByVolunteerIdAndStatusIn(Integer volunteerId, List<String> statuses);
+    List<Order> findByUserId(Integer userId);
+    List<Order> findByStatus(String status);
 }
