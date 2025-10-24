@@ -162,17 +162,27 @@ logs/
 env.yaml
 .envrc
 
-# Security and sensitive files
-*.key
-*.pem
-*.p12
-*.jks
-*.keystore
-*credentials*
-*secret*
-*password*
+# Security and sensitive files - FIXED to not block source code
+# Only ignore actual credential files, not Java source files
+*password*.txt
+*password*.yml
+*password*.yaml
+*password*.json
+*credentials*.txt
+*credentials*.yml
+*credentials*.yaml
+*credentials*.json
+*secret*.txt
+*secret*.yml
+*secret*.yaml
+*secret*.json
+application-secrets.properties
+application-private.properties
 service-account*.json
 gcp-key*.json
+# Keystore files in resources (but allow the keystore directory itself)
+src/main/resources/keystore/*.jks
+src/main/resources/keystore/*.keystore
 
 # Documentation generated files
 javadoc/
@@ -346,10 +356,6 @@ local-*.properties
 # JRebel
 rebel.xml
 
-# Sensitive configuration files
-application-secrets.properties
-application-private.properties
-
 # Runtime configuration files that shouldn't be committed
 config/local/
 config/dev/
@@ -377,5 +383,3 @@ cache/
 Network Trash Folder
 Temporary Items
 .apdisk
-Src/Backend/.idea/workspace.xml
-Src/Backend/.idea/workspace.xml
