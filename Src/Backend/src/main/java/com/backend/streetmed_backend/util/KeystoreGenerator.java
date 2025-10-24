@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-
 /**
  * Generates self-signed certificates for TLS using Bouncy Castle
  * Runs automatically in local/dev profiles if keystore doesn't exist

@@ -2,9 +2,11 @@ package com.backend.streetmed_backend.service.orderService;
 
 import com.backend.streetmed_backend.entity.CargoItem;
 import com.backend.streetmed_backend.entity.order_entity.Order;
+import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
+import com.backend.streetmed_backend.entity.order_entity.OrderAssignment.AssignmentStatus;
 import com.backend.streetmed_backend.entity.order_entity.OrderItem;
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
-import com.backend.streetmed_backend.entity.user_entity.User;
+import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
 import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
 import com.backend.streetmed_backend.repository.User.UserRepository;
@@ -22,6 +24,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final CargoItemService cargoItemService;
+    private final OrderAssignmentService orderAssignmentService;
+    private final OrderAssignmentRepository orderAssignmentRepository;
     private static final int GUEST_USER_ID = -1;
     private final RoundsRepository roundsRepository;
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(OrderService.class.getName());
@@ -33,14 +37,17 @@ public class OrderService {
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
                         CargoItemService cargoItemService,
-                        RoundsRepository roundsRepository) {
+                        RoundsRepository roundsRepository,
+                        OrderAssignmentService orderAssignmentService,
+                        OrderAssignmentRepository orderAssignmentRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.cargoItemService = cargoItemService;
         this.roundsRepository = roundsRepository;
+        this.orderAssignmentService = orderAssignmentService;
+        this.orderAssignmentRepository = orderAssignmentRepository;
     }
 
-    // Add to OrderService.java
     /**
      * Get orders for a specific round
      */
@@ -50,7 +57,6 @@ public class OrderService {
         orders.forEach(order -> order.getOrderItems().size()); // Force initialization
         return orders;
     }
-
 
     /**
      * Manually assign an order to a round
@@ -159,6 +165,9 @@ public class OrderService {
         return savedOrder;
     }
 
+    /**
+     * Get a specific order with permission checking
+     */
     public Order getOrder(Integer orderId, Integer userId, String userRole) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -179,6 +188,9 @@ public class OrderService {
         return order;
     }
 
+    /**
+     * Get all orders in the system
+     */
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
@@ -187,6 +199,9 @@ public class OrderService {
         return orders;
     }
 
+    /**
+     * Get orders for a user (or all orders if volunteer)
+     */
     @Transactional(readOnly = true)
     public List<Order> getUserOrders(Integer userId, String userRole) {
         List<Order> orders;
@@ -199,20 +214,15 @@ public class OrderService {
         return orders;
     }
 
+    /**
+     * Get orders by status
+     */
     public List<Order> getOrdersByStatus(String status) {
         return orderRepository.findByStatus(status);
     }
 
     /**
-     * Updates the status of an order.
-     * If status is COMPLETED, the inventory reduction is made permanent.
-     * If status is CANCELLED, reserved inventory is released.
-     *
-     * @param orderId Order ID
-     * @param status New status
-     * @param userId User ID making the change
-     * @param userRole Role of user making the change
-     * @return Updated order
+     * Updates the status of an order through OrderAssignment if exists
      */
     @Transactional
     public Order updateOrderStatus(Integer orderId, String status, Integer userId, String userRole) {
@@ -221,48 +231,57 @@ public class OrderService {
         }
 
         Order order = getOrder(orderId, userId, userRole);
-        String oldStatus = order.getStatus();
-        order.setStatus(status);
 
-        // Handle inventory based on status change
-        if (status.equals("COMPLETED") && !oldStatus.equals("COMPLETED")) {
-            // Order is now complete - inventory has already been reserved,
-            // no additional action needed as reservation is permanent
-            order.setDeliveryTime(LocalDateTime.now());
-        } else if (status.equals("CANCELLED") && !oldStatus.equals("CANCELLED")) {
-            // Order is cancelled - release the reserved inventory
-            releaseReservedInventory(order);
+        // Check if there's an active assignment
+        Optional<OrderAssignment> assignmentOpt = orderAssignmentService.getOrderAssignment(orderId);
+
+        if (assignmentOpt.isPresent()) {
+            OrderAssignment assignment = assignmentOpt.get();
+
+            // Verify the volunteer owns this assignment
+            if (!assignment.getVolunteerId().equals(userId)) {
+                throw new RuntimeException("Order is assigned to another volunteer");
+            }
+
+            // Update through assignment service based on status
+            switch (status) {
+                case "PROCESSING":
+                    orderAssignmentService.startOrder(assignment.getAssignmentId(), userId);
+                    break;
+                case "COMPLETED":
+                    orderAssignmentService.completeOrder(assignment.getAssignmentId(), userId);
+                    break;
+                case "CANCELLED":
+                    orderAssignmentService.cancelAssignment(assignment.getAssignmentId(), userId);
+                    releaseReservedInventory(order);
+                    break;
+                default:
+                    // For other statuses, update directly
+                    order.setStatus(status);
+                    orderRepository.save(order);
+            }
+
+            // Reload order to get updated status
+            order = orderRepository.findById(orderId).orElse(order);
+        } else {
+            // No assignment exists, update order directly (backward compatibility)
+            String oldStatus = order.getStatus();
+            order.setStatus(status);
+
+            if (status.equals("COMPLETED") && !oldStatus.equals("COMPLETED")) {
+                order.setDeliveryTime(LocalDateTime.now());
+            } else if (status.equals("CANCELLED") && !oldStatus.equals("CANCELLED")) {
+                releaseReservedInventory(order);
+            }
+
+            orderRepository.save(order);
         }
 
-        return orderRepository.save(order);
-    }
-
-    public Order assignVolunteer(Integer orderId, Integer volunteerId, String userRole) {
-        if (!"VOLUNTEER".equals(userRole)) {
-            throw new RuntimeException("Only volunteers can be assigned to orders");
-        }
-
-        User volunteer = userRepository.findById(volunteerId)
-                .orElseThrow(() -> new RuntimeException("Volunteer not found"));
-
-        if (!"VOLUNTEER".equals(volunteer.getRole())) {
-            throw new RuntimeException("User is not a volunteer");
-        }
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        order.setVolunteerId(volunteerId);
-        order.setStatus("PROCESSING");
-        return orderRepository.save(order);
+        return order;
     }
 
     /**
-     * Cancels an order and releases any reserved inventory.
-     *
-     * @param orderId Order ID
-     * @param userId User ID making the request
-     * @param userRole Role of user making the request
+     * Cancels an order and releases any reserved inventory
      */
     @Transactional
     public void cancelOrder(Integer orderId, Integer userId, String userRole) {
@@ -278,6 +297,17 @@ public class OrderService {
             throw new RuntimeException("Unauthorized to cancel this order");
         }
 
+        // Check if there's an active assignment
+        Optional<OrderAssignment> assignmentOpt = orderAssignmentService.getOrderAssignment(orderId);
+        if (assignmentOpt.isPresent()) {
+            // Cancel through assignment service
+            OrderAssignment assignment = assignmentOpt.get();
+            if (assignment.getVolunteerId().equals(userId) || "VOLUNTEER".equals(userRole)) {
+                orderAssignmentService.cancelAssignment(assignment.getAssignmentId(),
+                        assignment.getVolunteerId());
+            }
+        }
+
         // Don't release inventory if order was already COMPLETED
         if (!order.getStatus().equals("COMPLETED")) {
             // Release the reserved inventory
@@ -289,10 +319,82 @@ public class OrderService {
     }
 
     /**
-     * Releases inventory that was reserved for an order.
-     * Used when an order is cancelled.
-     *
-     * @param order The order containing items to release
+     * Get orders assigned to a specific volunteer through OrderAssignment
+     */
+    @Transactional(readOnly = true)
+    public List<Order> getOrdersByVolunteer(Integer volunteerId) {
+        // Get all assignments for this volunteer
+        List<OrderAssignment> assignments = orderAssignmentRepository
+                .findByVolunteerId(volunteerId);
+
+        List<Order> orders = new ArrayList<>();
+        for (OrderAssignment assignment : assignments) {
+            if (!assignment.isCancelled()) {
+                Order order = orderRepository.findById(assignment.getOrderId()).orElse(null);
+                if (order != null) {
+                    order.getOrderItems().size(); // Force initialization
+                    orders.add(order);
+                }
+            }
+        }
+
+        return orders;
+    }
+
+    /**
+     * Get active orders (ACCEPTED or IN_PROGRESS) assigned to a specific volunteer
+     */
+    @Transactional(readOnly = true)
+    public List<Order> getActiveOrdersByVolunteer(Integer volunteerId) {
+        List<OrderAssignment> assignments = orderAssignmentService.getActiveAssignments(volunteerId);
+
+        List<Order> orders = new ArrayList<>();
+        for (OrderAssignment assignment : assignments) {
+            if (assignment.isAccepted() || assignment.isInProgress()) {
+                Order order = orderRepository.findById(assignment.getOrderId()).orElse(null);
+                if (order != null) {
+                    order.getOrderItems().size(); // Force initialization
+                    orders.add(order);
+                }
+            }
+        }
+
+        // Sort by request time (newest first)
+        orders.sort(Comparator.comparing(Order::getRequestTime).reversed());
+        return orders;
+    }
+
+    /**
+     * Get completed orders assigned to a specific volunteer
+     */
+    @Transactional(readOnly = true)
+    public List<Order> getCompletedOrdersByVolunteer(Integer volunteerId) {
+        // Get all completed assignments
+        List<OrderAssignment> assignments = orderAssignmentRepository
+                .findByVolunteerIdAndStatus(volunteerId, AssignmentStatus.COMPLETED);
+
+        List<Order> orders = new ArrayList<>();
+        for (OrderAssignment assignment : assignments) {
+            Order order = orderRepository.findById(assignment.getOrderId()).orElse(null);
+            if (order != null) {
+                order.getOrderItems().size(); // Force initialization
+                orders.add(order);
+            }
+        }
+
+        // Sort by delivery time (newest first)
+        orders.sort((o1, o2) -> {
+            if (o1.getDeliveryTime() == null && o2.getDeliveryTime() == null) return 0;
+            if (o1.getDeliveryTime() == null) return 1;
+            if (o2.getDeliveryTime() == null) return -1;
+            return o2.getDeliveryTime().compareTo(o1.getDeliveryTime());
+        });
+
+        return orders;
+    }
+
+    /**
+     * Releases inventory that was reserved for an order
      */
     private void releaseReservedInventory(Order order) {
         // Get all items in the order
@@ -327,71 +429,12 @@ public class OrderService {
         }
     }
 
+    /**
+     * Validate that a user exists
+     */
     private void validateUser(Integer userId) {
         if (!userRepository.existsById(userId)) {
             throw new RuntimeException("User not found");
         }
-    }
-
-    /**
-     * Get orders assigned to a specific volunteer
-     *
-     * @param volunteerId ID of the volunteer
-     * @return List of orders assigned to the volunteer
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getOrdersByVolunteer(Integer volunteerId) {
-        List<Order> orders = orderRepository.findByVolunteerId(volunteerId);
-        // Initialize collections for lazy loading
-        orders.forEach(order -> order.getOrderItems().size());
-        return orders;
-    }
-
-    /**
-     * Get active orders (PENDING or PROCESSING) assigned to a specific volunteer
-     *
-     * @param volunteerId ID of the volunteer
-     * @return List of active orders assigned to the volunteer
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getActiveOrdersByVolunteer(Integer volunteerId) {
-        List<String> activeStatuses = Arrays.asList("PENDING", "PROCESSING");
-        List<Order> orders = orderRepository.findByVolunteerIdAndStatusIn(volunteerId, activeStatuses);
-        // Initialize collections for lazy loading
-        orders.forEach(order -> order.getOrderItems().size());
-
-        // Sort by request time (newest first)
-        orders.sort(Comparator.comparing(Order::getRequestTime).reversed());
-
-        return orders;
-    }
-
-    /**
-     * Get completed orders assigned to a specific volunteer
-     *
-     * @param volunteerId ID of the volunteer
-     * @return List of completed orders assigned to the volunteer
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getCompletedOrdersByVolunteer(Integer volunteerId) {
-        List<Order> orders = orderRepository.findByVolunteerIdAndStatus(volunteerId, "COMPLETED");
-        // Initialize collections for lazy loading
-        orders.forEach(order -> order.getOrderItems().size());
-
-        // Sort by delivery time (newest first)
-        orders.sort((o1, o2) -> {
-            // Handle null delivery times
-            if (o1.getDeliveryTime() == null && o2.getDeliveryTime() == null) {
-                return 0;
-            } else if (o1.getDeliveryTime() == null) {
-                return 1;
-            } else if (o2.getDeliveryTime() == null) {
-                return -1;
-            }
-            // Sort by delivery time descending (newest first)
-            return o2.getDeliveryTime().compareTo(o1.getDeliveryTime());
-        });
-
-        return orders;
     }
 }

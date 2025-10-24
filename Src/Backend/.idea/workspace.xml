@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application-local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application-local.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +15,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -135,6 +134,8 @@
       <workItem from="1757921276910" duration="8502000" />
       <workItem from="1757959205174" duration="2442000" />
       <workItem from="1760393308964" duration="4270000" />
+      <workItem from="1760565279021" duration="5708000" />
+      <workItem from="1760646076220" duration="1965000" />
     </task>
     <task id="LOCAL-00001" summary="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService">
       <option name="closed" value="true" />
