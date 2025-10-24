@@ -382,4 +382,11 @@ cache/
 .AppleDesktop
 Network Trash Folder
 Temporary Items
+<<<<<<< HEAD
 .apdisk
+=======
+.apdisk
+Src/Backend/.idea/workspace.xml
+Src/Backend/.idea/workspace.xml
+Src/Backend/.idea/workspace.xml
+>>>>>>> 51da7cfcb87aacf7f7e131ca408e871a884666a9
