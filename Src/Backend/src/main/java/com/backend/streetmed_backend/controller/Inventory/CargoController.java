@@ -1,7 +1,7 @@
 package com.backend.streetmed_backend.controller.Inventory;
 
 import com.backend.streetmed_backend.entity.CargoItem;
-import com.backend.streetmed_backend.service.CargoItemService;
+import com.backend.streetmed_backend.service.cargoService.CargoItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

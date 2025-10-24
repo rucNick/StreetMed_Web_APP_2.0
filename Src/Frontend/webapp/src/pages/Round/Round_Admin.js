@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { secureAxios } from '../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import '../../css/Round/Round_Admin.css';
 
 function Round_Admin() {
-
-  const baseURL = process.env.REACT_APP_BASE_URL;
 
   const navigate = useNavigate();
   const userData = JSON.parse(sessionStorage.getItem("auth_user")) || {};
@@ -41,11 +39,11 @@ function Round_Admin() {
     return new Date(dt).toISOString().slice(0,16);
   };
 
-  // 1. view rounds
+  // 1. view rounds - Using secureAxios for admin operations
   const fetchRounds = async () => {
     try {
-      const url = roundFilter === "all" ? `${baseURL}/api/admin/rounds/all` : `${baseURL}/api/admin/rounds/upcoming`;
-      const response = await axios.get(url, {
+      const url = roundFilter === "all" ? `/api/admin/rounds/all` : `/api/admin/rounds/upcoming`;
+      const response = await secureAxios.get(url, {
         params: {
           authenticated: true,
           adminUsername: userData.username
@@ -59,11 +57,15 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
-  // 2. create rounds
+  // 2. create rounds - Using secureAxios
   const createRound = async () => {
     try {
       const payload = {
@@ -85,7 +87,7 @@ function Round_Admin() {
         if (!isNaN(cid)) payload.clinicianId = cid;
       }
 
-      const response = await axios.post(`${baseURL}/api/admin/rounds/create`, payload);
+      const response = await secureAxios.post('/api/admin/rounds/create', payload);
       if (response.data.status === "success") {
         setMessage("Round created with ID: " + response.data.roundId);
       } else {
@@ -93,15 +95,19 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
-  // 3. cancel rounds
+  // 3. cancel rounds - Using secureAxios
   const cancelRoundById = async (roundId, e) => {
     e.stopPropagation();
     try {
-      const response = await axios.put(`${baseURL}/api/admin/rounds/${roundId}/cancel`, {
+      const response = await secureAxios.put(`/api/admin/rounds/${roundId}/cancel`, {
         authenticated: true,
         adminUsername: userData.username
       });
@@ -113,7 +119,11 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
@@ -133,10 +143,10 @@ function Round_Admin() {
     setModalTab("details");
   };
 
-  // run lottery（in modal）
+  // run lottery（in modal）- Using secureAxios
   const runLotteryForModal = async () => {
     try {
-      const response = await axios.post(`${baseURL}/api/admin/rounds/${selectedRound.roundId}/lottery`, {
+      const response = await secureAxios.post(`/api/admin/rounds/${selectedRound.roundId}/lottery`, {
         authenticated: true,
         adminUsername: userData.username
       });
@@ -147,14 +157,18 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setModalLotteryResult(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setModalLotteryResult("Secure HTTPS connection required for admin operations.");
+      } else {
+        setModalLotteryResult(error.response?.data?.message || error.message);
+      }
     }
   };
 
-  // detail(in modal）
+  // detail(in modal）- Using secureAxios
   const fetchModalSignups = async () => {
     try {
-      const response = await axios.get(`${baseURL}/api/admin/rounds/${selectedRound.roundId}`, {
+      const response = await secureAxios.get(`/api/admin/rounds/${selectedRound.roundId}`, {
         params: {
           authenticated: true,
           adminUsername: userData.username
@@ -167,14 +181,18 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
-  // approve/reject signups（in modal）
+  // approve/reject signups（in modal）- Using secureAxios
   const confirmSignup = async (signupId) => {
     try {
-      const response = await axios.put(`${baseURL}/api/admin/rounds/signup/${signupId}/confirm`, {
+      const response = await secureAxios.put(`/api/admin/rounds/signup/${signupId}/confirm`, {
         authenticated: true,
         adminUsername: userData.username,
         adminId: userData.userId
@@ -187,15 +205,17 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
   const rejectSignup = async (signupId) => {
     try {
-      const response = await axios.request({
-        method: 'delete',
-        url: `${baseURL}/api/admin/rounds/signup/${signupId}`,
+      const response = await secureAxios.delete(`/api/admin/rounds/signup/${signupId}`, {
         data: {
           authenticated: true,
           adminUsername: userData.username,
@@ -210,13 +230,17 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
   const fetchRoundForUpdate = async () => {
     try {
-      const response = await axios.get(`${baseURL}/api/admin/rounds/${roundIdToUpdate}`, {
+      const response = await secureAxios.get(`/api/admin/rounds/${roundIdToUpdate}`, {
         params: {
           authenticated: true,
           adminUsername: userData.username
@@ -234,7 +258,11 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
@@ -251,7 +279,7 @@ function Round_Admin() {
         maxParticipants: parseInt(updateRoundData.maxParticipants, 10),
         status: updateRoundData.status
       };
-      const response = await axios.put(`${baseURL}/api/admin/rounds/${updateRoundData.roundId}`, payload);
+      const response = await secureAxios.put(`/api/admin/rounds/${updateRoundData.roundId}`, payload);
       if (response.data.status === "success") {
         setMessage("Round updated successfully with ID: " + response.data.roundId);
       } else {
@@ -259,7 +287,11 @@ function Round_Admin() {
       }
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || error.message);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
     }
   };
 
@@ -268,7 +300,7 @@ function Round_Admin() {
       {/* ─────────────────────  NAVBAR  ───────────────────── */}
       <header className="smg-navbar">
         <div className="navbar-left">
-          <img src="/Untitled.png" alt="SMG logo" className="navbar-logo" />
+          <img src="/Untitled.png" alt="SMG logo" className="navbar-logo" />
         </div>
   
         <nav className="navbar-center">
@@ -279,13 +311,13 @@ function Round_Admin() {
               fetchRounds();
             }}
           >
-            View Rounds
+            View Rounds
           </button>
           <button
             className={`nav-btn ${activeTab === "createRound" ? "active" : ""}`}
             onClick={() => setActiveTab("createRound")}
           >
-            Create Round
+            Create Round
           </button>
           <button
             className={`nav-btn ${activeTab === "updateRound" ? "active" : ""}`}
@@ -296,13 +328,13 @@ function Round_Admin() {
               setUpdateRoundData(null);
             }}
           >
-            Update Round
+            Update Round
           </button>
         </nav>
   
         <div className="navbar-right">
           <button className="nav-btn back-btn" onClick={() => navigate("/")}>
-            Back to Dashboard
+            Back to Dashboard
           </button>
         </div>
       </header>
@@ -345,11 +377,11 @@ function Round_Admin() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th className="table-header-cell">Round ID</th>
+                    <th className="table-header-cell">Round ID</th>
                     <th className="table-header-cell">Title</th>
                     <th className="table-header-cell">Description</th>
-                    <th className="table-header-cell">Start Time</th>
-                    <th className="table-header-cell">End Time</th>
+                    <th className="table-header-cell">Start Time</th>
+                    <th className="table-header-cell">End Time</th>
                     <th className="table-header-cell">Location</th>
                     <th className="table-header-cell">Max</th>
                     <th className="table-header-cell">Status</th>
@@ -387,10 +419,10 @@ function Round_Admin() {
           </>
         )}
   
-        {/* ========== CREATE ROUND TAB ========== */}
+        {/* ========== CREATE ROUND TAB ========== */}
         {activeTab === "createRound" && (
           <>
-            <h2 className="form-title">Create Round</h2>
+            <h2 className="form-title">Create Round</h2>
             <div className="form-wrapper">
               <div className="form-card">
                 <input
@@ -469,19 +501,19 @@ function Round_Admin() {
                   }
                 />
                 <button className="action-button" onClick={createRound}>
-                  Create Round
+                  Create Round
                 </button>
               </div>
             </div>
           </>
         )}
   
-        {/* ========== UPDATE ROUND TAB ========== */}
+        {/* ========== UPDATE ROUND TAB ========== */}
         {activeTab === "updateRound" && (
           <>
-            <h2 className="form-title">Update Round</h2>
+            <h2 className="form-title">Update Round</h2>
   
-            {/* step 1 │ enter ID */}
+            {/* step 1 │ enter ID */}
             {updateRoundStep === "inputId" && (
               <div className="form-wrapper">
                 <div className="form-card">
@@ -499,7 +531,7 @@ function Round_Admin() {
               </div>
             )}
   
-            {/* step 2 │ edit form */}
+            {/* step 2 │ edit form */}
             {updateRoundStep === "editForm" && updateRoundData && (
               <div className="form-wrapper">
                 <div className="form-card">
@@ -588,7 +620,7 @@ function Round_Admin() {
                     }
                   />
                   <button className="action-button" onClick={updateRound}>
-                    Update Round
+                    Update Round
                   </button>
                 </div>
               </div>
@@ -601,7 +633,7 @@ function Round_Admin() {
       {modalOpen && selectedRound && (
         <div className="item-modal-overlay" onClick={closeModal}>
           <div className="item-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Round Detail – {selectedRound.title}</h2>
+            <h2 className="modal-title">Round Detail – {selectedRound.title}</h2>
   
             <div className="modal-nav">
               <button
@@ -614,7 +646,7 @@ function Round_Admin() {
                 className={`modal-chip ${modalTab === "lottery" ? "selected" : ""}`}
                 onClick={() => setModalTab("lottery")}
               >
-                Run Lottery
+                Run Lottery
               </button>
               <button
                 className={`modal-chip ${modalTab === "signups" ? "selected" : ""}`}
@@ -623,7 +655,7 @@ function Round_Admin() {
                   fetchModalSignups();
                 }}
               >
-                Manage Sign‑ups
+                Manage Sign‑ups
               </button>
             </div>
   
@@ -645,7 +677,7 @@ function Round_Admin() {
               {modalTab === "lottery" && (
                 <div>
                   <button className="action-button" onClick={runLotteryForModal}>
-                    Run Lottery
+                    Run Lottery
                   </button>
                   {modalLotteryResult && <p className="status-msg">{modalLotteryResult}</p>}
                 </div>
@@ -660,7 +692,7 @@ function Round_Admin() {
                     <table className="table">
                       <thead>
                         <tr>
-                          <th className="table-header-cell">Signup ID</th>
+                          <th className="table-header-cell">Signup ID</th>
                           <th className="table-header-cell">Volunteer</th>
                           <th className="table-header-cell">Status</th>
                           <th className="table-header-cell">Actions</th>

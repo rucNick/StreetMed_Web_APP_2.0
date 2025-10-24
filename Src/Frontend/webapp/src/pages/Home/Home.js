@@ -1,16 +1,12 @@
 //=========================================== JS part ==============================================
 import React, { useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { secureAxios, publicAxios } from "../../config/axiosConfig";
 import "../../css/Home/Home.css";
 
-//import { encrypt, decrypt, getSessionId, isInitialized } from "./security/ecdhClient";
-
-import { useNavigate } from "react-router-dom"; // for pages jump
-
-//const Home = ({ username, email, password, phone, userId, onLogout }) => {
 const Home = ({ username, email, phone, userId, onLogout }) => {
 
-  const baseURL = process.env.REACT_APP_BASE_URL;
+  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
 
   console.log("Home component initialized", { username, email, phone, userId });
 
@@ -22,6 +18,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [cartError, setCartError] = useState("");
   const [cartMessage, setCartMessage] = useState("");
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   console.log("Cart States initialized");
 
   // ============== "Make a New Order" - Cargo Items ==============
@@ -31,6 +28,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
   const [showItemDetailModal, setShowItemDetailModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
   console.log("New Order and Cargo Items States initialized");
 
   // ============== Customize Item Related State ==============
@@ -41,16 +39,46 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
   // Initialize navigate hook for page navigation (Profile, Feedback, Order History)
   const navigate = useNavigate();
 
+  // Get auth token from storage
+  const getAuthToken = () => {
+    const storedUser = sessionStorage.getItem("auth_user") || localStorage.getItem("auth_user");
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      return userData.authToken;
+    }
+    return null;
+  };
+
   // ================= Other functions (Cart, New Order, etc.) =================
 
   const fetchCargoItems = async () => {
     console.log("fetchCargoItems: Fetching cargo items");
+    setIsLoadingItems(true);
     try {
-      const response = await axios.get(`${baseURL}/api/cargo/items`);
+      // Cargo items can be fetched with publicAxios as they're not sensitive
+      const response = await publicAxios.get('/api/cargo/items');
       console.log("fetchCargoItems: Received response", response);
       setCargoItems(response.data);
     } catch (error) {
       console.error("Failed to fetch cargo items:", error);
+      
+      // Handle certificate errors
+      if (error.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        console.warn("Certificate error while fetching items. Using fallback...");
+        // Try with regular axios as cargo items are public
+        try {
+          const response = await fetch(`${baseURL}/api/cargo/items`);
+          const data = await response.json();
+          setCargoItems(data);
+        } catch (fallbackError) {
+          console.error("Fallback also failed:", fallbackError);
+          setCartError("Failed to load items. Please check your connection.");
+        }
+      } else {
+        setCartError("Failed to load items: " + error.message);
+      }
+    } finally {
+      setIsLoadingItems(false);
     }
   };
 
@@ -94,11 +122,13 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
       newCart[existingIndex].quantity += selectedQuantity;
       console.log("handleAddSelectedItemToCart: Updated quantity for existing cart item");
     } else {
-      newCart.push({ name: itemName, 
-                      quantity: selectedQuantity,
-                      imageId: selectedItem.imageId, 
-                      description: selectedItem.description,
-                      category: selectedItem.category});
+      newCart.push({ 
+        name: itemName, 
+        quantity: selectedQuantity,
+        imageId: selectedItem.imageId, 
+        description: selectedItem.description,
+        category: selectedItem.category
+      });
       console.log("handleAddSelectedItemToCart: Added new item to cart");
     }
     setCart(newCart);
@@ -187,8 +217,11 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
       setCartError("Please fill in delivery address, phone number, and notes.");
       return;
     }
+    
     setCartError("");
     setCartMessage("");
+    setIsPlacingOrder(true);
+    
     try {
       const payload = {
         authenticated: true,
@@ -202,21 +235,63 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
         payload.latitude = latitude;
         payload.longitude = longitude;
       }
+      
       console.log("placeOrderWithLocation: Sending order payload", payload);
-      const response = await axios.post(`${baseURL}/api/orders/create`, payload);
+      
+      // Use secureAxios for authenticated order creation
+      const response = await secureAxios.post('/api/orders/create', payload, {
+        headers: {
+          'X-Auth-Token': getAuthToken() || ''
+        }
+      });
+      
       console.log("placeOrderWithLocation: Received response", response);
+      
       if (response.data.status !== "success") {
         setCartError(response.data.message || "Order creation failed");
         return;
       }
+      
       setCartMessage("Order placed successfully!");
       setCart([]);
       setDeliveryAddress("");
       setNotes("");
       setPhoneNumber("");
+      
+      // Show success for a moment then close cart
+      setTimeout(() => {
+        setShowCart(false);
+        setCartMessage("");
+      }, 2000);
+      
     } catch (error) {
       console.error("placeOrderWithLocation: Error occurred", error);
-      setCartError(error.response?.data?.message || "Order creation failed.");
+      
+      // Handle certificate errors
+      if (error.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        setCartError("Certificate error. Please accept the certificate and try again.");
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: baseURL }
+        }));
+      } else if (error.response?.status === 403 && error.response?.data?.httpsRequired) {
+        setCartError("Secure connection required for placing orders.");
+        // Redirect to HTTPS if not already
+        if (window.location.protocol !== 'https:') {
+          setTimeout(() => {
+            window.location.href = window.location.href.replace('http:', 'https:');
+          }, 1500);
+        }
+      } else if (error.response?.status === 401) {
+        setCartError("Authentication failed. Please login again.");
+        setTimeout(() => {
+          onLogout();
+          navigate('/login');
+        }, 1500);
+      } else {
+        setCartError(error.response?.data?.message || "Order creation failed.");
+      }
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -225,10 +300,6 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
   const handleOrderHistoryNavigation = () => {
     navigate("/orderhistory");
   };
-
-
-
-
 
   // ================================== Rendering Section =================
   console.log("Home: Rendering component");
@@ -249,8 +320,14 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
           </div>
 
           <div className="header-right">
+            {/* Security indicator */}
+            {window.location.protocol === 'https:' && (
+              <span style={{ fontSize: '12px', color: '#27ae60', marginRight: '10px' }}>
+                🔒 Secure
+              </span>
+            )}
             <button className="cartButton" onClick={toggleCart}>
-              Cart
+              Cart ({cart.length})
             </button>
             <button
               className="feedbackButton"
@@ -280,9 +357,10 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
           <button
             className="dashboard-card light-yellow"
             onClick={handleOpenNewOrder}
+            disabled={isLoadingItems}
           >
             <span className="card-icon">&#128722;</span>
-            Make a New Order
+            {isLoadingItems ? "Loading..." : "Make a New Order"}
           </button>
         </div>
 
@@ -301,13 +379,15 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                   className="items-miss-link"
                   onClick={handleOpenCustomItemModal}
                 >
-                  Didn't find items you want? Click here.
+                  Didn't find items you want? Click here.
                 </span>
               </div>
             </div>
 
             <div className="itemGrid" style={{ marginTop: 12 }}>
-              {cargoItems.length === 0 ? (
+              {isLoadingItems ? (
+                <p>Loading items...</p>
+              ) : cargoItems.length === 0 ? (
                 <p>No items found in cargo.</p>
               ) : (
                 cargoItems.map((item) => (
@@ -321,6 +401,11 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                         src={`${baseURL}/api/cargo/images/${item.imageId}`}
                         alt={item.name}
                         className="itemImage"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML += '<div class="itemImagePlaceholder">No Image</div>';
+                        }}
                       />
                     ) : (
                       <div className="itemImagePlaceholder">No Image</div>
@@ -348,10 +433,14 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                 src={`${baseURL}/api/cargo/images/${selectedItem.imageId}`}
                 alt={selectedItem.name}
                 className="itemDetailImage"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;color:#666;height:100%;">No Image</div>';
+                }}
               />
             ) : (
               <div className="itemDetailImage" style={{ display:'flex',alignItems:'center',justifyContent:'center',color:'#666' }}>
-                No Image
+                No Image
               </div>
             )}
 
@@ -390,7 +479,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
             </div>
 
             <button className="add-btn" onClick={handleAddSelectedItemToCart}>
-              Add to Cart
+              Add to Cart
             </button>
             <button className="cancel-btn" onClick={closeItemDetailModal}>
               Cancel
@@ -426,7 +515,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
             </div>
 
             <button className="button" onClick={handleAddCustomItemToCart}>
-              Add to Cart
+              Add to Cart
             </button>
             <button className="cancelButton" onClick={() => setShowCustomItemModal(false)}>
               Cancel
@@ -453,6 +542,11 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                         src={`${baseURL}/api/cargo/images/${c.imageId}`}
                         alt={c.name}
                         className="cartItemImage"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML += '<div class="cartItemImagePlaceholder"></div>';
+                        }}
                       />
                     ) : (
                       <div className="cartItemImagePlaceholder" />
@@ -475,11 +569,13 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                         onChange={(e) =>
                           handleCartQuantityChange(i, e.target.value)
                         }
+                        disabled={isPlacingOrder}
                       />
                     </div>
                     <button
                       className="removeButton"
                       onClick={() => handleRemoveCartItem(i)}
+                      disabled={isPlacingOrder}
                     >
                       Remove
                     </button>
@@ -505,6 +601,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
                   className="input"
+                  disabled={isPlacingOrder}
                 />
               </div>
 
@@ -515,6 +612,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="input"
+                  disabled={isPlacingOrder}
                 />
               </div>
 
@@ -525,14 +623,20 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="input"
+                  disabled={isPlacingOrder}
                 />
               </div>
 
               {cartError && <p className="errorText">{cartError}</p>}
               {cartMessage && <p className="successText">{cartMessage}</p>}
 
-              <button className="placeOrderButton" onClick={handlePlaceOrder}>
-                Place Order
+              <button 
+                className="placeOrderButton" 
+                onClick={handlePlaceOrder}
+                disabled={isPlacingOrder}
+                style={{ opacity: isPlacingOrder ? 0.6 : 1 }}
+              >
+                {isPlacingOrder ? "Placing Order..." : "Place Order"}
               </button>
             </div>
           </div>

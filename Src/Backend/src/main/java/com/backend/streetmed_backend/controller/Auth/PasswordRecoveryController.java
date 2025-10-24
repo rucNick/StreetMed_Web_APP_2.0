@@ -1,20 +1,25 @@
 package com.backend.streetmed_backend.controller.Auth;
 
 import com.backend.streetmed_backend.entity.user_entity.User;
+import com.backend.streetmed_backend.security.TLSService;
 import com.backend.streetmed_backend.service.EmailService;
 import com.backend.streetmed_backend.service.UserService;
+import com.backend.streetmed_backend.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
@@ -27,21 +32,66 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/api/auth/password")
 public class PasswordRecoveryController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PasswordRecoveryController.class);
+    private static final int RESET_TOKEN_EXPIRY_MINUTES = 30;
+
     private final UserService userService;
     private final EmailService emailService;
     private final Executor authExecutor;
+    private final TLSService tlsService;
+    private final ConcurrentHashMap<String, ResetTokenInfo> resetTokens = new ConcurrentHashMap<>();
 
-    // Store reset tokens with user IDs
-    private final ConcurrentHashMap<String, Integer> resetTokens = new ConcurrentHashMap<>();
+    private static class ResetTokenInfo {
+        public final Integer userId;
+        public final LocalDateTime expiryTime;
+        public final String email;
+
+        public ResetTokenInfo(Integer userId, String email) {
+            this.userId = userId;
+            this.email = email;
+            this.expiryTime = LocalDateTime.now().plusMinutes(RESET_TOKEN_EXPIRY_MINUTES);
+        }
+
+        public boolean isExpired() {
+            return LocalDateTime.now().isAfter(expiryTime);
+        }
+    }
 
     @Autowired
     public PasswordRecoveryController(
             UserService userService,
             EmailService emailService,
-            @Qualifier("authExecutor") Executor authExecutor) {
+            @Qualifier("authExecutor") Executor authExecutor,
+            TLSService tlsService) {
         this.userService = userService;
         this.emailService = emailService;
         this.authExecutor = authExecutor;
+        this.tlsService = tlsService;
+        startTokenCleanupTask();
+    }
+
+    private void startTokenCleanupTask() {
+        CompletableFuture.runAsync(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(60000);
+                    int removed = 0;
+                    for (Map.Entry<String, ResetTokenInfo> entry : resetTokens.entrySet()) {
+                        if (entry.getValue().isExpired()) {
+                            resetTokens.remove(entry.getKey());
+                            removed++;
+                        }
+                    }
+                    if (removed > 0) {
+                        logger.info("Cleaned up {} expired reset tokens", removed);
+                    }
+                } catch (InterruptedException e) {
+                    logger.error("Token cleanup task interrupted", e);
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
     }
 
     @Operation(summary = "Request password reset",
@@ -52,69 +102,51 @@ public class PasswordRecoveryController {
                             schema = @Schema(example = """
                 {
                     "status": "success",
-                    "message": "Recovery code sent to your email"
+                    "message": "Recovery code sent to your email",
+                    "secure": true
                 }
                 """))),
-            @ApiResponse(responseCode = "400", description = "Missing email",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Email is required"
-                }
-                """))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Error details"
-                }
-                """)))
+            @ApiResponse(responseCode = "400", description = "Missing email"),
+            @ApiResponse(responseCode = "403", description = "HTTPS required"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/request-reset")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> requestPasswordReset(
-            @RequestBody @Schema(description = "Email request object",
-                    required = true,
-                    example = """
-                {
-                    "email": "user@example.com"
-                }
-                """)
-            Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        if (tlsService.isHttpsRequired(httpRequest, false)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Password recovery requires secure HTTPS connection"));
+        }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String email = request.get("email");
 
                 if (email == null || email.trim().isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of(
-                            "status", "error",
-                            "message", "Email is required"
-                    ));
+                    return ResponseUtil.badRequest("Email is required");
                 }
 
                 User user = userService.findByEmail(email);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("secure", tlsService.isSecureConnection(httpRequest));
+
                 if (user == null) {
-                    // Don't reveal that the email doesn't exist for security reasons
-                    return ResponseEntity.ok(Map.of(
-                            "status", "success",
-                            "message", "If your email is registered, you will receive a recovery code"
-                    ));
+                    response.put("message", "If your email is registered, you will receive a recovery code");
+                    logger.info("Password reset requested for non-existent email: {}", email);
+                    return ResponseUtil.successData(response);
                 }
 
                 emailService.sendPasswordRecoveryEmail(email);
+                logger.info("Password recovery email sent to user: {}", user.getUserId());
 
-                return ResponseEntity.ok(Map.of(
-                        "status", "success",
-                        "message", "Recovery code sent to your email"
-                ));
+                return ResponseUtil.success("Recovery code sent to your email", response);
 
             } catch (Exception e) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("status", "error");
-                errorResponse.put("message", e.getMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+                logger.error("Error processing password reset request", e);
+                return ResponseUtil.internalError("Failed to process password reset request");
             }
         }, authExecutor);
     }
@@ -122,52 +154,21 @@ public class PasswordRecoveryController {
     @Operation(summary = "Verify OTP",
             description = "Verifies the one-time password (OTP) and returns a reset token if valid")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OTP verified successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "success",
-                    "message": "OTP verified successfully",
-                    "resetToken": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
-                    "userId": 123
-                }
-                """))),
-            @ApiResponse(responseCode = "400", description = "Missing required fields or invalid OTP",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Email and OTP are required"
-                }
-                """))),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "User not found"
-                }
-                """))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Error details"
-                }
-                """)))
+            @ApiResponse(responseCode = "200", description = "OTP verified successfully"),
+            @ApiResponse(responseCode = "400", description = "Missing required fields or invalid OTP"),
+            @ApiResponse(responseCode = "403", description = "HTTPS required"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/verify-otp")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> verifyOtp(
-            @RequestBody @Schema(description = "OTP verification request",
-                    required = true,
-                    example = """
-                {
-                    "email": "user@example.com",
-                    "otp": "123456"
-                }
-                """)
-            Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        if (tlsService.isHttpsRequired(httpRequest, false)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Password recovery requires secure HTTPS connection"));
+        }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -175,45 +176,38 @@ public class PasswordRecoveryController {
                 String otp = request.get("otp");
 
                 if (email == null || otp == null) {
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("status", "error");
-                    errorResponse.put("message", "Email and OTP are required");
-                    return ResponseEntity.badRequest().body(errorResponse);
+                    return ResponseUtil.badRequest("Email and OTP are required");
                 }
 
                 User user = userService.findByEmail(email);
                 if (user == null) {
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("status", "error");
-                    errorResponse.put("message", "User not found");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                    return ResponseUtil.notFound("User not found");
                 }
 
                 boolean isValidOtp = emailService.verifyOtp(email, otp);
                 if (!isValidOtp) {
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("status", "error");
-                    errorResponse.put("message", "Invalid or expired OTP");
-                    return ResponseEntity.badRequest().body(errorResponse);
+                    logger.warn("Invalid OTP attempt for email: {}", email);
+                    return ResponseUtil.badRequest("Invalid or expired OTP");
                 }
 
-                // Generate a reset token and store it with user ID
                 String resetToken = UUID.randomUUID().toString();
-                resetTokens.put(resetToken, user.getUserId());
+                ResetTokenInfo tokenInfo = new ResetTokenInfo(user.getUserId(), email);
+                resetTokens.put(resetToken, tokenInfo);
+
+                logger.info("Reset token generated for user: {} (expires at: {})",
+                        user.getUserId(), tokenInfo.expiryTime);
 
                 Map<String, Object> response = new HashMap<>();
-                response.put("status", "success");
-                response.put("message", "OTP verified successfully");
                 response.put("resetToken", resetToken);
                 response.put("userId", user.getUserId());
+                response.put("tokenExpiryMinutes", RESET_TOKEN_EXPIRY_MINUTES);
+                response.put("secure", tlsService.isSecureConnection(httpRequest));
 
-                return ResponseEntity.ok(response);
+                return ResponseUtil.success("OTP verified successfully", response);
 
             } catch (Exception e) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("status", "error");
-                errorResponse.put("message", e.getMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+                logger.error("Error verifying OTP", e);
+                return ResponseUtil.internalError("Failed to verify OTP");
             }
         }, authExecutor);
     }
@@ -221,50 +215,22 @@ public class PasswordRecoveryController {
     @Operation(summary = "Reset password",
             description = "Resets the user's password using a valid reset token")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password reset successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "success",
-                    "message": "Password reset successfully"
-                }
-                """))),
-            @ApiResponse(responseCode = "400", description = "Missing required fields",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Reset token and new password are required"
-                }
-                """))),
-            @ApiResponse(responseCode = "401", description = "Invalid or expired reset token",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Invalid or expired reset token"
-                }
-                """))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(example = """
-                {
-                    "status": "error",
-                    "message": "Error details"
-                }
-                """)))
+            @ApiResponse(responseCode = "200", description = "Password reset successfully"),
+            @ApiResponse(responseCode = "400", description = "Missing required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid or expired reset token"),
+            @ApiResponse(responseCode = "403", description = "HTTPS required"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/reset")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> resetPassword(
-            @RequestBody @Schema(description = "Password reset request",
-                    required = true,
-                    example = """
-                {
-                    "resetToken": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
-                    "newPassword": "NewSecurePassword123"
-                }
-                """)
-            Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
+
+        if (!tlsService.isSecureConnection(httpRequest)) {
+            logger.error("Password reset attempted over insecure connection!");
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Password reset requires secure HTTPS connection"));
+        }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -272,38 +238,56 @@ public class PasswordRecoveryController {
                 String newPassword = request.get("newPassword");
 
                 if (resetToken == null || newPassword == null) {
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("status", "error");
-                    errorResponse.put("message", "Reset token and new password are required");
-                    return ResponseEntity.badRequest().body(errorResponse);
+                    return ResponseUtil.badRequest("Reset token and new password are required");
                 }
 
-                // Validate the reset token
-                Integer userId = resetTokens.get(resetToken);
-                if (userId == null) {
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("status", "error");
-                    errorResponse.put("message", "Invalid or expired reset token");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+                ResetTokenInfo tokenInfo = resetTokens.get(resetToken);
+                if (tokenInfo == null) {
+                    logger.warn("Invalid reset token attempted");
+                    return ResponseUtil.unauthorized("Invalid reset token");
                 }
 
-                // Update password
-                userService.updatePassword(userId, newPassword);
+                if (tokenInfo.isExpired()) {
+                    logger.warn("Expired reset token attempted for user: {}", tokenInfo.userId);
+                    resetTokens.remove(resetToken);
+                    return ResponseUtil.unauthorized("Reset token has expired. Please request a new one.");
+                }
 
-                // Remove the used token
+                if (newPassword.length() < 8) {
+                    return ResponseUtil.badRequest("Password must be at least 8 characters long");
+                }
+
+                userService.updatePassword(tokenInfo.userId, newPassword);
+                logger.info("Password reset successfully for user: {}", tokenInfo.userId);
+
                 resetTokens.remove(resetToken);
 
+                try {
+                    emailService.sendPasswordChangeConfirmation(tokenInfo.email);
+                } catch (Exception e) {
+                    logger.error("Failed to send password change confirmation email", e);
+                }
+
                 Map<String, Object> response = new HashMap<>();
-                response.put("status", "success");
-                response.put("message", "Password reset successfully");
-                return ResponseEntity.ok(response);
+                response.put("secure", tlsService.isSecureConnection(httpRequest));
+
+                return ResponseUtil.success("Password reset successfully", response);
 
             } catch (Exception e) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("status", "error");
-                errorResponse.put("message", e.getMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+                logger.error("Error resetting password", e);
+                return ResponseUtil.internalError("Failed to reset password");
             }
         }, authExecutor);
+    }
+
+    @Operation(summary = "Get password recovery status")
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getPasswordRecoveryStatus(HttpServletRequest request) {
+        Map<String, Object> status = new HashMap<>();
+        status.put("currentConnectionSecure", tlsService.isSecureConnection(request));
+        status.put("httpsRequired", tlsService.isHttpsRequired(request, false));
+        status.put("activeTokens", resetTokens.size());
+        status.put("tokenExpiryMinutes", RESET_TOKEN_EXPIRY_MINUTES);
+        return ResponseEntity.ok(status);
     }
 }

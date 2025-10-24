@@ -7,32 +7,44 @@ import {
   getSessionId,
   isInitialized
 } from '../../security/ecdhClient';
+import { secureAxios } from '../../config/axiosConfig';
 import '../../css/Login/Register.css';
 import SessionErrorModal from '../../components/SessionErrorModal';
 
 const Register = () => {
   const navigate = useNavigate();
   const [securityInitialized, setSecurityInitialized] = useState(false);
-  const baseURL = process.env.REACT_APP_BASE_URL;
+  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
   const [showSessionErrorModal, setShowSessionErrorModal] = useState(false);
 
   useEffect(() => {
     const initSecurity = async () => {
       try {
-        console.log("Initializing security for registration...");
+        console.log("Initializing security for registration over HTTPS...");
         const result = await performKeyExchange();
         if (result.success) {
           console.log("Security initialized successfully for registration");
           setSecurityInitialized(true);
+        } else if (result.requiresCertAcceptance) {
+          console.warn("Certificate acceptance required");
+          window.dispatchEvent(new CustomEvent('certificate-error', { 
+            detail: { url: baseURL }
+          }));
         } else {
           console.error("Failed to initialize security:", result.error);
         }
       } catch (error) {
         console.error("Error during security initialization:", error);
+        if (error.message.includes('Failed to fetch') || 
+            error.message.includes('NetworkError')) {
+          window.dispatchEvent(new CustomEvent('certificate-error', { 
+            detail: { url: baseURL }
+          }));
+        }
       }
     };
     initSecurity();
-  }, []);
+  }, [baseURL]);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -189,9 +201,10 @@ const Register = () => {
     if (lastName.trim()) {
       userData.lastName = lastName;
     }
+
     try {
       if (securityInitialized && isInitialized()) {
-        console.log("Using secure encrypted registration");
+        console.log("Using secure encrypted registration over HTTPS");
         const encryptedData = await encrypt(JSON.stringify(userData));
         const response = await fetch(`${baseURL}/api/auth/register`, {
           method: 'POST',
@@ -199,8 +212,29 @@ const Register = () => {
             'Content-Type': 'text/plain',
             'X-Session-ID': getSessionId()
           },
-          body: encryptedData
+          body: encryptedData,
+          credentials: 'include',
+          mode: 'cors'
         });
+
+        // Check for HTTPS requirement
+        if (response.status === 403) {
+          const responseText = await response.text();
+          try {
+            const errorData = JSON.parse(responseText);
+            if (errorData.httpsRequired) {
+              setMessage("Secure connection required. Redirecting to HTTPS...");
+              if (window.location.protocol !== 'https:') {
+                setTimeout(() => {
+                  window.location.href = window.location.href.replace('http:', 'https:');
+                }, 1500);
+              }
+              return;
+            }
+          } catch {
+            // Not JSON, continue with normal error handling
+          }
+        }
 
         try {
           const encryptedResponse = await response.text();
@@ -210,7 +244,7 @@ const Register = () => {
           if (data.status === 'success') {
             setMessage('Successful registration!');
             setTimeout(() => {
-              navigate('/');
+              navigate('/login');
             }, 2000);
           } else {
             // Specific error handling based on error message
@@ -234,12 +268,56 @@ const Register = () => {
             throw decryptError;
           }
         }
+      } else {
+        // Fallback: Use secureAxios for non-encrypted registration over HTTPS
+        console.log("Using secure HTTPS registration without encryption");
+        
+        try {
+          const response = await secureAxios.post('/api/auth/register', userData);
+          
+          if (response.data.status === 'success') {
+            setMessage('Successful registration!');
+            setTimeout(() => {
+              navigate('/login');
+            }, 2000);
+          } else {
+            if (response.data.message.includes('Username already exists')) {
+              setMessage('This username is already taken. Please try a different username.');
+            } else if (response.data.message.includes('Email already exists')) {
+              setMessage('This email is already registered. Please use a different email or try logging in.');
+            } else {
+              setMessage(response.data.message || 'Registration failed');
+            }
+          }
+        } catch (axiosError) {
+          if (axiosError.code === 'ERR_CERT_AUTHORITY_INVALID') {
+            setMessage("Certificate error. Please accept the certificate and try again.");
+            window.dispatchEvent(new CustomEvent('certificate-error', { 
+              detail: { url: baseURL }
+            }));
+          } else if (axiosError.response?.status === 403 && axiosError.response?.data?.httpsRequired) {
+            setMessage("Secure connection required. Redirecting to HTTPS...");
+            if (window.location.protocol !== 'https:') {
+              setTimeout(() => {
+                window.location.href = window.location.href.replace('http:', 'https:');
+              }, 1500);
+            }
+          } else {
+            setMessage(axiosError.response?.data?.message || "Registration failed");
+          }
+        }
       }
     } catch (error) {
       console.error("Registration error:", error);
       
       // User-friendly error handling
-      if (error.message.includes('session') || 
+      if (error.message.includes('Failed to fetch') || 
+          error.message.includes('NetworkError')) {
+        setMessage("Connection error. Please check your connection and certificate.");
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: baseURL }
+        }));
+      } else if (error.message.includes('session') || 
           error.message.includes('atob') || 
           error.message.includes('decode')) {
         setMessage("Session error. Please refresh the page.");
@@ -375,7 +453,7 @@ const Register = () => {
               )}
 
               {securityInitialized ? (
-                <p className="security-indicator success">Secure connection established</p>
+                <p className="security-indicator success">🔒 Secure connection established</p>
               ) : (
                 <p className="security-indicator fail">Establishing secure connection...</p>
               )}

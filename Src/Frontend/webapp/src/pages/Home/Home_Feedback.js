@@ -1,7 +1,7 @@
 // Home_Feedback.js
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { publicAxios } from "../../config/axiosConfig";
 import "../../css/Home/Home_Feedback.css"; // Use dedicated CSS for the feedback page
 
 const Home_Feedback = ({ username }) => {
@@ -30,7 +30,10 @@ const Home_Feedback = ({ username }) => {
         phoneNumber: feedbackPhoneNumber,
         content: feedbackContent,
       };
-      const response = await axios.post(`${baseURL}/api/feedback/submit`, payload);
+      
+      // Use publicAxios for feedback submission
+      const response = await publicAxios.post('/api/feedback/submit', payload);
+      
       if (response.data.status === "success") {
         setFeedbackMessage("Feedback submitted successfully!");
         setTimeout(() => {
@@ -41,7 +44,34 @@ const Home_Feedback = ({ username }) => {
         setFeedbackError(response.data.message || "Failed to submit feedback.");
       }
     } catch (error) {
-      setFeedbackError(error.response?.data?.message || "Failed to submit feedback.");
+      // Handle certificate errors with fallback
+      if (error.code === 'ERR_CERT_AUTHORITY_INVALID') {
+        try {
+          const response = await fetch(`${baseURL}/api/feedback/submit`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: username,
+              phoneNumber: feedbackPhoneNumber,
+              content: feedbackContent,
+            })
+          });
+          
+          const data = await response.json();
+          if (data.status === "success") {
+            setFeedbackMessage("Feedback submitted successfully!");
+            setTimeout(() => navigate(-1), 1500);
+          } else {
+            setFeedbackError(data.message || "Failed to submit feedback.");
+          }
+        } catch (fallbackError) {
+          setFeedbackError("Failed to submit feedback.");
+        }
+      } else {
+        setFeedbackError(error.response?.data?.message || "Failed to submit feedback.");
+      }
     }
   };
 

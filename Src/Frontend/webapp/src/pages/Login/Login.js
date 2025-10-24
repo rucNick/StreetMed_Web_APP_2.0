@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encrypt, decrypt, getSessionId, isInitialized } from "../../security/ecdhClient";
+import { secureAxios } from "../../config/axiosConfig";
 import "../../css/Login/Login.css";
 import SessionErrorModal from '../../components/SessionErrorModal';
 
@@ -12,7 +13,7 @@ const Login = ({ onLoginSuccess }) => {
   const [message, setMessage] = useState("");
   const [showSessionErrorModal, setShowSessionErrorModal] = useState(false);
 
-  const baseURL = process.env.REACT_APP_BASE_URL;
+  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,12 +21,12 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       if (isInitialized()) {
-        console.log("Using secure login with encryption");
+        console.log("Using secure login with encryption over HTTPS");
 
         const loginData = { username, password };
-
         const encryptedData = await encrypt(JSON.stringify(loginData));
 
+        // Use secureAxios for HTTPS connection
         const response = await fetch(`${baseURL}/api/auth/login`, {
           method: "POST",
           headers: {
@@ -33,15 +34,32 @@ const Login = ({ onLoginSuccess }) => {
             "X-Session-ID": getSessionId(),
           },
           body: encryptedData,
+          credentials: 'include',
+          mode: 'cors'
         });
 
-        // Add this check for network errors
+        // Check for network/TLS errors
         if (!response.ok) {
           if (response.status === 500) {
-            // Display a user-friendly message for server errors
             setMessage("Server error. Your session may have expired.");
             setShowSessionErrorModal(true);
             return;
+          } else if (response.status === 403) {
+            // Check if it's an HTTPS requirement error
+            const responseText = await response.text();
+            try {
+              const errorData = JSON.parse(responseText);
+              if (errorData.httpsRequired) {
+                setMessage("Secure connection required. Please ensure you're using HTTPS.");
+                // Redirect to HTTPS if not already
+                if (window.location.protocol !== 'https:') {
+                  window.location.href = window.location.href.replace('http:', 'https:');
+                }
+                return;
+              }
+            } catch {
+              // Not JSON, continue with normal error handling
+            }
           }
         }
 
@@ -50,24 +68,23 @@ const Login = ({ onLoginSuccess }) => {
           const decryptedResponse = await decrypt(encryptedResponse);
           const data = JSON.parse(decryptedResponse);
 
-          if (data.authenticated) {
+          if (data.authenticated || data.status === "success") {
             setMessage("Login success!");
             console.log("User info:", data);
 
-            localStorage.setItem(
-              "auth_user",
-              JSON.stringify({
-                username: data.username,
-                userId: data.userId,
-                role: data.role,
-              })
-            );
-
-            onLoginSuccess({
+            // Store user data in both localStorage and sessionStorage for security
+            const userData = {
               username: data.username,
               userId: data.userId,
               role: data.role,
-            });
+              authToken: data.authToken,
+              volunteerSubRole: data.volunteerSubRole
+            };
+            
+            localStorage.setItem("auth_user", JSON.stringify(userData));
+            sessionStorage.setItem("auth_user", JSON.stringify(userData));
+
+            onLoginSuccess(userData);
             navigate("/");
           } else {
             throw new Error(data.message || "Login failed");
@@ -84,12 +101,57 @@ const Login = ({ onLoginSuccess }) => {
             throw decryptError;
           }
         }
+      } else {
+        // Fallback: Use secureAxios for non-encrypted login over HTTPS
+        console.log("Using secure HTTPS login without encryption");
+        
+        try {
+          const response = await secureAxios.post('/api/auth/login', {
+            username,
+            password
+          });
+
+          if (response.data.authenticated || response.data.status === "success") {
+            setMessage("Login success!");
+            
+            const userData = {
+              username: response.data.username,
+              userId: response.data.userId,
+              role: response.data.role,
+              authToken: response.data.authToken,
+              volunteerSubRole: response.data.volunteerSubRole
+            };
+            
+            localStorage.setItem("auth_user", JSON.stringify(userData));
+            sessionStorage.setItem("auth_user", JSON.stringify(userData));
+
+            onLoginSuccess(userData);
+            navigate("/");
+          } else {
+            setMessage(response.data.message || "Login failed");
+          }
+        } catch (axiosError) {
+          if (axiosError.code === 'ERR_CERT_AUTHORITY_INVALID') {
+            setMessage("Certificate error. Please accept the certificate and try again.");
+            window.dispatchEvent(new CustomEvent('certificate-error', { 
+              detail: { url: baseURL }
+            }));
+          } else {
+            setMessage(axiosError.response?.data?.message || "Login failed");
+          }
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
       
-      // Check if it's a session-related error
-      if (error.message.includes('session') || 
+      // Check if it's a certificate or session-related error
+      if (error.message.includes('Failed to fetch') || 
+          error.message.includes('NetworkError')) {
+        setMessage("Connection error. Please check your connection and certificate.");
+        window.dispatchEvent(new CustomEvent('certificate-error', { 
+          detail: { url: baseURL }
+        }));
+      } else if (error.message.includes('session') || 
           error.message.includes('atob') || 
           error.message.includes('decode')) {
         setMessage("Session error. Please refresh the page.");

@@ -1,7 +1,7 @@
 package com.backend.streetmed_backend.controller.Inventory;
 
 import com.backend.streetmed_backend.document.CargoImage;
-import com.backend.streetmed_backend.service.CargoImageService;
+import com.backend.streetmed_backend.service.cargoService.CargoImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
