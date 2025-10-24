@@ -114,14 +114,6 @@
             <version>${springdoc.version}</version>
         </dependency>
 
-        <!-- Spring Boot DevTools (for live reload in development) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-
         <!-- Spring Boot Test Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
