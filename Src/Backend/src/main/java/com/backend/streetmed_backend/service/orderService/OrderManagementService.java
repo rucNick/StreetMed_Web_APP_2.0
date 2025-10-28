@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.*;
 
 @Service
@@ -297,6 +298,39 @@ public class OrderManagementService {
         } catch (Exception e) {
             logger.error("Error updating round capacity: {}", e.getMessage());
             return ResponseUtil.internalError("Failed to update round capacity");
+        }
+    }
+
+    /**
+     * Get all orders (admin/volunteer operation)
+     */
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> getAllOrders(GetAllOrdersRequest request) {
+        if (!Boolean.TRUE.equals(request.getAuthenticated())) {
+            return ResponseUtil.unauthorized();
+        }
+
+        // Only volunteers can see all orders
+        if (!"VOLUNTEER".equals(request.getUserRole())) {
+            return ResponseUtil.forbidden("Only volunteers can view all orders");
+        }
+
+        try {
+            // Use OrderService to get all orders
+            List<Order> allOrders = orderService.getUserOrders(request.getUserId(), request.getUserRole());
+
+            // Sort by request time (most recent first)
+            allOrders.sort(Comparator.comparing(Order::getRequestTime).reversed());
+
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("orders", allOrders);
+            responseData.put("total", allOrders.size());
+
+            return ResponseUtil.successData(responseData);
+
+        } catch (Exception e) {
+            logger.error("Error fetching all orders: {}", e.getMessage());
+            return ResponseUtil.internalError("Failed to fetch orders: " + e.getMessage());
         }
     }
 }

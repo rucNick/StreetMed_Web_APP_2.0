@@ -90,7 +90,39 @@ public class OrderController {
             return orderManagementService.getOrderStatus(request);
         }, readOnlyExecutor);
     }
+    @Operation(summary = "Get all orders (Admin/Volunteer)")
+    @GetMapping("/all")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getAllOrders(
+            @RequestParam(required = false) Boolean authenticated,
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) String userRole,
+            @RequestHeader(value = "Admin-Username", required = false) String adminUsername,
+            @RequestHeader(value = "Authentication-Status", required = false) String authStatus,
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            HttpServletRequest httpRequest) {
 
+        // Enforce HTTPS for admin operations
+        if (tlsService.isHttpsRequired(httpRequest, true)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+        }
+
+        // Validate admin authentication
+        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.unauthorized("Authentication required"));
+        }
+
+        if (!tlsService.hasRole(authToken, "ADMIN", "VOLUNTEER")) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.forbidden("Insufficient permissions"));
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            GetAllOrdersRequest request = new GetAllOrdersRequest(authenticated, userId, userRole);
+            return orderManagementService.getAllOrders(request);
+        }, readOnlyExecutor);
+    }
     @Operation(summary = "Get round capacity")
     @GetMapping("/rounds/{roundId}/capacity")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getRoundCapacity(

@@ -124,7 +124,7 @@ secureAxios.interceptors.request.use(
       
       if (isDev && !isAdminEndpoint) {
         // Use HTTP for regular auth endpoints in development
-        config.url = `http://localhost:8080${config.url}`;
+        config.url = `${config.baseURL}${config.url}`;
       } else {
         // Use HTTPS for admin or production
         config.url = `${config.baseURL}${config.url}`;
