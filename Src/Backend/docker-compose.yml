@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: streetmed_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: streetmed
+      MYSQL_USER: streetmed_user
+      MYSQL_PASSWORD: streetmed_password
+    ports:
+      - "3307:3306"   # ✅ changed host port to avoid conflict
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - streetmed-net
+
+
+  mongodb:
+    image: mongo:6.0
+    container_name: streetmed_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - streetmed-net
+
+  backend:
+    build: .
+    container_name: streetmed_backend
+    restart: on-failure
+    depends_on:
+      - mysql
+      - mongodb
+    ports:
+      - "8443:8443"
+      - "8080:8080"   # optional dual-port HTTP mode
+    environment:
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/streetmed?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: streetmed_user
+      SPRING_DATASOURCE_PASSWORD: streetmed_password
+
+      # MongoDB Configuration
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/streetmed
+
+      # Keystore Path
+      TLS_KEYSTORE_PATH: /app/keystore/streetmed-keystore.p12
+      TLS_KEYSTORE_PASSWORD: streetmed123
+
+      # Force profile
+      SPRING_PROFILES_ACTIVE: local
+    volumes:
+      - ./src/main/resources/keystore:/app/keystore:ro
+    networks:
+      - streetmed-net
+
+volumes:
+  mysql_data:
+  mongo_data:
+
+networks:
+  streetmed-net:
+    driver: bridge
