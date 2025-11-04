@@ -18,8 +18,7 @@ import java.util.List;
 
 /**
  * Security Configuration for StreetMed Backend
- * Works with existing RequestCorsFilter and OptionsRequestFilter
- * Supports both local (TLS) and production environments
+ * Fixed CORS headers for User-Id and User-Role
  */
 @Configuration
 @EnableWebSecurity
@@ -27,7 +26,7 @@ public class WebSecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:3001,https://localhost:3000}")
     private String corsAllowedOrigins;
 
     @Bean
@@ -40,7 +39,7 @@ public class WebSecurityConfig {
                 // Enable CORS with our configuration
                 .cors(cors -> {
                     cors.configurationSource(corsConfigurationSource());
-                    logger.info("✓ CORS enabled with configuration from properties");
+                    logger.info("✓ CORS enabled with custom configuration");
                 })
 
                 // Disable CSRF for REST API
@@ -49,7 +48,7 @@ public class WebSecurityConfig {
                     logger.info("✓ CSRF disabled for REST API");
                 })
 
-                // Stateless session (we use custom ECDH auth)
+                // Stateless session
                 .sessionManagement(session -> {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                     logger.info("✓ Session management: STATELESS");
@@ -60,136 +59,57 @@ public class WebSecurityConfig {
                     logger.info("Configuring endpoint authorization...");
 
                     auth
-                            // ===== PUBLIC TLS TEST ENDPOINTS =====
+                            // ===== PUBLIC ENDPOINTS =====
                             .requestMatchers(
-                                    "/api/test/tls/**",
-                                    "/api/test/tls/status",
-                                    "/api/test/tls/health",
-                                    "/api/test/tls/cert-test"
-                            ).permitAll()
-
-                            // ===== PUBLIC SECURITY/ECDH ENDPOINTS =====
-                            .requestMatchers(
-                                    "/api/security/initiate-handshake",
-                                    "/api/security/complete-handshake",
-                                    "/api/security/**"
-                            ).permitAll()
-
-                            // ===== PUBLIC AUTH ENDPOINTS =====
-                            .requestMatchers(
-                                    "/api/auth/login",
-                                    "/api/auth/register",
-                                    "/api/auth/logout",
-                                    "/api/auth/**"
-                            ).permitAll()
-
-                            // ===== PUBLIC GUEST ENDPOINTS =====
-                            .requestMatchers(
+                                    "/api/test/**",
+                                    "/api/security/**",
+                                    "/api/auth/**",
                                     "/api/guest/**",
-                                    "/api/orders/create",
-                                    "/api/rounds/active"
-                            ).permitAll()
-
-                            // ===== PUBLIC CARGO/ITEMS =====
-                            .requestMatchers(
                                     "/api/cargo/**",
-                                    "/api/items/**"
-                            ).permitAll()
-
-                            // ===== PUBLIC VOLUNTEER ENDPOINTS =====
-                            .requestMatchers(
-                                    "/api/volunteer/**"
-                            ).permitAll()
-
-                            // ===== PUBLIC CLIENT ENDPOINTS =====
-                            .requestMatchers(
-                                    "/api/client/**"
-                            ).permitAll()
-
-                            // ===== PUBLIC ADMIN ENDPOINTS (for development) =====
-                            // TODO: In production, change .permitAll() to .hasRole("ADMIN")
-                            .requestMatchers(
-                                    "/api/admin/**"
-                            ).permitAll()  // Change this in production!
-
-                            // ===== HEALTH & MONITORING =====
-                            .requestMatchers(
+                                    "/api/items/**",
+                                    "/api/orders/**",  // Allow orders endpoints
+                                    "/api/rounds/**",   // Allow rounds endpoints
+                                    "/api/volunteer/**",
+                                    "/api/client/**",
+                                    "/api/admin/**",
+                                    "/api/feedback/**",
                                     "/health",
-                                    "/actuator/**"
-                            ).permitAll()
-
-                            // ===== SWAGGER/API DOCUMENTATION =====
-                            .requestMatchers(
+                                    "/actuator/**",
                                     "/swagger-ui/**",
-                                    "/swagger-ui.html",
                                     "/v3/api-docs/**",
-                                    "/swagger-resources/**",
-                                    "/webjars/**",
-                                    "/api-docs/**"
-                            ).permitAll()
-
-                            // ===== STATIC RESOURCES =====
-                            .requestMatchers(
-                                    "/css/**",
-                                    "/js/**",
-                                    "/images/**",
-                                    "/static/**",
-                                    "/favicon.ico",
                                     "/error"
                             ).permitAll()
 
-                            // ===== ALL OTHER ENDPOINTS =====
-                            .anyRequest().permitAll();  // TEMPORARY: Allow all for debugging
+                            // Allow all for development
+                            .anyRequest().permitAll();
 
-                    logger.info("✓ Authorization rules configured");
-                    logger.info("  - TLS endpoints: PUBLIC");
-                    logger.info("  - Security/ECDH endpoints: PUBLIC");
-                    logger.info("  - Auth endpoints: PUBLIC");
-                    logger.info("  - Guest endpoints: PUBLIC");
-                    logger.info("  - Cargo/Items endpoints: PUBLIC");
-                    logger.info("  - Volunteer endpoints: PUBLIC");
-                    logger.info("  - Client endpoints: PUBLIC");
-                    logger.info("  - Admin endpoints: PUBLIC (development)");
-                    logger.info("  - ALL OTHER endpoints: PUBLIC (TEMPORARY FOR DEBUGGING)");
+                    logger.info("✓ Authorization rules configured - ALL ENDPOINTS PUBLIC (Development)");
                 })
 
-                // Disable form login (we use custom auth)
-                .formLogin(form -> {
-                    form.disable();
-                    logger.info("✓ Form login disabled (using custom ECDH auth)");
-                })
+                // Disable form login
+                .formLogin(form -> form.disable())
 
-                // Disable HTTP Basic auth (we use custom auth)
-                .httpBasic(basic -> {
-                    basic.disable();
-                    logger.info("✓ HTTP Basic auth disabled (using custom ECDH auth)");
-                })
+                // Disable HTTP Basic auth
+                .httpBasic(basic -> basic.disable())
 
-                // Disable logout (we handle it custom)
-                .logout(logout -> {
-                    logout.disable();
-                    logger.info("✓ Default logout disabled (using custom logout)");
-                });
+                // Disable default logout
+                .logout(logout -> logout.disable());
 
         logger.info("╔══════════════════════════════════════════════════════════════╗");
-        logger.info("║   Security Configuration Complete - PERMISSIVE DEBUG MODE    ║");
-        logger.info("║   ALL ENDPOINTS ARE PUBLIC for debugging 403 errors!         ║");
-        logger.info("║   Change .anyRequest().permitAll() to .authenticated()       ║");
-        logger.info("║   after confirming 403 errors are fixed!                     ║");
+        logger.info("║   Security Configuration Complete - Development Mode         ║");
         logger.info("╚══════════════════════════════════════════════════════════════╝");
 
         return http.build();
     }
 
     /**
-     * CORS Configuration Source
-     * Uses the same origins as RequestCorsFilter for consistency
+     * CORS Configuration Source - FIXED to include User-Id and User-Role headers
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Parse allowed origins from properties
+        // Parse allowed origins from properties or use defaults
         List<String> origins = Arrays.asList(corsAllowedOrigins.split(","));
         configuration.setAllowedOrigins(origins);
         logger.info("✓ CORS allowed origins: {}", origins);
@@ -199,27 +119,55 @@ public class WebSecurityConfig {
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
         ));
 
-        // Allow all headers (match RequestCorsFilter)
+        // Allow all headers - INCLUDING User-Id and User-Role which were missing!
         configuration.setAllowedHeaders(Arrays.asList(
-                "Content-Type", "Authorization", "X-Session-ID", "X-Auth-Token",
-                "X-Client-ID", "X-Timestamp", "X-Signature", "Admin-Username",
-                "Authentication-Status", "X-User-Role", "X-User-Id",
-                "X-Requested-With", "Origin", "Accept"
+                // Standard headers
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "Authorization",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+
+                // Session/Auth headers
+                "X-Session-ID",
+                "X-Auth-Token",
+                "X-Client-ID",
+                "X-Timestamp",
+                "X-Signature",
+
+                // Custom application headers
+                "Admin-Username",
+                "Authentication-Status",
+                "User-Id",
+                "User-Role",
+                "X-User-Id",
+                "X-User-Role"
         ));
 
-        // Expose headers (match RequestCorsFilter)
+        logger.info("✓ CORS allowed headers configured (including User-Id and User-Role)");
+
+        // Expose headers
         configuration.setExposedHeaders(Arrays.asList(
-                "X-Session-ID", "X-Auth-Token", "Content-Type"
+                "X-Session-ID",
+                "X-Auth-Token",
+                "Content-Type",
+                "X-RateLimit-Limit",
+                "X-RateLimit-Remaining",
+                "X-RateLimit-Reset"
         ));
 
         // Allow credentials
         configuration.setAllowCredentials(true);
 
-        // Max age
+        // Max age for preflight cache
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
+        logger.info("✓ CORS configuration complete with all required headers");
 
         return source;
     }

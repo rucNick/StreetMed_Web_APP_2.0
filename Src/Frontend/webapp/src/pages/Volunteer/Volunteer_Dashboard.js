@@ -1,39 +1,201 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { publicAxios } from "../../config/axiosConfig";
+import { publicAxios, secureAxios } from "../../config/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import "../../css/Volunteer/Volunteer_Dashboard.css";
 
 const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const navigate = useNavigate();
 
+  // Rounds states
   const [myUpcomingRounds, setMyUpcomingRounds] = useState([]);
   const [myPastRounds, setMyPastRounds] = useState([]);
   const [myRoundsError, setMyRoundsError] = useState("");
   const [allUpcomingRounds, setAllUpcomingRounds] = useState([]);
   const [allRoundsError, setAllRoundsError] = useState("");
-  const [assignedOrders, setAssignedOrders] = useState([]);
+  
+  // Orders states - Updated for new workflow
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [myAssignments, setMyAssignments] = useState([]);
   const [ordersError, setOrdersError] = useState("");
-
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [showOrdersTab, setShowOrdersTab] = useState("pending"); // "pending" or "assigned"
+  
+  // Calendar and modals
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [roundsForSelectedDate, setRoundsForSelectedDate] = useState([]);
-
   const [showRoundsModal, setShowRoundsModal] = useState(false);
   const [fullViewModalOpen, setFullViewModalOpen] = useState(false);
   const [selectedRoundDetails, setSelectedRoundDetails] = useState(null);
   const [roundOrders, setRoundOrders] = useState([]);
-
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
   const [showPastRounds, setShowPastRounds] = useState(false);
   const [showCompletedOrders, setShowCompletedOrders] = useState(false);
 
+  // Load pending orders from queue
+  const loadPendingOrders = useCallback(async () => {
+    if (!userData || !userData.userId) return;
+    setIsLoadingOrders(true);
+    try {
+      const response = await secureAxios.get('/api/orders/pending', {
+        params: { page: 0, size: 20 },
+        headers: {
+          'Authentication-Status': 'true',
+          'User-Id': userData.userId,
+          'User-Role': 'VOLUNTEER'
+        }
+      });
+      
+      if (response.data.status === "success") {
+        setPendingOrders(response.data.orders || []);
+      } else {
+        setOrdersError(response.data.message || "Failed to load pending orders");
+      }
+    } catch (error) {
+      console.error("Error loading pending orders:", error);
+      setOrdersError(error.response?.data?.message || error.message);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [userData]);
+
+  // Load volunteer's assignments
+  const loadMyAssignments = useCallback(async () => {
+    if (!userData || !userData.userId) return;
+    setIsLoadingOrders(true);
+    try {
+      const response = await secureAxios.get('/api/orders/my-assignments', {
+        headers: {
+          'User-Id': userData.userId,
+          'User-Role': 'VOLUNTEER',
+          'Authentication-Status': 'true'
+        }
+      });
+      
+      if (response.data.status === "success") {
+        setMyAssignments(response.data.assignments || []);
+      } else {
+        setOrdersError(response.data.message || "Failed to load assignments");
+      }
+    } catch (error) {
+      console.error("Error loading assignments:", error);
+      setOrdersError(error.response?.data?.message || error.message);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [userData]);
+
+  // Accept an order from the pending queue
+  const acceptOrder = async (orderId, roundId = null) => {
+    if (!window.confirm(`Accept order ${orderId}? You will be responsible for delivering this order.`)) {
+      return;
+    }
+    
+    try {
+      const response = await secureAxios.post(`/api/orders/${orderId}/accept`, {
+        authenticated: true,
+        userId: userData.userId,
+        userRole: 'VOLUNTEER',
+        roundId: roundId
+      });
+      
+      if (response.data.status === "success") {
+        alert("Order accepted successfully! Check your assignments.");
+        loadPendingOrders();
+        loadMyAssignments();
+        setShowOrdersTab("assigned"); // Switch to assigned tab
+      } else {
+        alert(response.data.message || "Failed to accept order");
+      }
+    } catch (error) {
+      console.error("Error accepting order:", error);
+      if (error.response?.status === 409) {
+        alert("This order has already been accepted by another volunteer.");
+        loadPendingOrders(); // Refresh to remove the taken order
+      } else {
+        alert(error.response?.data?.message || "Failed to accept order");
+      }
+    }
+  };
+
+  // Cancel assignment (return to queue)
+  const cancelAssignment = async (orderId) => {
+    if (!window.confirm(`Cancel your assignment for order ${orderId}? This will return it to the pending queue.`)) {
+      return;
+    }
+    
+    try {
+      const response = await secureAxios.delete(`/api/orders/${orderId}/assignment`, {
+        headers: {
+          'User-Id': userData.userId,
+          'User-Role': 'VOLUNTEER',
+          'Authentication-Status': 'true'
+        }
+      });
+      
+      if (response.data.status === "success") {
+        alert("Assignment cancelled successfully.");
+        loadMyAssignments();
+        loadPendingOrders(); // Refresh pending orders
+      } else {
+        alert(response.data.message || "Failed to cancel assignment");
+      }
+    } catch (error) {
+      console.error("Error cancelling assignment:", error);
+      alert(error.response?.data?.message || "Failed to cancel assignment");
+    }
+  };
+
+  // Start working on an order
+  const startOrder = async (assignmentId) => {
+    try {
+      const response = await secureAxios.put(`/api/orders/assignment/${assignmentId}/start`, {}, {
+        headers: {
+          'User-Id': userData.userId,
+          'User-Role': 'VOLUNTEER',
+          'Authentication-Status': 'true'
+        }
+      });
+      
+      if (response.data.status === "success") {
+        alert("Started working on order!");
+        loadMyAssignments();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to start order");
+    }
+  };
+
+  // Complete an order
+  const completeOrder = async (assignmentId) => {
+    if (!window.confirm("Mark this order as completed?")) {
+      return;
+    }
+    
+    try {
+      const response = await secureAxios.put(`/api/orders/assignment/${assignmentId}/complete`, {}, {
+        headers: {
+          'User-Id': userData.userId,
+          'User-Role': 'VOLUNTEER',
+          'Authentication-Status': 'true'
+        }
+      });
+      
+      if (response.data.status === "success") {
+        alert("Order completed successfully!");
+        loadMyAssignments();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to complete order");
+    }
+  };
+
+  // Existing rounds functions remain the same...
   const loadMyRounds = useCallback(async () => {
     if (!userData || !userData.userId) return;
     try {
-      // Use publicAxios for volunteer rounds endpoints
       const r = await publicAxios.get('/api/rounds/my-rounds', {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
@@ -45,12 +207,8 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         setMyRoundsError(d.message || "Failed to load my rounds");
       }
     } catch (e) {
-      // Handle certificate errors
       if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
         setMyRoundsError('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
       } else {
         setMyRoundsError(e.response?.data?.message || e.message);
       }
@@ -70,34 +228,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         setAllRoundsError(d.message || "Failed to load upcoming rounds");
       }
     } catch (e) {
-      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
-        setAllRoundsError('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
-      } else {
-        setAllRoundsError(e.response?.data?.message || e.message);
-      }
-    }
-  }, [userData]);
-
-  const loadAssignedOrders = useCallback(async () => {
-    if (!userData || !userData.userId) return;
-    try {
-      const r = await publicAxios.get('/api/orders/volunteer/assigned', {
-        params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
-      });
-      const d = r.data;
-      setAssignedOrders(d.orders || []);
-    } catch (e) {
-      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
-        setOrdersError('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
-      } else {
-        setOrdersError(e.response?.data?.message || e.message);
-      }
+      setAllRoundsError(e.response?.data?.message || e.message);
     }
   }, [userData]);
 
@@ -114,14 +245,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       loadAllUpcomingRounds();
       handleDateClick(selectedDate);
     } catch (e) {
-      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
-        alert('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
-      } else {
-        alert(e.response?.data?.message || e.message);
-      }
+      alert(e.response?.data?.message || e.message);
     }
   };
 
@@ -154,27 +278,16 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       if (r.data.status === "success") {
         setSelectedRoundDetails(r.data.round);
         setFullViewModalOpen(true);
-      } else {
-        alert(r.data.message);
-        return;
       }
+      
       const ordersRes = await publicAxios.get(`/api/rounds/${roundId}/orders`, {
         params: { authenticated: true, userId: userData.userId, userRole: "VOLUNTEER" }
       });
       if (ordersRes.data.status === "success") {
         setRoundOrders(ordersRes.data.orders || []);
-      } else {
-        alert(ordersRes.data.message);
       }
     } catch (e) {
-      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
-        alert('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
-      } else {
-        alert(e.response?.data?.message || e.message);
-      }
+      alert(e.response?.data?.message || e.message);
     }
   };
 
@@ -202,14 +315,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       loadMyRounds();
       loadAllUpcomingRounds();
     } catch (e) {
-      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
-        alert('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
-      } else {
-        alert(e.response?.data?.message || e.message);
-      }
+      alert(e.response?.data?.message || e.message);
     }
   };
 
@@ -223,55 +329,47 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
     setSelectedOrder(null);
   };
 
-  const handleCompleteOrder = async (orderId) => {
-    try {
-      const r = await publicAxios.put(`/api/orders/${orderId}/status`, {
-        authenticated: true,
-        userId: userData.userId,
-        userRole: "VOLUNTEER",
-        status: "COMPLETED"
-      });
-      alert(r.data.message);
-      loadAssignedOrders();
-    } catch (e) {
-      if (e.code === 'ERR_CERT_AUTHORITY_INVALID') {
-        alert('Certificate error. Please accept the certificate and try again.');
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
-        }));
-      } else {
-        alert(e.response?.data?.message || e.message);
-      }
-    }
+  const getOrderAge = (requestTime) => {
+    if (!requestTime) return 'Unknown';
+    const now = new Date();
+    const orderTime = new Date(requestTime);
+    const diffMs = now - orderTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 60) return `${diffMins} mins`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d`;
   };
 
   useEffect(() => {
     if (!userData || !userData.userId) return;
     loadMyRounds();
     loadAllUpcomingRounds();
-    loadAssignedOrders();
-  }, [loadMyRounds, loadAllUpcomingRounds, loadAssignedOrders, userData]);
+    loadPendingOrders();
+    loadMyAssignments();
+  }, [loadMyRounds, loadAllUpcomingRounds, loadPendingOrders, loadMyAssignments, userData]);
 
-  const pendingOrders = assignedOrders.filter((o) => o.status === "PENDING");
-  const completedOrders = assignedOrders.filter((o) => o.status === "COMPLETED");
+  const activeAssignments = myAssignments.filter(a => a.status !== 'COMPLETED');
+  const completedAssignments = myAssignments.filter(a => a.status === 'COMPLETED');
 
   return (
     <>
       <header className="nav-bar">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img className="nav-logo" src="/Untitled.png" alt="Logo" />
-          <span className="nav-welcome"><h2>Welcome Back, {userData.username} !</h2></span>
-          <button
-          className="nav-btn"
-          style={{ marginLeft: "10px" }}
-          onClick={() => navigate("/profile")}
-        >
-          Profile
-        </button>
+          <span className="nav-welcome"><h2>Welcome Back, {userData.username}!</h2></span>
+          <button className="nav-btn" style={{ marginLeft: "10px" }} onClick={() => navigate("/profile")}>
+            Profile
+          </button>
         </div>
         <div className="nav-right-group">
+          <button className="nav-btn" onClick={() => navigate("/admin/orders")}>
+            Order Queue ({pendingOrders.length})
+          </button>
           <button className="nav-btn" onClick={() => navigate("/cargo_volunteer")}>
-            Cargo Volunteer
+            Cargo
           </button>
           <button className="nav-btn" onClick={onLogout}>
             Logout
@@ -283,9 +381,174 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         <div className="volunteer-left-panel">
           <br />
           <br />
-          <h2>
-            <strong>My Upcoming Rounds</strong>
-          </h2>
+          
+          {/* Orders Section - New Priority Queue System */}
+          <div style={{ marginBottom: '30px', border: '2px solid #ff6b00', padding: '15px', borderRadius: '8px' }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <strong>📦 Order Management</strong>
+              <span style={{ fontSize: '14px', color: '#666' }}>
+                ({activeAssignments.length} active)
+              </span>
+            </h2>
+            
+            {/* Tab buttons */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+              <button 
+                onClick={() => setShowOrdersTab("pending")}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: showOrdersTab === "pending" ? '#ff6b00' : '#f0f0f0',
+                  color: showOrdersTab === "pending" ? 'white' : 'black',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Pending Queue ({pendingOrders.length})
+              </button>
+              <button 
+                onClick={() => setShowOrdersTab("assigned")}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: showOrdersTab === "assigned" ? '#ff6b00' : '#f0f0f0',
+                  color: showOrdersTab === "assigned" ? 'white' : 'black',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                My Assignments ({activeAssignments.length})
+              </button>
+            </div>
+
+            {ordersError && <p className="error-text">{ordersError}</p>}
+            
+            {showOrdersTab === "pending" ? (
+              <div className="orders-cards">
+                {isLoadingOrders ? (
+                  <p>Loading orders...</p>
+                ) : pendingOrders.length === 0 ? (
+                  <p>No pending orders in queue.</p>
+                ) : (
+                  pendingOrders.slice(0, 5).map((order, idx) => (
+                    <div 
+                      key={order.orderId} 
+                      className="order-card"
+                      style={{
+                        border: idx === 0 ? '2px solid #ff6b00' : '1px solid #ddd',
+                        backgroundColor: idx === 0 ? '#fff8e1' : 'white'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3>
+                          {idx === 0 && <span style={{color: '#ff6b00'}}>⚡ PRIORITY - </span>}
+                          Order #{order.orderId}
+                        </h3>
+                        <span style={{ 
+                          fontSize: '12px', 
+                          color: idx === 0 ? '#ff6b00' : '#666',
+                          fontWeight: idx === 0 ? 'bold' : 'normal'
+                        }}>
+                          {getOrderAge(order.requestTime)} old
+                        </span>
+                      </div>
+                      <p><strong>Items:</strong> {order.orderItems?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
+                      <p><strong>Address:</strong> {order.deliveryAddress}</p>
+                      <p><strong>Phone:</strong> {order.phoneNumber}</p>
+                      {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                        <button 
+                          className="open-view-btn"
+                          style={{ 
+                            backgroundColor: idx === 0 ? '#ff6b00' : '#009E2C'
+                          }}
+                          onClick={() => acceptOrder(order.orderId, order.roundId)}
+                        >
+                          {idx === 0 ? '⚡ Accept Priority Order' : 'Accept Order'}
+                        </button>
+                        <button 
+                          className="open-view-btn"
+                          onClick={() => openOrderFullView(order)}
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+                {pendingOrders.length > 5 && (
+                  <p style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
+                    + {pendingOrders.length - 5} more orders in queue
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="orders-cards">
+                {activeAssignments.length === 0 ? (
+                  <p>No active assignments. Check the pending queue!</p>
+                ) : (
+                  activeAssignments.map((assignment) => (
+                    <div key={assignment.assignmentId} className="order-card" style={{ 
+                      borderLeft: assignment.status === 'IN_PROGRESS' ? '4px solid #3498db' : '4px solid #27ae60'
+                    }}>
+                      <h3>Assignment #{assignment.assignmentId}</h3>
+                      <p><strong>Order ID:</strong> {assignment.orderId}</p>
+                      <p><strong>Status:</strong> 
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          marginLeft: '5px',
+                          backgroundColor: assignment.status === 'ACCEPTED' ? '#e8f5e9' : '#e3f2fd',
+                          color: assignment.status === 'ACCEPTED' ? '#2e7d32' : '#1565c0'
+                        }}>
+                          {assignment.status}
+                        </span>
+                      </p>
+                      <p><strong>Items:</strong> {assignment.items?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
+                      <p><strong>Address:</strong> {assignment.deliveryAddress}</p>
+                      <p><strong>Phone:</strong> {assignment.phoneNumber}</p>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                        {assignment.status === 'ACCEPTED' && (
+                          <button
+                            className="open-view-btn"
+                            style={{ backgroundColor: '#3498db' }}
+                            onClick={() => startOrder(assignment.assignmentId)}
+                          >
+                            Start Delivery
+                          </button>
+                        )}
+                        {assignment.status === 'IN_PROGRESS' && (
+                          <button
+                            className="open-view-btn"
+                            style={{ backgroundColor: '#27ae60' }}
+                            onClick={() => completeOrder(assignment.assignmentId)}
+                          >
+                            Complete
+                          </button>
+                        )}
+                        <button
+                          className="open-view-btn"
+                          style={{ backgroundColor: '#e74c3c' }}
+                          onClick={() => cancelAssignment(assignment.orderId)}
+                        >
+                          Cancel Assignment
+                        </button>
+                        <button
+                          className="open-view-btn"
+                          onClick={() => openOrderFullView(assignment)}
+                        >
+                          Full Details
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Rounds Section - Existing code */}
+          <h2><strong>My Upcoming Rounds</strong></h2>
           {myRoundsError && <p className="error-text">{myRoundsError}</p>}
           <div className="rounds-cards">
             {myUpcomingRounds.length === 0 && <p>No upcoming rounds yet.</p>}
@@ -302,51 +565,15 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                       : undefined
                 }}
               >
-                <h3>
-                  <strong>{r.title}</strong>
-                </h3>
+                <h3><strong>{r.title}</strong></h3>
                 <p>{r.description}</p>
-                <p>
-                  <strong>Location: </strong> 📍{r.location}
-                </p>
-                <p>
-                  <strong>Start: </strong>
-                  {new Date(r.startTime).toLocaleString()}
-                </p>
-                <p>
-                  <strong>End: </strong>
-                  {new Date(r.endTime).toLocaleString()}
-                </p>
+                <p><strong>Location: </strong> 📍{r.location}</p>
+                <p><strong>Start: </strong>{new Date(r.startTime).toLocaleString()}</p>
+                <p><strong>End: </strong>{new Date(r.endTime).toLocaleString()}</p>
                 <br />
                 <button className="open-view-btn" onClick={() => openFullViewModal(r.roundId)}>
                   View Details
                 </button>
-              </div>
-            ))}
-          </div>
-
-          <h2>
-            <strong>Assigned Orders</strong>
-          </h2>
-          {ordersError && <p className="error-text">{ordersError}</p>}
-          <div className="orders-cards">
-            {pendingOrders.map((o) => (
-              <div key={o.orderId} className="order-card">
-                <h3>{o.orderType}</h3>
-                <p>{o.deliveryAddress}</p>
-                <p>Items: {o.orderItems?.map((i) => i.itemName).join(", ")}</p>
-                <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-                  <button className="open-view-btn" onClick={() => openOrderFullView(o)}>
-                    Open full view
-                  </button>
-                  <button
-                    className="open-view-btn"
-                    style={{ backgroundColor: "#009E2C" }}
-                    onClick={() => handleCompleteOrder(o.orderId)}
-                  >
-                    Complete
-                  </button>
-                </div>
               </div>
             ))}
           </div>
@@ -362,22 +589,11 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               ) : (
                 myPastRounds.map((r) => (
                   <div key={r.roundId} className="round-card">
-                    <h3>
-                      <strong>{r.title}</strong>
-                    </h3>
+                    <h3><strong>{r.title}</strong></h3>
                     <p>{r.description}</p>
-                    <p>
-                      <strong>Location: </strong>
-                      {r.location}
-                    </p>
-                    <p>
-                      <strong>Start: </strong>
-                      {new Date(r.startTime).toLocaleString()}
-                    </p>
-                    <p>
-                      <strong>End: </strong>
-                      {new Date(r.endTime).toLocaleString()}
-                    </p>
+                    <p><strong>Location: </strong>{r.location}</p>
+                    <p><strong>Start: </strong>{new Date(r.startTime).toLocaleString()}</p>
+                    <p><strong>End: </strong>{new Date(r.endTime).toLocaleString()}</p>
                   </div>
                 ))
               )}
@@ -390,17 +606,17 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           </h2>
           {showCompletedOrders && (
             <div className="orders-cards">
-              {completedOrders.length === 0 ? (
+              {completedAssignments.length === 0 ? (
                 <p>No completed orders.</p>
               ) : (
-                completedOrders.map((o) => (
-                  <div key={o.orderId} className="order-card">
+                completedAssignments.map((a) => (
+                  <div key={a.assignmentId} className="order-card">
                     <span className="completed-badge">Completed</span>
-                    <h3>{o.orderType}</h3>
-                    <p>{o.deliveryAddress}</p>
-                    <p>Items: {o.orderItems?.map((i) => i.itemName).join(", ")}</p>
-                    <button className="open-view-btn" onClick={() => openOrderFullView(o)}>
-                      Open full view
+                    <h3>Order #{a.orderId}</h3>
+                    <p>{a.deliveryAddress}</p>
+                    <p>Items: {a.items?.map((i) => `${i.itemName} (${i.quantity})`).join(", ")}</p>
+                    <button className="open-view-btn" onClick={() => openOrderFullView(a)}>
+                      View Details
                     </button>
                   </div>
                 ))
@@ -412,16 +628,12 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         <div className="vertical-line"></div>
 
         <div className="volunteer-right-panel">
-          <br />
-          <br />
-          <br />
-          <h2>
-            <strong>Select a date to see rounds</strong>
-          </h2>
-          <br />
-          <br />
+          <br /><br /><br />
+          <h2><strong>Select a date to see rounds</strong></h2>
+          <br /><br />
           {allRoundsError && <p className="error-text">{allRoundsError}</p>}
           <Calendar onClickDay={handleDateClick} tileClassName={highlightDates} />
+          
           {showRoundsModal && (
             <div className="rounds-modal">
               <div className="rounds-modal-content">
@@ -441,9 +653,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                     ) : r.openForSignup ? (
                       <button onClick={() => signupForRound(r.roundId, "VOLUNTEER")}>Sign Up</button>
                     ) : (
-                      <p style={{ color: "red" }}>
-                        No slots available (waitlist not shown in this demo).
-                      </p>
+                      <p style={{ color: "red" }}>No slots available.</p>
                     )}
                   </div>
                 ))}
@@ -455,62 +665,58 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           )}
         </div>
 
+        {/* Full View Modal for Rounds */}
         {fullViewModalOpen && selectedRoundDetails && (
           <div className="fullview-modal" onClick={closeFullViewModal}>
             <div className="fullview-modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>{selectedRoundDetails.title}</h2>
               <p>____________________________________________________________</p>
               <br />
-              <p>
-                <strong>Description:</strong> {selectedRoundDetails.description}
-              </p>
-              <p>
-                <strong>Location:</strong> {selectedRoundDetails.location}
-              </p>
-              <p>
-                <strong>Start:</strong> {new Date(selectedRoundDetails.startTime).toLocaleString()}
-              </p>
-              <p>
-                <strong>End:</strong> {new Date(selectedRoundDetails.endTime).toLocaleString()}
-              </p>
-              <p>
-                <strong>Available Slots:</strong> {selectedRoundDetails.availableSlots}
-              </p>
-              <p>
-                <strong>Already Signed Up?</strong> {selectedRoundDetails.userSignedUp ? "Yes" : "No"}
-              </p>
+              <p><strong>Description:</strong> {selectedRoundDetails.description}</p>
+              <p><strong>Location:</strong> {selectedRoundDetails.location}</p>
+              <p><strong>Start:</strong> {new Date(selectedRoundDetails.startTime).toLocaleString()}</p>
+              <p><strong>End:</strong> {new Date(selectedRoundDetails.endTime).toLocaleString()}</p>
+              <p><strong>Available Slots:</strong> {selectedRoundDetails.availableSlots}</p>
+              <p><strong>Already Signed Up?</strong> {selectedRoundDetails.userSignedUp ? "Yes" : "No"}</p>
               <br />
-              <h3>Assigned Orders for this Round</h3>
-              <div
-                style={{
-                  marginTop: "10px",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  maxHeight: "200px",
-                  overflowY: "auto",
-                  padding: "10px"
-                }}
-              >
+              <h3>Round Orders</h3>
+              <div style={{
+                marginTop: "10px",
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                maxHeight: "200px",
+                overflowY: "auto",
+                padding: "10px"
+              }}>
                 {roundOrders.length === 0 ? (
                   <p>No orders for this round yet.</p>
                 ) : (
                   roundOrders.map((ord) => (
                     <div key={ord.orderId} style={{ marginBottom: "12px", paddingBottom: "8px", borderBottom: "1px dashed #aaa" }}>
-                      <p>
-                        <strong>Order ID:</strong> {ord.orderId}
-                      </p>
-                      <p>
-                        <strong>Status:</strong> {ord.status}
-                      </p>
-                      <p>
-                        <strong>Type:</strong> {ord.orderType}
-                      </p>
-                      <p>
-                        <strong>Delivery:</strong> {ord.deliveryAddress}
-                      </p>
-                      <p>
-                        <strong>Items:</strong> {ord.orderItems?.map((i) => i.itemName).join(", ")}
-                      </p>
+                      <p><strong>Order ID:</strong> {ord.orderId}</p>
+                      <p><strong>Status:</strong> {ord.status}</p>
+                      <p><strong>Type:</strong> {ord.orderType}</p>
+                      <p><strong>Delivery:</strong> {ord.deliveryAddress}</p>
+                      <p><strong>Items:</strong> {ord.orderItems?.map((i) => i.itemName).join(", ")}</p>
+                      {ord.status === "PENDING" && (
+                        <button 
+                          style={{
+                            marginTop: '5px',
+                            padding: '5px 10px',
+                            backgroundColor: '#009E2C',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            acceptOrder(ord.orderId, selectedRoundDetails.roundId);
+                          }}
+                        >
+                          Accept This Order
+                        </button>
+                      )}
                     </div>
                   ))
                 )}
@@ -529,6 +735,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           </div>
         )}
 
+        {/* Order Detail Modal */}
         {orderModalOpen && selectedOrder && (
           <div className="fullview-modal" onClick={closeOrderFullView}>
             <div className="fullview-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -540,17 +747,23 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               <p>Delivery Address: {selectedOrder.deliveryAddress}</p>
               <p>Phone Number: {selectedOrder.phoneNumber}</p>
               <p>Note: {selectedOrder.notes}</p>
-              <p>
-                Order Time:{" "}
-                {selectedOrder.requestTime
-                  ? new Date(selectedOrder.requestTime).toLocaleString()
-                  : ""}
-              </p>
+              <p>Order Time: {selectedOrder.requestTime ? new Date(selectedOrder.requestTime).toLocaleString() : ""}</p>
+              {selectedOrder.items && selectedOrder.items.length > 0 && (
+                <div>
+                  <h4>Items:</h4>
+                  {selectedOrder.items.map((itm, idx) => (
+                    <p key={idx}>
+                      {itm.itemName} - Quantity: {itm.quantity}
+                    </p>
+                  ))}
+                </div>
+              )}
               {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 && (
                 <div>
+                  <h4>Items:</h4>
                   {selectedOrder.orderItems.map((itm, idx) => (
                     <p key={idx}>
-                      Item Name: {itm.itemName}, Quantity: {itm.quantity}
+                      {itm.itemName} - Quantity: {itm.quantity}
                     </p>
                   ))}
                 </div>
