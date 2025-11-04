@@ -72,6 +72,18 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems = new ArrayList<>();
 
+    @Column(name = "client_ip_address")
+    private String clientIpAddress;
+
+    // Add getter and setter:
+    public String getClientIpAddress() {
+        return clientIpAddress;
+    }
+
+    public void setClientIpAddress(String clientIpAddress) {
+        this.clientIpAddress = clientIpAddress;
+    }
+
     // Relationship management methods
     public void addOrderItem(OrderItem item) {
         orderItems.add(item);

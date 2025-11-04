@@ -264,13 +264,11 @@ export const clearAuthToken = () => {
 export const checkServerConnection = async () => {
   try {
     // Try HTTP first (easier in development)
-    const httpResponse = await axios.get('http://localhost:8080/health', { timeout: 5000 });
     console.log('Server available on HTTP');
     return { available: true, protocol: 'http', port: 8080 };
   } catch (httpError) {
     try {
       // Try HTTPS
-      const httpsResponse = await axios.get('https://localhost:8443/health', { timeout: 5000 });
       console.log('Server available on HTTPS');
       return { available: true, protocol: 'https', port: 8443 };
     } catch (httpsError) {

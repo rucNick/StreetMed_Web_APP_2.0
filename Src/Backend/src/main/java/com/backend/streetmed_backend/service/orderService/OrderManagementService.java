@@ -12,9 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -168,11 +173,17 @@ public class OrderManagementService {
 
     @Transactional
     public ResponseEntity<Map<String, Object>> createOrder(CreateOrderRequest request) {
-        if (!Boolean.TRUE.equals(request.getAuthenticated()) || request.getUserId() == null) {
-            return ResponseUtil.unauthorized();
+        if (!Boolean.TRUE.equals(request.getAuthenticated())) {
+            // Allow guest orders but set guest user ID
+            if (request.getUserId() == null) {
+                request.setUserId(-1); // Guest user ID
+            }
         }
 
         try {
+            // Extract client IP address from current request context
+            String clientIpAddress = extractClientIpFromContext();
+
             Order order = new Order(Order.OrderType.CLIENT);
             order.setUserId(request.getUserId());
             order.setDeliveryAddress(request.getDeliveryAddress());
@@ -191,18 +202,41 @@ public class OrderManagementService {
                 }
             }
 
-            Order savedOrder = orderService.createOrder(order, orderItems);
+            // Now pass the IP address to the service
+            Order savedOrder = orderService.createOrder(order, orderItems, clientIpAddress);
 
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("orderId", savedOrder.getOrderId());
             responseData.put("status", savedOrder.getStatus());
+            responseData.put("roundId", savedOrder.getRoundId());
 
             return ResponseUtil.success("Order created successfully", responseData);
 
+        } catch (OrderRateLimitService.RateLimitExceededException e) {
+            return ResponseUtil.error(e.getMessage(), HttpStatus.TOO_MANY_REQUESTS, true);
         } catch (Exception e) {
             logger.error("Error creating order: {}", e.getMessage());
             return ResponseUtil.badRequest(e.getMessage());
         }
+    }
+
+    // Add this helper method to OrderManagementService
+    private String extractClientIpFromContext() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        HttpServletRequest request = attributes.getRequest();
+
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            // Take the first IP if there are multiple (proxy chain)
+            return xForwardedFor.split(",")[0].trim();
+        }
+
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty()) {
+            return xRealIp;
+        }
+
+        return request.getRemoteAddr();
     }
 
     public ResponseEntity<Map<String, Object>> getOrderStatus(GetOrderStatusRequest request) {

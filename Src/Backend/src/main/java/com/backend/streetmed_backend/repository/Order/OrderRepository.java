@@ -47,6 +47,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             "AND o.status = 'PENDING'")
     LocalDateTime findOldestPendingOrderTime();
 
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.userId = :userId AND o.status = :status")
+    Long countByUserIdAndStatus(@Param("userId") Integer userId, @Param("status") String status);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.clientIpAddress = :ipAddress AND o.status = 'PENDING'")
+    Long countPendingOrdersByIpAddress(@Param("ipAddress") String ipAddress);
+
+    @Query("SELECT o FROM Order o WHERE o.clientIpAddress = :ipAddress AND o.requestTime > :sinceTime")
+    List<Order> findOrdersByIpAddressSince(@Param("ipAddress") String ipAddress,
+                                           @Param("sinceTime") LocalDateTime sinceTime);
+
     // Existing methods
     List<Order> findByRoundIdIsNullOrderByRequestTimeAsc();
     List<Order> findByRoundId(Integer roundId);

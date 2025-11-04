@@ -1,5 +1,5 @@
 package com.backend.streetmed_backend.service.orderService;
-
+import com.backend.streetmed_backend.service.orderService.OrderRateLimitService;
 import com.backend.streetmed_backend.entity.CargoItem;
 import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
@@ -29,6 +29,7 @@ public class OrderService {
     private static final int GUEST_USER_ID = -1;
     private final RoundsRepository roundsRepository;
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(OrderService.class.getName());
+    private final OrderRateLimitService rateLimitService;
 
     @Autowired
     private OrderRoundAssignmentService orderRoundAssignmentService;
@@ -39,13 +40,15 @@ public class OrderService {
                         CargoItemService cargoItemService,
                         RoundsRepository roundsRepository,
                         OrderAssignmentService orderAssignmentService,
-                        OrderAssignmentRepository orderAssignmentRepository) {
+                        OrderAssignmentRepository orderAssignmentRepository,
+                        OrderRateLimitService rateLimitService) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.cargoItemService = cargoItemService;
         this.roundsRepository = roundsRepository;
         this.orderAssignmentService = orderAssignmentService;
         this.orderAssignmentRepository = orderAssignmentRepository;
+        this.rateLimitService = rateLimitService;
     }
 
     /**
@@ -85,14 +88,27 @@ public class OrderService {
      *
      * @param order The order to create
      * @param items The items in the order
+     * @param clientIpAddress The client's IP address for rate limiting
      * @return The saved order
      */
     @Transactional
-    public Order createOrder(Order order, List<OrderItem> items) {
+    public Order createOrder(Order order, List<OrderItem> items, String clientIpAddress) {
+
+        // Rate limiting checks
         if (order.getUserId() != GUEST_USER_ID) {
+            // Check rate limits for registered user
             validateUser(order.getUserId());
+            rateLimitService.checkUserRateLimit(order.getUserId());
+        } else {
+            // Check rate limits for guest (IP-based)
+            if (clientIpAddress == null || clientIpAddress.trim().isEmpty()) {
+                throw new IllegalArgumentException("IP address is required for guest orders");
+            }
+            rateLimitService.checkGuestRateLimit(clientIpAddress);
         }
 
+        // Set IP address for tracking
+        order.setClientIpAddress(clientIpAddress);
         order.setRequestTime(LocalDateTime.now());
         order.setStatus("PENDING");
 
@@ -147,6 +163,13 @@ public class OrderService {
 
         // Save the order first
         Order savedOrder = orderRepository.save(order);
+
+        // Record for rate limiting
+        rateLimitService.recordOrderCreation(
+                order.getUserId() != GUEST_USER_ID ? order.getUserId() : null,
+                clientIpAddress,
+                savedOrder.getOrderId()
+        );
 
         // Try to assign it to a round immediately
         try {
