@@ -83,11 +83,19 @@ const AdminUsers = ({ userData }) => {
         alert("Username and role are required");
         return;
       }
-      
+
       const response = await secureAxios.post('/api/admin/user/create', {
         adminUsername: userData.username,
         authenticated: "true",
-        ...newUser
+        userData: {
+          username: newUser.username,
+          email: newUser.email,
+          phone: newUser.phone,
+          role: newUser.role,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          password: newUser.password
+        }
       });
       
       alert(

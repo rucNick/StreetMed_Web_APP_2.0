@@ -162,7 +162,7 @@ public class AdminService {
      */
     public ResponseEntity<Map<String, Object>> createUser(CreateUserRequest request) {
         try {
-            if (!isAuthenticated(request.getAuthenticated())) {
+            if (isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
