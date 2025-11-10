@@ -379,7 +379,7 @@ public class AdminService {
     }
 
     private boolean isValidRole(String role) {
-        return !"CLIENT".equals(role) && !"VOLUNTEER".equals(role) && !"ADMIN".equals(role);
+        return "CLIENT".equals(role) || "VOLUNTEER".equals(role) || "ADMIN".equals(role);
     }
 
     private Map<String, List<Map<String, Object>>> fetchUsersGroupedByRole() {
