@@ -336,7 +336,7 @@ public class OrderManagementService {
     }
 
     /**
-     * Get all orders (admin/volunteer operation)
+     * Get all orders
      */
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getAllOrders(GetAllOrdersRequest request) {
@@ -344,21 +344,59 @@ public class OrderManagementService {
             return ResponseUtil.unauthorized();
         }
 
-        // Only volunteers can see all orders
-        if (!"VOLUNTEER".equals(request.getUserRole())) {
-            return ResponseUtil.forbidden("Only volunteers can view all orders");
+        // Allow both ADMIN and VOLUNTEER to see all orders
+        if (!"VOLUNTEER".equals(request.getUserRole()) && !"ADMIN".equals(request.getUserRole())) {
+            return ResponseUtil.forbidden("Only volunteers and admins can view all orders");
         }
 
         try {
-            // Use OrderService to get all orders
-            List<Order> allOrders = orderService.getUserOrders(request.getUserId(), request.getUserRole());
+            List<Order> allOrders;
+
+            // Admins see ALL orders, Volunteers see their assigned orders
+            if ("ADMIN".equals(request.getUserRole())) {
+                // For admins, fetch all orders from repository
+                allOrders = orderRepository.findAll();
+            } else {
+                // For volunteers, use existing logic
+                allOrders = orderService.getUserOrders(request.getUserId(), request.getUserRole());
+            }
 
             // Sort by request time (most recent first)
             allOrders.sort(Comparator.comparing(Order::getRequestTime).reversed());
 
+            // Convert to response format
+            List<Map<String, Object>> ordersList = new ArrayList<>();
+            for (Order order : allOrders) {
+                Map<String, Object> orderData = new HashMap<>();
+                orderData.put("orderId", order.getOrderId());
+                orderData.put("status", order.getStatus());
+                orderData.put("requestTime", order.getRequestTime());
+                orderData.put("orderType", order.getOrderType());
+                orderData.put("userId", order.getUserId());
+                orderData.put("deliveryAddress", order.getDeliveryAddress());
+                orderData.put("phoneNumber", order.getPhoneNumber());
+                orderData.put("notes", order.getNotes());
+                orderData.put("roundId", order.getRoundId());
+
+                // Add order items
+                if (order.getOrderItems() != null) {
+                    orderData.put("orderItems", order.getOrderItems());
+                }
+
+                // Add assignment info if exists
+                Optional<OrderAssignment> assignment = orderAssignmentService.getOrderAssignment(order.getOrderId());
+                if (assignment.isPresent()) {
+                    orderData.put("assignedVolunteerId", assignment.get().getVolunteerId());
+                    orderData.put("assignmentStatus", assignment.get().getStatus());
+                }
+
+                ordersList.add(orderData);
+            }
+
             Map<String, Object> responseData = new HashMap<>();
-            responseData.put("orders", allOrders);
-            responseData.put("total", allOrders.size());
+            responseData.put("status", "success");
+            responseData.put("orders", ordersList);
+            responseData.put("total", ordersList.size());
 
             return ResponseUtil.successData(responseData);
 
