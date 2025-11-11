@@ -248,11 +248,12 @@ public class OrderService {
      */
     @Transactional
     public Order updateOrderStatus(Integer orderId, String status, Integer userId, String userRole) {
-        if (!"VOLUNTEER".equals(userRole)) {
-            throw new RuntimeException("Only volunteers can update order status");
+        if (!"VOLUNTEER".equals(userRole) && !"ADMIN".equals(userRole)) {
+            throw new RuntimeException("Only volunteers and admins can update order status");
         }
 
-        Order order = getOrder(orderId, userId, userRole);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
         // Check if there's an active assignment
         Optional<OrderAssignment> assignmentOpt = orderAssignmentService.getOrderAssignment(orderId);
@@ -260,21 +261,24 @@ public class OrderService {
         if (assignmentOpt.isPresent()) {
             OrderAssignment assignment = assignmentOpt.get();
 
-            // Verify the volunteer owns this assignment
-            if (!assignment.getVolunteerId().equals(userId)) {
+            // Verify the volunteer owns this assignment (admins can update any order)
+            if (!"ADMIN".equals(userRole) && !assignment.getVolunteerId().equals(userId)) {
                 throw new RuntimeException("Order is assigned to another volunteer");
             }
 
             // Update through assignment service based on status
+            // For admins updating orders they don't own, use the volunteer's ID from the assignment
+            Integer effectiveUserId = "ADMIN".equals(userRole) ? assignment.getVolunteerId() : userId;
+
             switch (status) {
                 case "PROCESSING":
-                    orderAssignmentService.startOrder(assignment.getAssignmentId(), userId);
+                    orderAssignmentService.startOrder(assignment.getAssignmentId(), effectiveUserId);
                     break;
                 case "COMPLETED":
-                    orderAssignmentService.completeOrder(assignment.getAssignmentId(), userId);
+                    orderAssignmentService.completeOrder(assignment.getAssignmentId(), effectiveUserId);
                     break;
                 case "CANCELLED":
-                    orderAssignmentService.cancelAssignment(assignment.getAssignmentId(), userId);
+                    orderAssignmentService.cancelAssignment(assignment.getAssignmentId(), effectiveUserId);
                     releaseReservedInventory(order);
                     break;
                 default:
@@ -310,8 +314,11 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        // Only volunteers can cancel guest orders
-        if (order.getUserId() == GUEST_USER_ID) {
+        // Allow admins to cancel any order
+        if ("ADMIN".equals(userRole)) {
+            // Admins can cancel any order
+        } else if (order.getUserId() == GUEST_USER_ID) {
+            // Only volunteers can cancel guest orders
             if (!"VOLUNTEER".equals(userRole)) {
                 throw new RuntimeException("Unauthorized to cancel this order");
             }
@@ -324,7 +331,7 @@ public class OrderService {
         if (assignmentOpt.isPresent()) {
             // Cancel through assignment service
             OrderAssignment assignment = assignmentOpt.get();
-            if (assignment.getVolunteerId().equals(userId) || "VOLUNTEER".equals(userRole)) {
+            if (assignment.getVolunteerId().equals(userId) || "VOLUNTEER".equals(userRole) || "ADMIN".equals(userRole)) {
                 orderAssignmentService.cancelAssignment(assignment.getAssignmentId(),
                         assignment.getVolunteerId());
             }
@@ -338,6 +345,25 @@ public class OrderService {
 
         order.setStatus("CANCELLED");
         orderRepository.save(order);
+    }
+
+    /**
+     * Deletes an order from the database (Admin only)
+     * Should be called after cancelOrder to properly release inventory
+     */
+    @Transactional
+    public void deleteOrder(Integer orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // Delete any associated assignments first
+        Optional<OrderAssignment> assignmentOpt = orderAssignmentService.getOrderAssignment(orderId);
+        if (assignmentOpt.isPresent()) {
+            orderAssignmentRepository.delete(assignmentOpt.get());
+        }
+
+        // Delete the order
+        orderRepository.delete(order);
     }
 
     /**

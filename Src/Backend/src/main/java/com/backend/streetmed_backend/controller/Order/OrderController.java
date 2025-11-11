@@ -373,6 +373,148 @@ public class OrderController {
         }, readOnlyExecutor);
     }
 
+    @Operation(summary = "Cancel an order (Admin)")
+    @PostMapping("/{orderId}/cancel")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> cancelOrder(
+            @PathVariable Integer orderId,
+            @RequestBody Map<String, Object> requestBody,
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestHeader(value = "Authentication-Status", required = false) String authStatus,
+            HttpServletRequest httpRequest) {
+
+        // Enforce HTTPS for admin operations
+        if (tlsService.isHttpsRequired(httpRequest, true)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+        }
+
+        // Validate admin authentication
+        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.unauthorized("Authentication required"));
+        }
+
+        if (!tlsService.hasRole(authToken, "ADMIN")) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.forbidden("Admin role required"));
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Integer userId = (Integer) requestBody.get("userId");
+                String userRole = (String) requestBody.get("userRole");
+
+                orderService.cancelOrder(orderId, userId, userRole);
+
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("orderId", orderId);
+                responseData.put("status", "CANCELLED");
+
+                return ResponseUtil.success("Order cancelled successfully", responseData);
+            } catch (Exception e) {
+                logger.error("Error cancelling order: {}", e.getMessage());
+                return ResponseUtil.badRequest(e.getMessage());
+            }
+        }, authExecutor);
+    }
+
+    @Operation(summary = "Update order status (Admin)")
+    @PutMapping("/{orderId}/status")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> updateOrderStatus(
+            @PathVariable Integer orderId,
+            @RequestBody Map<String, Object> requestBody,
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestHeader(value = "Authentication-Status", required = false) String authStatus,
+            HttpServletRequest httpRequest) {
+
+        // Enforce HTTPS for admin operations
+        if (tlsService.isHttpsRequired(httpRequest, true)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+        }
+
+        // Validate admin authentication
+        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.unauthorized("Authentication required"));
+        }
+
+        if (!tlsService.hasRole(authToken, "ADMIN")) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.forbidden("Admin role required"));
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Integer userId = (Integer) requestBody.get("userId");
+                String userRole = (String) requestBody.get("userRole");
+                String newStatus = (String) requestBody.get("status");
+
+                if (newStatus == null || newStatus.trim().isEmpty()) {
+                    return ResponseUtil.badRequest("Status is required");
+                }
+
+                Order updatedOrder = orderService.updateOrderStatus(orderId, newStatus, userId, userRole);
+
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("orderId", updatedOrder.getOrderId());
+                responseData.put("status", updatedOrder.getStatus());
+
+                return ResponseUtil.success("Order status updated successfully", responseData);
+            } catch (Exception e) {
+                logger.error("Error updating order status: {}", e.getMessage());
+                return ResponseUtil.badRequest(e.getMessage());
+            }
+        }, authExecutor);
+    }
+
+    @Operation(summary = "Delete an order (Admin)")
+    @DeleteMapping("/{orderId}")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> deleteOrder(
+            @PathVariable Integer orderId,
+            @RequestParam(required = false) Boolean authenticated,
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) String userRole,
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestHeader(value = "Authentication-Status", required = false) String authStatus,
+            HttpServletRequest httpRequest) {
+
+        // Enforce HTTPS for admin operations
+        if (tlsService.isHttpsRequired(httpRequest, true)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+        }
+
+        // Validate admin authentication
+        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.unauthorized("Authentication required"));
+        }
+
+        if (!tlsService.hasRole(authToken, "ADMIN")) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.forbidden("Admin role required"));
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // First, cancel the order to release inventory
+                orderService.cancelOrder(orderId, userId, userRole);
+
+                // Then delete the order from database
+                orderService.deleteOrder(orderId);
+
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("orderId", orderId);
+
+                return ResponseUtil.success("Order deleted successfully", responseData);
+            } catch (Exception e) {
+                logger.error("Error deleting order: {}", e.getMessage());
+                return ResponseUtil.badRequest(e.getMessage());
+            }
+        }, authExecutor);
+    }
+
     @Operation(summary = "Get round capacity")
     @GetMapping("/rounds/{roundId}/capacity")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getRoundCapacity(
