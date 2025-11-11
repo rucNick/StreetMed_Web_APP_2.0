@@ -83,19 +83,52 @@ const AdminUsers = ({ userData }) => {
         alert("Username and role are required");
         return;
       }
-      
-      const response = await secureAxios.post('/api/admin/user/create', {
+
+      // Validate role value
+      const validRoles = ["CLIENT", "VOLUNTEER", "ADMIN"];
+      if (!validRoles.includes(newUser.role)) {
+        alert("Invalid role. Must be CLIENT, VOLUNTEER, or ADMIN");
+        return;
+      }
+
+      // Special validation for VOLUNTEER role
+      if (newUser.role === "VOLUNTEER" && !newUser.email) {
+        alert("Email is required for VOLUNTEER role");
+        return;
+      }
+
+      // Build request matching CreateUserRequest structure
+      const requestPayload = {
         adminUsername: userData.username,
         authenticated: "true",
-        ...newUser
-      });
+        userData: {
+          username: newUser.username,
+          role: newUser.role,
+          email: newUser.email || "",
+          phone: newUser.phone || "",
+          firstName: newUser.firstName || "",
+          lastName: newUser.lastName || "",
+          password: newUser.password || ""
+        }
+      };
+
+      // Make the API call
+      const response = await secureAxios.post('/api/admin/user/create', requestPayload);
       
-      alert(
-        response.data.message +
-        (response.data.generatedPassword ? 
-          "\nGenerated Password: " + response.data.generatedPassword : "")
-      );
+      // Build success message
+      let successMessage = response.data.message || "User created successfully!";
       
+      if (response.data.generatedPassword) {
+        successMessage = `User created successfully!\n\n` +
+                        `Username: ${newUser.username}\n` +
+                        `Role: ${newUser.role}\n` +
+                        `Generated Password: ${response.data.generatedPassword}\n\n` +
+                        `SAVE THIS PASSWORD - It cannot be retrieved later!`;
+      }
+      
+      alert(successMessage);
+      
+      // Reset the form
       setNewUser({
         username: "", 
         email: "", 
@@ -105,33 +138,58 @@ const AdminUsers = ({ userData }) => {
         lastName: "",
         password: ""
       });
+      
+      // Reload the user list
       loadUsers();
+      
     } catch (error) {
       console.error("Error creating user:", error);
-      alert(error.response?.data?.message || error.message);
+      
+      if (error.response?.data?.message) {
+        const errorMsg = error.response.data.message;
+        
+        if (errorMsg.includes("already exists")) {
+          alert("Username already exists. Please choose a different username.");
+        } else if (errorMsg.includes("required")) {
+          alert(errorMsg);
+        } else {
+          alert(`Error: ${errorMsg}`);
+        }
+      } else if (error.request) {
+        alert("No response from server. Please check if the backend is running.");
+      } else {
+        alert(`Error: ${error.message}`);
+      }
     }
   };
 
   const updateUser = async () => {
-    if (!updateUserData) return;
-    
-    try {
-      const response = await secureAxios.put(
-        `/api/admin/user/update/${updateUserData.userId}`,
-        {
-          adminUsername: userData.username,
-          authenticated: "true",
-          ...updateUserData
+  if (!updateUserData) return;
+  
+  try {
+    const response = await secureAxios.put(
+      `/api/admin/user/update/${updateUserData.userId}`,
+      {
+        adminUsername: userData.username,
+        authenticated: "true",
+        updateData: { 
+          username: updateUserData.username || "",
+          email: updateUserData.email || "",
+          phone: updateUserData.phone || "",
+          firstName: updateUserData.firstName || "",
+          lastName: updateUserData.lastName || "",
+          role: updateUserData.role || ""
         }
-      );
-      alert(response.data.message);
-      setUpdateUserData(null);
-      loadUsers();
-    } catch (error) {
-      console.error("Error updating user:", error);
-      alert(error.response?.data?.message || error.message);
-    }
-  };
+      }
+    );
+    alert(response.data.message || "User updated successfully");
+    setUpdateUserData(null);
+    loadUsers();
+  } catch (error) {
+    console.error("Error updating user:", error);
+    alert(error.response?.data?.message || error.message);
+  }
+};
 
   const resetUserPassword = async (user) => {
     if (!user.userId) {

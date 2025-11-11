@@ -47,7 +47,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> updateVolunteerSubRole(UpdateVolunteerSubRoleRequest request) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthenticated())) {
+            if (!isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -92,7 +92,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> getAllUsersGroupedByRole(GetAllUsersRequest request, boolean isSecure) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthStatus())) {
+            if (!isAuthenticated(request.getAuthStatus())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -125,7 +125,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> deleteUser(DeleteUserRequest request) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthenticated())) {
+            if (!isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -216,7 +216,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> updateUser(UpdateUserRequest request) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthenticated())) {
+            if (!isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -254,7 +254,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> resetUserPassword(ResetPasswordRequest request) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthenticated())) {
+            if (!isAuthenticated(request.getAuthenticated())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -297,7 +297,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> getUserDetails(GetUserDetailsRequest request) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthStatus())) {
+            if (!isAuthenticated(request.getAuthStatus())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -332,7 +332,7 @@ public class AdminService {
     public ResponseEntity<Map<String, Object>> getUserStatistics(GetStatisticsRequest request) {
         try {
             // Validate authentication
-            if (isAuthenticated(request.getAuthStatus())) {
+            if (!isAuthenticated(request.getAuthStatus())) {
                 return ResponseUtil.unauthorized();
             }
 
@@ -359,7 +359,7 @@ public class AdminService {
     // Private helper methods
 
     private boolean isAuthenticated(String authStatus) {
-        return !"true".equals(authStatus);
+        return "true".equals(authStatus);
     }
 
     private void validateAdminAccess(String username) throws SecurityException {
@@ -379,7 +379,7 @@ public class AdminService {
     }
 
     private boolean isValidRole(String role) {
-        return !"CLIENT".equals(role) && !"VOLUNTEER".equals(role) && !"ADMIN".equals(role);
+        return "CLIENT".equals(role) || "VOLUNTEER".equals(role) || "ADMIN".equals(role);
     }
 
     private Map<String, List<Map<String, Object>>> fetchUsersGroupedByRole() {
@@ -525,7 +525,7 @@ public class AdminService {
         // Update role
         String role = updateData.get("role");
         if (!isNullOrEmpty(role) && !role.equals(user.getRole())) {
-            if (isValidRole(role)) {
+            if (!isValidRole(role)) {
                 throw new IllegalArgumentException("Invalid role: " + role);
             }
             user.setRole(role);
