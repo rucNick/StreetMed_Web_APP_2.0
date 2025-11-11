@@ -11,6 +11,7 @@ import Guest from "../Guest/Guest";
 import VolunteerAppli from "../Volunteer/volunteer_appli";
 import Admin from "../Admin/Admin";
 import CargoAdmin from "../Admin/Cargo_Admin";
+import VolunteerOrders from "../Volunteer/volunteer_orders";
 import CargoVolunteer from "../Volunteer/Cargo_Volunteer";
 import ResetPassword from "../Login/ResetPassword";
 import RoundAdmin from "../Round/Round_Admin";
@@ -190,6 +191,7 @@ function App({ securityInitialized = false }) {
             />
           } 
         />
+        <Route path="/volunteer/orders" element={<VolunteerOrders userData={userData} />} />
         <Route path="/orderhistory" element={<HomeOrderHistory userId={userData.userId} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/guest" element={<Guest onLogout={handleLogout} />} />

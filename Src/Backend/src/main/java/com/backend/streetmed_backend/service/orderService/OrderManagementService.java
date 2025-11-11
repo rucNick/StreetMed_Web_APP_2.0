@@ -336,7 +336,7 @@ public class OrderManagementService {
     }
 
     /**
-     * Get all orders
+     * Get all orders (Admin and Volunteer can view, but with different permissions)
      */
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getAllOrders(GetAllOrdersRequest request) {
@@ -344,22 +344,14 @@ public class OrderManagementService {
             return ResponseUtil.unauthorized();
         }
 
-        // Allow both ADMIN and VOLUNTEER to see all orders
+        // Allow both ADMIN and VOLUNTEER to view orders
         if (!"VOLUNTEER".equals(request.getUserRole()) && !"ADMIN".equals(request.getUserRole())) {
-            return ResponseUtil.forbidden("Only volunteers and admins can view all orders");
+            return ResponseUtil.forbidden("Only volunteers and admins can view orders");
         }
 
         try {
-            List<Order> allOrders;
-
-            // Admins see ALL orders, Volunteers see their assigned orders
-            if ("ADMIN".equals(request.getUserRole())) {
-                // For admins, fetch all orders from repository
-                allOrders = orderRepository.findAll();
-            } else {
-                // For volunteers, use existing logic
-                allOrders = orderService.getUserOrders(request.getUserId(), request.getUserRole());
-            }
+            // Both roles see all orders
+            List<Order> allOrders = orderRepository.findAll();
 
             // Sort by request time (most recent first)
             allOrders.sort(Comparator.comparing(Order::getRequestTime).reversed());
@@ -397,6 +389,7 @@ public class OrderManagementService {
             responseData.put("status", "success");
             responseData.put("orders", ordersList);
             responseData.put("total", ordersList.size());
+            responseData.put("userRole", request.getUserRole()); // Include role for frontend
 
             return ResponseUtil.successData(responseData);
 

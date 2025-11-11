@@ -365,7 +365,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           </button>
         </div>
         <div className="nav-right-group">
-          <button className="nav-btn" onClick={() => navigate("/admin/orders")}>
+          <button className="nav-btn" onClick={() => navigate("/volunteer/orders")}>
             Order Queue ({pendingOrders.length})
           </button>
           <button className="nav-btn" onClick={() => navigate("/cargo_volunteer")}>
