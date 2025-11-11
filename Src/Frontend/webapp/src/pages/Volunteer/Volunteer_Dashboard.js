@@ -89,36 +89,38 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
 
   // Accept an order from the pending queue
   const acceptOrder = async (orderId, roundId = null) => {
-    if (!window.confirm(`Accept order ${orderId}? You will be responsible for delivering this order.`)) {
-      return;
-    }
-    
-    try {
-      const response = await secureAxios.post(`/api/orders/${orderId}/accept`, {
-        authenticated: true,
-        userId: userData.userId,
-        userRole: 'VOLUNTEER',
-        roundId: roundId
-      });
+      if (!window.confirm(`Accept order ${orderId}? You will be responsible for delivering this order.`)) {
+        return;
+      }
       
-      if (response.data.status === "success") {
-        alert("Order accepted successfully! Check your assignments.");
-        loadPendingOrders();
-        loadMyAssignments();
-        setShowOrdersTab("assigned"); // Switch to assigned tab
-      } else {
-        alert(response.data.message || "Failed to accept order");
+      try {
+        const response = await secureAxios.post(`/api/orders/${orderId}/accept`, {
+          authenticated: true,
+          volunteerId: userData.userId,  // Changed from userId to volunteerId
+          userId: userData.userId,        // Keep userId as well
+          userRole: 'VOLUNTEER',
+          orderId: orderId,               // Add orderId to the body
+          roundId: roundId
+        });
+        
+        if (response.data.status === "success") {
+          alert("Order accepted successfully! Check your assignments.");
+          loadPendingOrders();
+          loadMyAssignments();
+          setShowOrdersTab("assigned"); // Switch to assigned tab
+        } else {
+          alert(response.data.message || "Failed to accept order");
+        }
+      } catch (error) {
+        console.error("Error accepting order:", error);
+        if (error.response?.status === 409) {
+          alert("This order has already been accepted by another volunteer.");
+          loadPendingOrders(); // Refresh to remove the taken order
+        } else {
+          alert(error.response?.data?.message || "Failed to accept order");
+        }
       }
-    } catch (error) {
-      console.error("Error accepting order:", error);
-      if (error.response?.status === 409) {
-        alert("This order has already been accepted by another volunteer.");
-        loadPendingOrders(); // Refresh to remove the taken order
-      } else {
-        alert(error.response?.data?.message || "Failed to accept order");
-      }
-    }
-  };
+    };
 
   // Cancel assignment (return to queue)
   const cancelAssignment = async (orderId) => {

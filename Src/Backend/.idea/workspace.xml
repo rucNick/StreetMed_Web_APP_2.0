@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Order/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Order/OrderController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -143,7 +142,7 @@
       <workItem from="1761556993991" duration="62000" />
       <workItem from="1761678302081" duration="10255000" />
       <workItem from="1762288610822" duration="7188000" />
-      <workItem from="1762892567999" duration="2368000" />
+      <workItem from="1762892567999" duration="3932000" />
     </task>
     <task id="LOCAL-00001" summary="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService">
       <option name="closed" value="true" />

@@ -83,18 +83,20 @@ const VolunteerOrders = ({ userData }) => {
     }
     
     try {
-      const response = await publicAxios.post(`/api/orders/${orderId}/accept`, {
+      const response = await publicAxios.post(`/api/orders/${orderId}/accept`, {  // Use publicAxios, not secureAxios
         authenticated: true,
+        volunteerId: userData.userId,  // ADD THIS FIELD
         userId: userData.userId,
         userRole: 'VOLUNTEER',
+        orderId: orderId,  // ADD THIS FIELD
         roundId: roundId
       });
       
       if (response.data.status === "success") {
         alert("Order accepted successfully!");
-        loadPendingOrders();
-        loadMyAssignments();
-        setActiveTab("ASSIGNED");
+        await loadPendingOrders();
+        await loadMyAssignments();
+        setActiveTab("ASSIGNED");  // Use setActiveTab, not setShowOrdersTab
       } else {
         alert(response.data.message || "Failed to accept order");
       }
@@ -102,7 +104,7 @@ const VolunteerOrders = ({ userData }) => {
       console.error("Error accepting order:", error);
       if (error.response?.status === 409) {
         alert("This order has already been accepted by another volunteer.");
-        loadPendingOrders();
+        await loadPendingOrders();
       } else {
         alert(error.response?.data?.message || "Failed to accept order");
       }

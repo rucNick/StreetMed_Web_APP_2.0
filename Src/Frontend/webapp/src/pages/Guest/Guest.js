@@ -12,7 +12,7 @@ const Guest = ({ onLogout }) => {
 
   // ========== cart status ==========
   const [showCart, setShowCart] = useState(false);
-  const [cart, setCart] = useState([]); // [{ name, quantity }, ...]
+  const [cart, setCart] = useState([]); // [{ name, displayName, quantity }, ...]
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [guestFirstName, setGuestFirstName] = useState("");
   const [guestLastName, setGuestLastName] = useState("");
@@ -81,20 +81,31 @@ const Guest = ({ onLogout }) => {
       alert("Please enter a valid quantity.");
       return;
     }
-    // combine name + size
-    const itemName = selectedSize
+    
+    // Create display name with size for UI, but keep original name for backend
+    const displayName = selectedSize
       ? `${selectedItem.name} (${selectedSize})`
       : selectedItem.name;
+    
     const newCart = [...cart];
-    const existingIndex = newCart.findIndex((c) => c.name === itemName);
+    const existingIndex = newCart.findIndex((c) => c.displayName === displayName);
+    
     if (existingIndex >= 0) {
+      // Item already exists, just update quantity
       newCart[existingIndex].quantity += selectedQuantity;
+      // Make sure the name field is correct (in case of old cart items)
+      newCart[existingIndex].name = selectedItem.name;
     } else {
-      newCart.push({ name: itemName, 
+      // Add new item to cart
+      newCart.push({ 
+        name: selectedItem.name,  // Original name for backend (e.g., "Coat")
+        displayName: displayName,  // Display name with size for UI (e.g., "Coat (XL)")
         quantity: selectedQuantity,
         imageId: selectedItem.imageId, 
         description: selectedItem.description,
-        category: selectedItem.category});
+        category: selectedItem.category,
+        size: selectedSize  // Store size separately
+      });
     }
     setCart(newCart);
     closeItemDetailModal();
@@ -116,14 +127,24 @@ const Guest = ({ onLogout }) => {
       alert("Please enter a valid quantity (positive integer).");
       return;
     }
+    
+    const itemName = customItemName.trim();
     const newCart = [...cart];
     const existingIndex = newCart.findIndex(
-      (c) => c.name === customItemName.trim()
+      (c) => c.name === itemName || c.displayName === itemName
     );
+    
     if (existingIndex >= 0) {
       newCart[existingIndex].quantity += quantity;
     } else {
-      newCart.push({ name: customItemName.trim(), quantity });
+      // For custom items, name and displayName are the same
+      // These won't be checked against inventory
+      newCart.push({ 
+        name: itemName, 
+        displayName: itemName,
+        quantity: quantity,
+        isCustom: true  // Flag to identify custom items
+      });
     }
     setCart(newCart);
     setShowCustomItemModal(false);
@@ -152,7 +173,7 @@ const Guest = ({ onLogout }) => {
     setCart(updated);
   };
 
-  // ========== place order：POST /api/orders/guest/create with geolocation ==========
+  // ========== place order：POST /api/orders/create with geolocation ==========
   // 1) get geolocation
   const handlePlaceOrder = () => {
     if (navigator.geolocation) {
@@ -185,12 +206,10 @@ const Guest = ({ onLogout }) => {
     if (
       !guestFirstName.trim() ||
       !guestLastName.trim() ||
-      !email.trim() ||
-      !phone.trim() ||
-      !guestNotes.trim()
+      !phone.trim()
     ) {
       setCartError(
-        "Please fill in first name, last name, email, phone, and notes."
+        "Please fill in first name, last name, and phone number."
       );
       return;
     }
@@ -198,39 +217,66 @@ const Guest = ({ onLogout }) => {
     setCartMessage("");
 
     try {
-      const combinedUserNotes = `FirstName: ${guestFirstName}; LastName: ${guestLastName}; ${guestNotes}`;
-      // payload
+      let combinedUserNotes = `FirstName: ${guestFirstName}; LastName: ${guestLastName}`;
+      
+      // Add notes if provided
+      if (guestNotes.trim()) {
+        combinedUserNotes += `; ${guestNotes}`;
+      }
+      
+      // Add email if provided
+      if (email.trim()) {
+        combinedUserNotes += `; Email: ${email}`;
+      }
+      
+      // Add size information for items that have sizes
+      const itemsWithSizes = cart.filter(c => c.size).map(c => `${c.name}: Size ${c.size}`).join(", ");
+      if (itemsWithSizes) {
+        combinedUserNotes += `; Sizes: ${itemsWithSizes}`;
+      }
+      
+      // Add custom items note if any
+      const customItems = cart.filter(c => c.isCustom).map(c => c.name).join(", ");
+      if (customItems) {
+        combinedUserNotes += `; Custom Items Requested: ${customItems}`;
+      }
+      
+      // payload - CRITICAL: use c.name, not c.displayName
       const payload = {
-        firstName: guestFirstName,
-        lastName: guestLastName,
-        email,
-        phone,
         deliveryAddress,
+        phoneNumber: phone,  // Backend expects 'phoneNumber'
         notes: combinedUserNotes,
         items: cart.map((c) => ({
-          itemName: c.name,
+          itemName: c.name,  // Use original name without size (e.g., "Coat" not "Coat (XL)")
           quantity: c.quantity,
         })),
+        authenticated: false,  // Indicate guest user
+        userId: -1  // Explicitly set guest user ID
       };
+
       if (latitude !== null && longitude !== null) {
         payload.latitude = latitude;
         payload.longitude = longitude;
       }
+
+      console.log("Sending order payload:", payload); // Debug log
+
       const response = await axios.post(
-        `${baseURL}/api/orders/guest/create`,
+        `${baseURL}/api/orders/create`,
         payload
       );
+      
       if (response.data.status === "success") {
         setCartMessage("Order placed successfully!");
         // generate currentOrder
         const newOrder = {
           orderId: response.data.orderId,
-          orderStatus: response.data.orderStatus || "PENDING",
+          orderStatus: response.data.status || "PENDING",
           firstName: guestFirstName,
           lastName: guestLastName,
           address: deliveryAddress,
           notes: combinedUserNotes,
-          items: cart, // items in cart
+          items: cart, // items in cart for display
         };
         setCurrentOrder(newOrder);
         setShowCurrentOrderModal(true);
@@ -246,6 +292,7 @@ const Guest = ({ onLogout }) => {
         setCartError(response.data.message || "Order creation failed.");
       }
     } catch (error) {
+      console.error("Order creation error:", error.response?.data);
       setCartError(error.response?.data?.message || "Order creation failed.");
     }
   };
@@ -280,7 +327,7 @@ const Guest = ({ onLogout }) => {
             onClick={handleOpenNewOrder}
           >
             <span className="card-icon">&#128722;</span>
-            Make a New Order
+            Make a New Order
           </button>
   
           <button className="dashboard-card light-blue" onClick={toggleCart}>
@@ -297,7 +344,7 @@ const Guest = ({ onLogout }) => {
                 className="items-miss-link"
                 onClick={handleOpenCustomItemModal}
               >
-                Didn't find items you want? Click here.
+                Didn't find items you want? Click here.
               </span>
             </div>
   
@@ -350,7 +397,7 @@ const Guest = ({ onLogout }) => {
                   color: "#666",
                 }}
               >
-                No Image
+                No Image
               </div>
             )}
   
@@ -391,7 +438,7 @@ const Guest = ({ onLogout }) => {
             </div>
   
             <button className="add-btn" onClick={handleAddSelectedItemToCart}>
-              Add to Cart
+              Add to Cart
             </button>
             <button className="cancel-btn" onClick={closeItemDetailModal}>
               Cancel
@@ -404,6 +451,9 @@ const Guest = ({ onLogout }) => {
         <div className="modalOverlay">
           <div className="modalContent">
             <h3>Add a custom item</h3>
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 15 }}>
+              Note: Custom items may not be in our current inventory
+            </p>
   
             <div className="formGroup">
               <label>Item Name:</label>
@@ -412,6 +462,7 @@ const Guest = ({ onLogout }) => {
                 value={customItemName}
                 onChange={(e) => setCustomItemName(e.target.value)}
                 className="input"
+                placeholder="Enter item name"
               />
             </div>
   
@@ -427,7 +478,7 @@ const Guest = ({ onLogout }) => {
             </div>
   
             <button className="button" onClick={handleAddCustomItemToCart}>
-              Add to Cart
+              Add to Cart
             </button>
             <button
               className="cancelButton"
@@ -456,14 +507,19 @@ const Guest = ({ onLogout }) => {
                     {c.imageId ? (
                       <img
                         src={`${baseURL}/api/cargo/images/${c.imageId}`}
-                        alt={c.name}
+                        alt={c.displayName || c.name}
                         className="cartItemImage"
                       />
                     ) : (
                       <div className="cartItemImagePlaceholder" />
                     )}
                     <div className="cartItemInfo">
-                      <h4>{c.name}</h4>
+                      <h4>{c.displayName || c.name}</h4>
+                      {c.isCustom && (
+                        <span style={{ fontSize: 12, color: "#ff9800" }}>
+                          (Custom Item)
+                        </span>
+                      )}
                       {c.description && <p>{c.description}</p>}
                       {c.category && (
                         <p style={{ fontSize: 12, color: "#999" }}>
@@ -498,7 +554,8 @@ const Guest = ({ onLogout }) => {
               <ul className="overviewList">
                 {cart.map((c, idx) => (
                   <li key={idx}>
-                    {c.name}&nbsp;x{c.quantity}
+                    {c.displayName || c.name}&nbsp;x{c.quantity}
+                    {c.isCustom && " (Custom)"}
                   </li>
                 ))}
               </ul>
@@ -534,12 +591,13 @@ const Guest = ({ onLogout }) => {
               </div>
   
               <div className="formGroup">
-                <label>Email:</label>
+                <label>Email (optional):</label>
                 <input
-                  type="text"
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
+                  placeholder="Optional"
                 />
               </div>
   
@@ -554,12 +612,13 @@ const Guest = ({ onLogout }) => {
               </div>
   
               <div className="formGroup">
-                <label>Notes:</label>
+                <label>Notes (optional):</label>
                 <input
                   type="text"
                   value={guestNotes}
                   onChange={(e) => setGuestNotes(e.target.value)}
                   className="input"
+                  placeholder="Optional"
                 />
               </div>
   
@@ -609,7 +668,8 @@ const Guest = ({ onLogout }) => {
               <strong>Items:</strong>
               {currentOrder.items.map((it, idx) => (
                 <div key={idx}>
-                  {it.name}&nbsp;x&nbsp;{it.quantity}
+                  {it.displayName || it.name}&nbsp;x&nbsp;{it.quantity}
+                  {it.isCustom && " (Custom)"}
                 </div>
               ))}
             </div>
