@@ -1,4 +1,3 @@
-//=========================================== JS part ==============================================
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { secureAxios, publicAxios } from "../../config/axiosConfig";
@@ -113,23 +112,28 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
       alert("Please enter a valid quantity.");
       return;
     }
-    const itemName = selectedSize
-      ? `${selectedItem.name} (${selectedSize})`
-      : selectedItem.name;
+    
+    // Store both base name and display name
+    const baseItemName = selectedItem.name;
+    const displayName = selectedSize ? `${selectedItem.name} (${selectedSize})` : selectedItem.name;
+    
     const newCart = [...cart];
-    const existingIndex = newCart.findIndex((c) => c.name === itemName);
+    const existingIndex = newCart.findIndex((c) => c.displayName === displayName);
+    
     if (existingIndex >= 0) {
       newCart[existingIndex].quantity += selectedQuantity;
       console.log("handleAddSelectedItemToCart: Updated quantity for existing cart item");
     } else {
       newCart.push({ 
-        name: itemName, 
+        name: baseItemName,          // Base name for backend
+        displayName: displayName,    // Display name for UI
+        size: selectedSize || null,  // Store size separately
         quantity: selectedQuantity,
         imageId: selectedItem.imageId, 
         description: selectedItem.description,
         category: selectedItem.category
       });
-      console.log("handleAddSelectedItemToCart: Added new item to cart");
+      console.log("handleAddSelectedItemToCart: Added new item to cart with base name:", baseItemName);
     }
     setCart(newCart);
     closeItemDetailModal();
@@ -151,12 +155,20 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
       alert("Please enter a valid quantity (positive integer).");
       return;
     }
+    
+    const itemName = customItemName.trim();
     const newCart = [...cart];
-    const existingIndex = newCart.findIndex((c) => c.name === customItemName.trim());
+    const existingIndex = newCart.findIndex((c) => c.name === itemName && !c.size);
+    
     if (existingIndex >= 0) {
       newCart[existingIndex].quantity += quantity;
     } else {
-      newCart.push({ name: customItemName.trim(), quantity });
+      newCart.push({ 
+        name: itemName,
+        displayName: itemName,  // For custom items, display name is same as base name
+        size: null,
+        quantity: quantity
+      });
     }
     setCart(newCart);
     setShowCustomItemModal(false);
@@ -223,14 +235,38 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
     setIsPlacingOrder(true);
     
     try {
+      // Debug log to check cart structure
+      console.log("Cart items before sending:", cart);
+      
+      // Add size information to notes if items have sizes
+      const itemsWithSizes = cart.filter(item => item.size);
+      let finalNotes = notes;
+      if (itemsWithSizes.length > 0) {
+        const sizeInfo = itemsWithSizes.map(item => 
+          `${item.name}: Size ${item.size}`
+        ).join(", ");
+        finalNotes = `${notes} | Sizes: ${sizeInfo}`;
+      }
+      
       const payload = {
         authenticated: true,
         userId,
         deliveryAddress,
-        notes,
+        notes: finalNotes,
         phoneNumber,
-        items: cart.map((item) => ({ itemName: item.name, quantity: item.quantity })),
+        items: cart.map((item) => {
+          // Use base name for backend, not display name
+          console.log("Mapping item:", {
+            original: item,
+            sending: { itemName: item.name, quantity: item.quantity }
+          });
+          return {
+            itemName: item.name,  // Use 'name' field (base name), NOT 'displayName'
+            quantity: item.quantity
+          };
+        }),
       };
+      
       if (latitude !== null && longitude !== null) {
         payload.latitude = latitude;
         payload.longitude = longitude;

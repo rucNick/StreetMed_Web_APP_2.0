@@ -15,12 +15,10 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const [allUpcomingRounds, setAllUpcomingRounds] = useState([]);
   const [allRoundsError, setAllRoundsError] = useState("");
   
-  // Orders states - Updated for new workflow
-  const [pendingOrders, setPendingOrders] = useState([]);
+  // Orders states - Simplified for assignments only
   const [myAssignments, setMyAssignments] = useState([]);
   const [ordersError, setOrdersError] = useState("");
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [showOrdersTab, setShowOrdersTab] = useState("pending"); // "pending" or "assigned"
   
   // Calendar and modals
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -33,33 +31,6 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showPastRounds, setShowPastRounds] = useState(false);
   const [showCompletedOrders, setShowCompletedOrders] = useState(false);
-
-  // Load pending orders from queue
-  const loadPendingOrders = useCallback(async () => {
-    if (!userData || !userData.userId) return;
-    setIsLoadingOrders(true);
-    try {
-      const response = await secureAxios.get('/api/orders/pending', {
-        params: { page: 0, size: 20 },
-        headers: {
-          'Authentication-Status': 'true',
-          'User-Id': userData.userId,
-          'User-Role': 'VOLUNTEER'
-        }
-      });
-      
-      if (response.data.status === "success") {
-        setPendingOrders(response.data.orders || []);
-      } else {
-        setOrdersError(response.data.message || "Failed to load pending orders");
-      }
-    } catch (error) {
-      console.error("Error loading pending orders:", error);
-      setOrdersError(error.response?.data?.message || error.message);
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  }, [userData]);
 
   // Load volunteer's assignments
   const loadMyAssignments = useCallback(async () => {
@@ -86,113 +57,6 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       setIsLoadingOrders(false);
     }
   }, [userData]);
-
-  // Accept an order from the pending queue
-  const acceptOrder = async (orderId, roundId = null) => {
-      if (!window.confirm(`Accept order ${orderId}? You will be responsible for delivering this order.`)) {
-        return;
-      }
-      
-      try {
-        const response = await secureAxios.post(`/api/orders/${orderId}/accept`, {
-          authenticated: true,
-          volunteerId: userData.userId,  // Changed from userId to volunteerId
-          userId: userData.userId,        // Keep userId as well
-          userRole: 'VOLUNTEER',
-          orderId: orderId,               // Add orderId to the body
-          roundId: roundId
-        });
-        
-        if (response.data.status === "success") {
-          alert("Order accepted successfully! Check your assignments.");
-          loadPendingOrders();
-          loadMyAssignments();
-          setShowOrdersTab("assigned"); // Switch to assigned tab
-        } else {
-          alert(response.data.message || "Failed to accept order");
-        }
-      } catch (error) {
-        console.error("Error accepting order:", error);
-        if (error.response?.status === 409) {
-          alert("This order has already been accepted by another volunteer.");
-          loadPendingOrders(); // Refresh to remove the taken order
-        } else {
-          alert(error.response?.data?.message || "Failed to accept order");
-        }
-      }
-    };
-
-  // Cancel assignment (return to queue)
-  const cancelAssignment = async (orderId) => {
-    if (!window.confirm(`Cancel your assignment for order ${orderId}? This will return it to the pending queue.`)) {
-      return;
-    }
-    
-    try {
-      const response = await secureAxios.delete(`/api/orders/${orderId}/assignment`, {
-        headers: {
-          'User-Id': userData.userId,
-          'User-Role': 'VOLUNTEER',
-          'Authentication-Status': 'true'
-        }
-      });
-      
-      if (response.data.status === "success") {
-        alert("Assignment cancelled successfully.");
-        loadMyAssignments();
-        loadPendingOrders(); // Refresh pending orders
-      } else {
-        alert(response.data.message || "Failed to cancel assignment");
-      }
-    } catch (error) {
-      console.error("Error cancelling assignment:", error);
-      alert(error.response?.data?.message || "Failed to cancel assignment");
-    }
-  };
-
-  // Start working on an order
-  const startOrder = async (assignmentId) => {
-    try {
-      const response = await secureAxios.put(`/api/orders/assignment/${assignmentId}/start`, {}, {
-        headers: {
-          'User-Id': userData.userId,
-          'User-Role': 'VOLUNTEER',
-          'Authentication-Status': 'true'
-        }
-      });
-      
-      if (response.data.status === "success") {
-        alert("Started working on order!");
-        loadMyAssignments();
-      }
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to start order");
-    }
-  };
-
-  // Complete an order
-  const completeOrder = async (assignmentId) => {
-    if (!window.confirm("Mark this order as completed?")) {
-      return;
-    }
-    
-    try {
-      const response = await secureAxios.put(`/api/orders/assignment/${assignmentId}/complete`, {}, {
-        headers: {
-          'User-Id': userData.userId,
-          'User-Role': 'VOLUNTEER',
-          'Authentication-Status': 'true'
-        }
-      });
-      
-      if (response.data.status === "success") {
-        alert("Order completed successfully!");
-        loadMyAssignments();
-      }
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to complete order");
-    }
-  };
 
   // Existing rounds functions remain the same...
   const loadMyRounds = useCallback(async () => {
@@ -331,29 +195,24 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
     setSelectedOrder(null);
   };
 
-  const getOrderAge = (requestTime) => {
-    if (!requestTime) return 'Unknown';
-    const now = new Date();
-    const orderTime = new Date(requestTime);
-    const diffMs = now - orderTime;
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 60) return `${diffMins} mins`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d`;
-  };
-
+  // Auto-refresh assignments every 30 seconds
   useEffect(() => {
     if (!userData || !userData.userId) return;
+    
+    // Initial load
     loadMyRounds();
     loadAllUpcomingRounds();
-    loadPendingOrders();
     loadMyAssignments();
-  }, [loadMyRounds, loadAllUpcomingRounds, loadPendingOrders, loadMyAssignments, userData]);
+    
+    // Set up auto-refresh for assignments
+    const interval = setInterval(() => {
+      loadMyAssignments();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [loadMyRounds, loadAllUpcomingRounds, loadMyAssignments, userData]);
 
-  const activeAssignments = myAssignments.filter(a => a.status !== 'COMPLETED');
+  const activeAssignments = myAssignments.filter(a => a.status !== 'COMPLETED' && a.status !== 'CANCELLED');
   const completedAssignments = myAssignments.filter(a => a.status === 'COMPLETED');
 
   return (
@@ -368,7 +227,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
         </div>
         <div className="nav-right-group">
           <button className="nav-btn" onClick={() => navigate("/volunteer/orders")}>
-            Order Queue ({pendingOrders.length})
+            📦 Order Management
           </button>
           <button className="nav-btn" onClick={() => navigate("/cargo_volunteer")}>
             Cargo
@@ -384,169 +243,95 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           <br />
           <br />
           
-          {/* Orders Section - New Priority Queue System */}
-          <div style={{ marginBottom: '30px', border: '2px solid #ff6b00', padding: '15px', borderRadius: '8px' }}>
+          {/* My Current Assignments - Read Only */}
+          <div style={{ marginBottom: '30px', border: '2px solid #27ae60', padding: '15px', borderRadius: '8px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <strong>📦 Order Management</strong>
+              <strong>📋 My Current Assignments</strong>
               <span style={{ fontSize: '14px', color: '#666' }}>
                 ({activeAssignments.length} active)
               </span>
+              <button 
+                onClick={loadMyAssignments}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '5px 10px',
+                  fontSize: '12px',
+                  backgroundColor: '#27ae60',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔄 Refresh
+              </button>
             </h2>
             
-            {/* Tab buttons */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-              <button 
-                onClick={() => setShowOrdersTab("pending")}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: showOrdersTab === "pending" ? '#ff6b00' : '#f0f0f0',
-                  color: showOrdersTab === "pending" ? 'white' : 'black',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Pending Queue ({pendingOrders.length})
-              </button>
-              <button 
-                onClick={() => setShowOrdersTab("assigned")}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: showOrdersTab === "assigned" ? '#ff6b00' : '#f0f0f0',
-                  color: showOrdersTab === "assigned" ? 'white' : 'black',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                My Assignments ({activeAssignments.length})
-              </button>
-            </div>
-
             {ordersError && <p className="error-text">{ordersError}</p>}
             
-            {showOrdersTab === "pending" ? (
-              <div className="orders-cards">
-                {isLoadingOrders ? (
-                  <p>Loading orders...</p>
-                ) : pendingOrders.length === 0 ? (
-                  <p>No pending orders in queue.</p>
-                ) : (
-                  pendingOrders.slice(0, 5).map((order, idx) => (
-                    <div 
-                      key={order.orderId} 
-                      className="order-card"
-                      style={{
-                        border: idx === 0 ? '2px solid #ff6b00' : '1px solid #ddd',
-                        backgroundColor: idx === 0 ? '#fff8e1' : 'white'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3>
-                          {idx === 0 && <span style={{color: '#ff6b00'}}>⚡ PRIORITY - </span>}
-                          Order #{order.orderId}
-                        </h3>
-                        <span style={{ 
-                          fontSize: '12px', 
-                          color: idx === 0 ? '#ff6b00' : '#666',
-                          fontWeight: idx === 0 ? 'bold' : 'normal'
-                        }}>
-                          {getOrderAge(order.requestTime)} old
-                        </span>
-                      </div>
-                      <p><strong>Items:</strong> {order.orderItems?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
-                      <p><strong>Address:</strong> {order.deliveryAddress}</p>
-                      <p><strong>Phone:</strong> {order.phoneNumber}</p>
-                      {order.notes && <p><strong>Notes:</strong> {order.notes}</p>}
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                        <button 
-                          className="open-view-btn"
-                          style={{ 
-                            backgroundColor: idx === 0 ? '#ff6b00' : '#009E2C'
-                          }}
-                          onClick={() => acceptOrder(order.orderId, order.roundId)}
-                        >
-                          {idx === 0 ? '⚡ Accept Priority Order' : 'Accept Order'}
-                        </button>
-                        <button 
-                          className="open-view-btn"
-                          onClick={() => openOrderFullView(order)}
-                        >
-                          View Details
-                        </button>
-                      </div>
+            <div className="orders-cards">
+              {isLoadingOrders ? (
+                <p>Loading assignments...</p>
+              ) : activeAssignments.length === 0 ? (
+                <div style={{ 
+                  padding: '20px', 
+                  textAlign: 'center',
+                  backgroundColor: '#f9f9f9',
+                  borderRadius: '8px'
+                }}>
+                  <p>No active assignments</p>
+                  <button 
+                    onClick={() => navigate("/volunteer/orders")}
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px 16px',
+                      backgroundColor: '#ff6b00',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Go to Order Queue →
+                  </button>
+                </div>
+              ) : (
+                activeAssignments.map((assignment) => (
+                  <div key={assignment.assignmentId} className="order-card" style={{ 
+                    borderLeft: assignment.status === 'IN_PROGRESS' ? '4px solid #3498db' : '4px solid #f39c12'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <h3 style={{ margin: 0 }}>Order #{assignment.orderId}</h3>
+                      <span style={{
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        backgroundColor: assignment.status === 'ACCEPTED' ? '#fff3cd' : '#cce5ff',
+                        color: assignment.status === 'ACCEPTED' ? '#856404' : '#004085'
+                      }}>
+                        {assignment.status === 'IN_PROGRESS' ? 'IN PROGRESS' : assignment.status}
+                      </span>
                     </div>
-                  ))
-                )}
-                {pendingOrders.length > 5 && (
-                  <p style={{ textAlign: 'center', marginTop: '10px', color: '#666' }}>
-                    + {pendingOrders.length - 5} more orders in queue
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="orders-cards">
-                {activeAssignments.length === 0 ? (
-                  <p>No active assignments. Check the pending queue!</p>
-                ) : (
-                  activeAssignments.map((assignment) => (
-                    <div key={assignment.assignmentId} className="order-card" style={{ 
-                      borderLeft: assignment.status === 'IN_PROGRESS' ? '4px solid #3498db' : '4px solid #27ae60'
-                    }}>
-                      <h3>Assignment #{assignment.assignmentId}</h3>
-                      <p><strong>Order ID:</strong> {assignment.orderId}</p>
-                      <p><strong>Status:</strong> 
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          marginLeft: '5px',
-                          backgroundColor: assignment.status === 'ACCEPTED' ? '#e8f5e9' : '#e3f2fd',
-                          color: assignment.status === 'ACCEPTED' ? '#2e7d32' : '#1565c0'
-                        }}>
-                          {assignment.status}
-                        </span>
-                      </p>
-                      <p><strong>Items:</strong> {assignment.items?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
-                      <p><strong>Address:</strong> {assignment.deliveryAddress}</p>
-                      <p><strong>Phone:</strong> {assignment.phoneNumber}</p>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                        {assignment.status === 'ACCEPTED' && (
-                          <button
-                            className="open-view-btn"
-                            style={{ backgroundColor: '#3498db' }}
-                            onClick={() => startOrder(assignment.assignmentId)}
-                          >
-                            Start Delivery
-                          </button>
-                        )}
-                        {assignment.status === 'IN_PROGRESS' && (
-                          <button
-                            className="open-view-btn"
-                            style={{ backgroundColor: '#27ae60' }}
-                            onClick={() => completeOrder(assignment.assignmentId)}
-                          >
-                            Complete
-                          </button>
-                        )}
-                        <button
-                          className="open-view-btn"
-                          style={{ backgroundColor: '#e74c3c' }}
-                          onClick={() => cancelAssignment(assignment.orderId)}
-                        >
-                          Cancel Assignment
-                        </button>
-                        <button
-                          className="open-view-btn"
-                          onClick={() => openOrderFullView(assignment)}
-                        >
-                          Full Details
-                        </button>
-                      </div>
+                    
+                    <p><strong>Items:</strong> {assignment.items?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
+                    <p><strong>Address:</strong> {assignment.deliveryAddress}</p>
+                    <p><strong>Phone:</strong> {assignment.phoneNumber}</p>
+                    {assignment.notes && <p><strong>Notes:</strong> {assignment.notes}</p>}
+                    
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #eee' }}>
+                      <button
+                        className="open-view-btn"
+                        onClick={() => openOrderFullView(assignment)}
+                        style={{ width: '100%' }}
+                      >
+                        View Full Details
+                      </button>
                     </div>
-                  ))
-                )}
-              </div>
-            )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Rounds Section - Existing code */}
@@ -613,7 +398,16 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               ) : (
                 completedAssignments.map((a) => (
                   <div key={a.assignmentId} className="order-card">
-                    <span className="completed-badge">Completed</span>
+                    <span style={{
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#d4edda',
+                      color: '#155724'
+                    }}>
+                      ✓ Completed
+                    </span>
                     <h3>Order #{a.orderId}</h3>
                     <p>{a.deliveryAddress}</p>
                     <p>Items: {a.items?.map((i) => `${i.itemName} (${i.quantity})`).join(", ")}</p>
@@ -667,7 +461,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           )}
         </div>
 
-        {/* Full View Modal for Rounds */}
+        {/* Full View Modal for Rounds - Keep as is */}
         {fullViewModalOpen && selectedRoundDetails && (
           <div className="fullview-modal" onClick={closeFullViewModal}>
             <div className="fullview-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -680,50 +474,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               <p><strong>End:</strong> {new Date(selectedRoundDetails.endTime).toLocaleString()}</p>
               <p><strong>Available Slots:</strong> {selectedRoundDetails.availableSlots}</p>
               <p><strong>Already Signed Up?</strong> {selectedRoundDetails.userSignedUp ? "Yes" : "No"}</p>
-              <br />
-              <h3>Round Orders</h3>
-              <div style={{
-                marginTop: "10px",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                maxHeight: "200px",
-                overflowY: "auto",
-                padding: "10px"
-              }}>
-                {roundOrders.length === 0 ? (
-                  <p>No orders for this round yet.</p>
-                ) : (
-                  roundOrders.map((ord) => (
-                    <div key={ord.orderId} style={{ marginBottom: "12px", paddingBottom: "8px", borderBottom: "1px dashed #aaa" }}>
-                      <p><strong>Order ID:</strong> {ord.orderId}</p>
-                      <p><strong>Status:</strong> {ord.status}</p>
-                      <p><strong>Type:</strong> {ord.orderType}</p>
-                      <p><strong>Delivery:</strong> {ord.deliveryAddress}</p>
-                      <p><strong>Items:</strong> {ord.orderItems?.map((i) => i.itemName).join(", ")}</p>
-                      {ord.status === "PENDING" && (
-                        <button 
-                          style={{
-                            marginTop: '5px',
-                            padding: '5px 10px',
-                            backgroundColor: '#009E2C',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            acceptOrder(ord.orderId, selectedRoundDetails.roundId);
-                          }}
-                        >
-                          Accept This Order
-                        </button>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-
+              
               {selectedRoundDetails.userSignedUp &&
                 (selectedRoundDetails.signupDetails || selectedRoundDetails.signupId) && (
                   <button className="cancel-signup-btn" onClick={handleCancelSignupFullView}>
@@ -737,15 +488,13 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           </div>
         )}
 
-        {/* Order Detail Modal */}
+        {/* Order Detail Modal - Read Only */}
         {orderModalOpen && selectedOrder && (
           <div className="fullview-modal" onClick={closeOrderFullView}>
             <div className="fullview-modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Order Full Details</h2>
               <p>Order ID: {selectedOrder.orderId}</p>
               <p>Status: {selectedOrder.status}</p>
-              <p>Order Type: {selectedOrder.orderType}</p>
-              <p>User ID: {selectedOrder.userId}</p>
               <p>Delivery Address: {selectedOrder.deliveryAddress}</p>
               <p>Phone Number: {selectedOrder.phoneNumber}</p>
               <p>Note: {selectedOrder.notes}</p>
@@ -754,16 +503,6 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                 <div>
                   <h4>Items:</h4>
                   {selectedOrder.items.map((itm, idx) => (
-                    <p key={idx}>
-                      {itm.itemName} - Quantity: {itm.quantity}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 && (
-                <div>
-                  <h4>Items:</h4>
-                  {selectedOrder.orderItems.map((itm, idx) => (
                     <p key={idx}>
                       {itm.itemName} - Quantity: {itm.quantity}
                     </p>

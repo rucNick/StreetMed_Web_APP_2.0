@@ -16,9 +16,6 @@ public interface VolunteerSubRoleRepository extends JpaRepository<VolunteerSubRo
     // Find specific sub-role for a user
     Optional<VolunteerSubRole> findByUserIdAndSubRole(Integer userId, VolunteerSubRole.SubRoleType subRole);
 
-    // Find all users with a specific sub-role
-    List<VolunteerSubRole> findBySubRole(VolunteerSubRole.SubRoleType subRole);
-
     // Check if a user has a specific sub-role
     boolean existsByUserIdAndSubRole(Integer userId, VolunteerSubRole.SubRoleType subRole);
 

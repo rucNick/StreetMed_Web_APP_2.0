@@ -61,6 +61,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByRoundIdIsNullOrderByRequestTimeAsc();
     List<Order> findByRoundId(Integer roundId);
     long countByRoundId(Integer roundId);
-    List<Order> findByUserId(Integer userId);
-    List<Order> findByStatus(String status);
+    List<Order> findByUserIdOrderByRequestTimeDesc(Integer userId);
 }

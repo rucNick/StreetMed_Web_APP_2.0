@@ -47,17 +47,6 @@ public class OrderPriorityService {
     }
 
     /**
-     * Get all pending orders without pagination (for internal use)
-     */
-    public List<PendingOrderInfo> getAllPendingOrders() {
-        List<Order> orders = orderRepository.findPendingOrdersWithPriority();
-
-        return orders.stream()
-                .map(this::toPendingOrderInfo)
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Convert Order entity to PendingOrderInfo with calculated fields
      */
     private PendingOrderInfo toPendingOrderInfo(Order order) {

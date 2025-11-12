@@ -19,12 +19,6 @@ public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment
             "ORDER BY a.acceptedAt DESC")
     Optional<OrderAssignment> findActiveAssignmentForOrder(@Param("orderId") Integer orderId);
 
-    // Find by volunteer
-    List<OrderAssignment> findByVolunteerId(Integer volunteerId);
-
-    // Find by volunteer and status
-    List<OrderAssignment> findByVolunteerIdAndStatus(Integer volunteerId, AssignmentStatus status);
-
     // Find by volunteer and multiple statuses
     List<OrderAssignment> findByVolunteerIdAndStatusIn(Integer volunteerId, List<AssignmentStatus> statuses);
 
@@ -34,6 +28,9 @@ public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment
             "AND a.status IN ('ACCEPTED', 'IN_PROGRESS')")
     List<OrderAssignment> findActiveAssignmentsForVolunteerInRound(@Param("roundId") Integer roundId,
                                                                    @Param("volunteerId") Integer volunteerId);
+
+    @Query("SELECT a FROM OrderAssignment a WHERE a.orderId = :orderId AND a.volunteerId = :volunteerId")
+    Optional<OrderAssignment> findByOrderIdAndVolunteerId(@Param("orderId") Integer orderId, @Param("volunteerId") Integer volunteerId);
 
     // Count by round, volunteer and statuses
     long countByRoundIdAndVolunteerIdAndStatusIn(Integer roundId, Integer volunteerId, List<AssignmentStatus> statuses);

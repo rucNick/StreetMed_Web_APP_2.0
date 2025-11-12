@@ -1,4 +1,3 @@
-// VolunteerOrders.js - Place this in src/pages/Volunteer/VolunteerOrders.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicAxios } from '../../config/axiosConfig';
@@ -13,8 +12,6 @@ const VolunteerOrders = ({ userData }) => {
   const [ordersError, setOrdersError] = useState('');
   const [activeTab, setActiveTab] = useState("PENDING");
   const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
 
   // Load pending orders from priority queue
   const loadPendingOrders = useCallback(async () => {
@@ -22,10 +19,9 @@ const VolunteerOrders = ({ userData }) => {
       setIsLoading(true);
       setOrdersError('');
       
-      // Now that CORS is fixed, we can use headers
       const response = await publicAxios.get('/api/orders/pending', {
         params: {
-          page: page,
+          page: 0,
           size: 20
         },
         headers: {
@@ -37,7 +33,6 @@ const VolunteerOrders = ({ userData }) => {
       
       if (response.data.status === "success") {
         setPendingOrders(response.data.orders || []);
-        setHasMore(response.data.hasMore || false);
       } else {
         setOrdersError(response.data.message || "Failed to load pending orders");
       }
@@ -47,7 +42,7 @@ const VolunteerOrders = ({ userData }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [userData.userId, page]);
+  }, [userData.userId]);
 
   // Load volunteer's assigned orders
   const loadMyAssignments = useCallback(async () => {
@@ -83,12 +78,12 @@ const VolunteerOrders = ({ userData }) => {
     }
     
     try {
-      const response = await publicAxios.post(`/api/orders/${orderId}/accept`, {  // Use publicAxios, not secureAxios
+      const response = await publicAxios.post(`/api/orders/${orderId}/accept`, {
         authenticated: true,
-        volunteerId: userData.userId,  // ADD THIS FIELD
+        volunteerId: userData.userId,
         userId: userData.userId,
         userRole: 'VOLUNTEER',
-        orderId: orderId,  // ADD THIS FIELD
+        orderId: orderId,
         roundId: roundId
       });
       
@@ -96,13 +91,19 @@ const VolunteerOrders = ({ userData }) => {
         alert("Order accepted successfully!");
         await loadPendingOrders();
         await loadMyAssignments();
-        setActiveTab("ASSIGNED");  // Use setActiveTab, not setShowOrdersTab
+        setActiveTab("ASSIGNED");
       } else {
         alert(response.data.message || "Failed to accept order");
       }
     } catch (error) {
       console.error("Error accepting order:", error);
-      if (error.response?.status === 409) {
+      
+      // Handle specific error messages
+      if (error.response?.data?.message?.includes("ORDER_ALREADY_ACCEPTED_BY_YOU")) {
+        alert("You have already accepted this order. Check your assignments tab.");
+        await loadMyAssignments();
+        setActiveTab("ASSIGNED");
+      } else if (error.response?.status === 409 || error.response?.data?.message?.includes("ORDER_ALREADY_ACCEPTED")) {
         alert("This order has already been accepted by another volunteer.");
         await loadPendingOrders();
       } else {
@@ -128,8 +129,8 @@ const VolunteerOrders = ({ userData }) => {
       
       if (response.data.status === "success") {
         alert("Assignment cancelled. Order returned to pending queue.");
-        loadMyAssignments();
-        loadPendingOrders();
+        await loadMyAssignments();
+        await loadPendingOrders();
       } else {
         alert(response.data.message || "Failed to cancel assignment");
       }
@@ -152,7 +153,7 @@ const VolunteerOrders = ({ userData }) => {
       
       if (response.data.status === "success") {
         alert("Order processing started!");
-        loadMyAssignments();
+        await loadMyAssignments();
       } else {
         alert(response.data.message || "Failed to start order");
       }
@@ -179,7 +180,7 @@ const VolunteerOrders = ({ userData }) => {
       
       if (response.data.status === "success") {
         alert("Order completed successfully!");
-        loadMyAssignments();
+        await loadMyAssignments();
       } else {
         alert(response.data.message || "Failed to complete order");
       }
@@ -213,10 +214,10 @@ const VolunteerOrders = ({ userData }) => {
   };
 
   const getPriorityColor = (index) => {
-    if (index === 0) return '#ff6b00'; // Highest priority - orange
-    if (index < 3) return '#f39c12';   // High priority - yellow-orange
-    if (index < 5) return '#27ae60';   // Medium priority - green
-    return '#95a5a6';                  // Normal - gray
+    if (index === 0) return '#ff6b00';
+    if (index < 3) return '#f39c12';
+    if (index < 5) return '#27ae60';
+    return '#95a5a6';
   };
 
   useEffect(() => {
@@ -229,7 +230,6 @@ const VolunteerOrders = ({ userData }) => {
 
   const activeCount = myAssignments.filter(a => a.status !== 'COMPLETED' && a.status !== 'CANCELLED').length;
   const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').length;
-
   return (
     <div className="page-container">
       <header className="site-header">
@@ -671,33 +671,6 @@ const VolunteerOrders = ({ userData }) => {
               )
             )}
           </div>
-          
-          {/* Pagination */}
-          {activeTab === "PENDING" && !isLoading && pendingOrders.length > 0 && (
-            <div style={{ 
-              marginTop: '20px', 
-              display: 'flex', 
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '10px 20px'
-            }}>
-              <button 
-                className="manage-btn"
-                onClick={() => setPage(Math.max(0, page - 1))}
-                disabled={page === 0}
-              >
-                ← Previous
-              </button>
-              <span>Page {page + 1}</span>
-              <button 
-                className="manage-btn"
-                onClick={() => setPage(page + 1)}
-                disabled={!hasMore}
-              >
-                Next →
-              </button>
-            </div>
-          )}
         </div>
       </main>
     </div>

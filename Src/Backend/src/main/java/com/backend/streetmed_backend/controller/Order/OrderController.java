@@ -4,6 +4,9 @@ import com.backend.streetmed_backend.dto.order.*;
 import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
 import com.backend.streetmed_backend.entity.order_entity.OrderItem;
+import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
+import com.backend.streetmed_backend.repository.Order.OrderItemRepository;
+import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.security.TLSService;
 import com.backend.streetmed_backend.service.orderService.OrderManagementService;
 import com.backend.streetmed_backend.service.orderService.OrderAssignmentService;
@@ -41,6 +44,15 @@ public class OrderController {
     private final Executor readOnlyExecutor;
 
     @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private OrderAssignmentRepository orderAssignmentRepository;
+
+    @Autowired
     public OrderController(OrderManagementService orderManagementService,
                            OrderAssignmentService orderAssignmentService,
                            OrderService orderService,
@@ -53,6 +65,138 @@ public class OrderController {
         this.tlsService = tlsService;
         this.authExecutor = authExecutor;
         this.readOnlyExecutor = readOnlyExecutor;
+    }
+
+    /**
+     * Get orders for a specific user
+     */
+    @GetMapping("/user/{userId}")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getUserOrders(
+            @PathVariable Integer userId,
+            @RequestParam(required = false) Boolean authenticated,
+            @RequestParam(required = false) String userRole,
+            @RequestParam(value = "userId", required = false) Integer requestUserId) {
+
+        logger.info("Fetching orders for user: {} (requested by: {}, role: {})",
+                userId, requestUserId, userRole);
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Verify that the user is requesting their own orders
+                if (requestUserId != null && !requestUserId.equals(userId)) {
+                    logger.warn("User {} attempted to access orders of user {}", requestUserId, userId);
+                    return ResponseUtil.forbidden("Cannot access other user's orders");
+                }
+
+                // Fetch all orders for this user
+                List<Order> userOrders = orderRepository.findByUserIdOrderByRequestTimeDesc(userId);
+
+                // Convert to response format
+                List<Map<String, Object>> orderList = new ArrayList<>();
+                for (Order order : userOrders) {
+                    Map<String, Object> orderMap = new HashMap<>();
+                    orderMap.put("orderId", order.getOrderId());
+                    orderMap.put("userId", order.getUserId());
+                    orderMap.put("roundId", order.getRoundId());
+                    orderMap.put("status", order.getStatus());
+                    orderMap.put("deliveryAddress", order.getDeliveryAddress());
+                    orderMap.put("phoneNumber", order.getPhoneNumber());
+                    orderMap.put("notes", order.getNotes());
+                    orderMap.put("requestTime", order.getRequestTime());
+                    orderMap.put("deliveryTime", order.getDeliveryTime());
+                    orderMap.put("latitude", order.getLatitude());
+                    orderMap.put("longitude", order.getLongitude());
+
+                    // Add order items
+                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getOrderId());
+                    orderMap.put("orderItems", items);
+
+                    orderList.add(orderMap);
+                }
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("orders", orderList);
+                response.put("count", orderList.size());
+
+                logger.info("Successfully fetched {} orders for user {}", orderList.size(), userId);
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                logger.error("Error fetching orders for user {}: ", userId, e);
+                return ResponseUtil.internalError("Failed to fetch order history");
+            }
+        }, readOnlyExecutor);
+    }
+
+    /**
+     * Cancel an order (Client and Admin endpoint)
+     */
+    @PostMapping("/{orderId}/cancel")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> cancelOrder(
+            @PathVariable Integer orderId,
+            @RequestBody Map<String, Object> request,
+            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
+            @RequestHeader(value = "Authentication-Status", required = false) String authStatus,
+            HttpServletRequest httpRequest) {
+
+        Boolean authenticated = (Boolean) request.get("authenticated");
+        Integer userId = (Integer) request.get("userId");
+        String userRole = (String) request.get("userRole");
+
+        logger.info("Cancel order request - orderId: {}, userId: {}, role: {}",
+                orderId, userId, userRole);
+
+        // Check if this is an admin operation
+        boolean isAdmin = "ADMIN".equals(userRole) && tlsService.hasRole(authToken, "ADMIN");
+
+        // For admin operations, enforce HTTPS
+        if (isAdmin && tlsService.isHttpsRequired(httpRequest, true)) {
+            return CompletableFuture.completedFuture(
+                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+        }
+
+        // Check authentication
+        if (!Boolean.TRUE.equals(authenticated)) {
+            return CompletableFuture.completedFuture(ResponseUtil.unauthorized());
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Find the order
+                Optional<Order> orderOpt = orderRepository.findById(orderId);
+                if (orderOpt.isEmpty()) {
+                    return ResponseUtil.notFound("Order not found");
+                }
+
+                Order order = orderOpt.get();
+
+                // Verify the user owns this order (unless admin)
+                if (!isAdmin && !order.getUserId().equals(userId)) {
+                    return ResponseUtil.forbidden("You can only cancel your own orders");
+                }
+
+                // Check if order can be cancelled
+                if ("COMPLETED".equals(order.getStatus()) || "CANCELLED".equals(order.getStatus())) {
+                    return ResponseUtil.badRequest("Order cannot be cancelled - status: " + order.getStatus());
+                }
+
+                // Cancel the order through service (handles inventory release)
+                orderService.cancelOrder(orderId, userId, userRole);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("message", "Order cancelled successfully");
+                response.put("orderId", orderId);
+
+                logger.info("Successfully cancelled order {}", orderId);
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                logger.error("Error cancelling order {}: ", orderId, e);
+                return ResponseUtil.internalError("Failed to cancel order");
+            }
+        }, authExecutor);
     }
 
     @Operation(summary = "Get pending orders with priority queue")
@@ -371,51 +515,6 @@ public class OrderController {
             GetAllOrdersRequest request = new GetAllOrdersRequest(authenticated, userId, userRole);
             return orderManagementService.getAllOrders(request);
         }, readOnlyExecutor);
-    }
-
-    @Operation(summary = "Cancel an order (Admin)")
-    @PostMapping("/{orderId}/cancel")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> cancelOrder(
-            @PathVariable Integer orderId,
-            @RequestBody Map<String, Object> requestBody,
-            @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
-            @RequestHeader(value = "Authentication-Status", required = false) String authStatus,
-            HttpServletRequest httpRequest) {
-
-        // Enforce HTTPS for admin operations
-        if (tlsService.isHttpsRequired(httpRequest, true)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
-        }
-
-        // Validate admin authentication
-        if (!tlsService.isAuthenticated(authToken, authStatus)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.unauthorized("Authentication required"));
-        }
-
-        if (!tlsService.hasRole(authToken, "ADMIN")) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.forbidden("Admin role required"));
-        }
-
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                Integer userId = (Integer) requestBody.get("userId");
-                String userRole = (String) requestBody.get("userRole");
-
-                orderService.cancelOrder(orderId, userId, userRole);
-
-                Map<String, Object> responseData = new HashMap<>();
-                responseData.put("orderId", orderId);
-                responseData.put("status", "CANCELLED");
-
-                return ResponseUtil.success("Order cancelled successfully", responseData);
-            } catch (Exception e) {
-                logger.error("Error cancelling order: {}", e.getMessage());
-                return ResponseUtil.badRequest(e.getMessage());
-            }
-        }, authExecutor);
     }
 
     @Operation(summary = "Update order status (Admin)")

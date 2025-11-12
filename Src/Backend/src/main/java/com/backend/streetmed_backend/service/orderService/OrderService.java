@@ -211,39 +211,6 @@ public class OrderService {
     }
 
     /**
-     * Get all orders in the system
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        // Initialize the collections
-        orders.forEach(order -> order.getOrderItems().size()); // Force initialization
-        return orders;
-    }
-
-    /**
-     * Get orders for a user (or all orders if volunteer)
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getUserOrders(Integer userId, String userRole) {
-        List<Order> orders;
-        if ("VOLUNTEER".equals(userRole)) {
-            orders = orderRepository.findAll();
-        } else {
-            orders = orderRepository.findByUserId(userId);
-        }
-        orders.forEach(order -> order.getOrderItems().size()); // Force initialization
-        return orders;
-    }
-
-    /**
-     * Get orders by status
-     */
-    public List<Order> getOrdersByStatus(String status) {
-        return orderRepository.findByStatus(status);
-    }
-
-    /**
      * Updates the status of an order through OrderAssignment if exists
      */
     @Transactional
@@ -366,80 +333,6 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
-    /**
-     * Get orders assigned to a specific volunteer through OrderAssignment
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getOrdersByVolunteer(Integer volunteerId) {
-        // Get all assignments for this volunteer
-        List<OrderAssignment> assignments = orderAssignmentRepository
-                .findByVolunteerId(volunteerId);
-
-        List<Order> orders = new ArrayList<>();
-        for (OrderAssignment assignment : assignments) {
-            if (!assignment.isCancelled()) {
-                Order order = orderRepository.findById(assignment.getOrderId()).orElse(null);
-                if (order != null) {
-                    order.getOrderItems().size(); // Force initialization
-                    orders.add(order);
-                }
-            }
-        }
-
-        return orders;
-    }
-
-    /**
-     * Get active orders (ACCEPTED or IN_PROGRESS) assigned to a specific volunteer
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getActiveOrdersByVolunteer(Integer volunteerId) {
-        List<OrderAssignment> assignments = orderAssignmentService.getActiveAssignments(volunteerId);
-
-        List<Order> orders = new ArrayList<>();
-        for (OrderAssignment assignment : assignments) {
-            if (assignment.isAccepted() || assignment.isInProgress()) {
-                Order order = orderRepository.findById(assignment.getOrderId()).orElse(null);
-                if (order != null) {
-                    order.getOrderItems().size(); // Force initialization
-                    orders.add(order);
-                }
-            }
-        }
-
-        // Sort by request time (newest first)
-        orders.sort(Comparator.comparing(Order::getRequestTime).reversed());
-        return orders;
-    }
-
-    /**
-     * Get completed orders assigned to a specific volunteer
-     */
-    @Transactional(readOnly = true)
-    public List<Order> getCompletedOrdersByVolunteer(Integer volunteerId) {
-        // Get all completed assignments
-        List<OrderAssignment> assignments = orderAssignmentRepository
-                .findByVolunteerIdAndStatus(volunteerId, AssignmentStatus.COMPLETED);
-
-        List<Order> orders = new ArrayList<>();
-        for (OrderAssignment assignment : assignments) {
-            Order order = orderRepository.findById(assignment.getOrderId()).orElse(null);
-            if (order != null) {
-                order.getOrderItems().size(); // Force initialization
-                orders.add(order);
-            }
-        }
-
-        // Sort by delivery time (newest first)
-        orders.sort((o1, o2) -> {
-            if (o1.getDeliveryTime() == null && o2.getDeliveryTime() == null) return 0;
-            if (o1.getDeliveryTime() == null) return 1;
-            if (o2.getDeliveryTime() == null) return -1;
-            return o2.getDeliveryTime().compareTo(o1.getDeliveryTime());
-        });
-
-        return orders;
-    }
 
     /**
      * Releases inventory that was reserved for an order

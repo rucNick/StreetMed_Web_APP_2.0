@@ -40,15 +40,49 @@ public class OrderAssignmentService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        // Check if order is already assigned (has active assignment)
-        Optional<OrderAssignment> existingAssignment =
+        // Check if this volunteer already has an assignment for this order
+        Optional<OrderAssignment> existingVolunteerAssignment =
+                orderAssignmentRepository.findByOrderIdAndVolunteerId(orderId, volunteerId);
+
+        if (existingVolunteerAssignment.isPresent()) {
+            OrderAssignment existing = existingVolunteerAssignment.get();
+
+            // If assignment exists and is not cancelled, just return it and update order status
+            if (existing.getStatus() != AssignmentStatus.CANCELLED) {
+                logger.info("Volunteer {} already has active assignment for order {}, updating order status",
+                        volunteerId, orderId);
+
+                // Make sure the order status is updated to match the assignment
+                if ("PENDING".equals(order.getStatus())) {
+                    order.setStatus("ACCEPTED");
+                    orderRepository.save(order);
+                }
+
+                return existing; // Return existing assignment
+            }
+
+            // If it was cancelled, reactivate it
+            logger.info("Reactivating cancelled assignment for order {} by volunteer {}", orderId, volunteerId);
+            existing.setStatus(AssignmentStatus.ACCEPTED);
+            existing.setAcceptedAt(LocalDateTime.now());
+            existing.setRoundId(roundId);
+
+            // Update order status
+            order.setStatus("ACCEPTED");
+            orderRepository.save(order);
+
+            return orderAssignmentRepository.save(existing);
+        }
+
+        // Check if order is already assigned to someone else
+        Optional<OrderAssignment> activeAssignment =
                 orderAssignmentRepository.findActiveAssignmentForOrder(orderId);
 
-        if (existingAssignment.isPresent()) {
+        if (activeAssignment.isPresent() && !activeAssignment.get().getVolunteerId().equals(volunteerId)) {
             throw new RuntimeException("ORDER_ALREADY_ACCEPTED: This order was already accepted by another volunteer");
         }
 
-        // Create new assignment
+        // Only create new assignment if none exists
         OrderAssignment assignment = new OrderAssignment(orderId, volunteerId);
         assignment.setRoundId(roundId);
         assignment.setStatus(AssignmentStatus.ACCEPTED);
