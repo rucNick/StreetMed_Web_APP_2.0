@@ -84,11 +84,7 @@ public class OrderService {
 
     /**
      * Creates a new order and reserves the associated inventory items.
-     *
-     * @param order The order to create
-     * @param items The items in the order
-     * @param clientIpAddress The client's IP address for rate limiting
-     * @return The saved order
+     * Now properly handles sized items using OrderItem.size field.
      */
     @Transactional
     public Order createOrder(Order order, List<OrderItem> items, String clientIpAddress) {
@@ -115,21 +111,26 @@ public class OrderService {
             throw new RuntimeException("Order must contain at least one item");
         }
 
-        // Reserve inventory items (decrement quantities temporarily)
-        Map<String, Integer> itemQuantityMap = new HashMap<>();
+        // Group items by name and size for inventory checking
+        // Structure: Map<ItemName, Map<Size, Quantity>>
+        // null size means regular item without size
+        Map<String, Map<String, Integer>> itemInventoryMap = new HashMap<>();
+
         for (OrderItem item : items) {
             String itemName = item.getItemName();
+            String size = item.getSize(); // Can be null for non-sized items
             int quantity = item.getQuantity();
 
-            // Aggregate quantities for items that might appear multiple times
-            itemQuantityMap.put(itemName,
-                    itemQuantityMap.getOrDefault(itemName, 0) + quantity);
+            itemInventoryMap.computeIfAbsent(itemName, k -> new HashMap<>());
+            String sizeKey = size != null ? size : "NO_SIZE";
+            itemInventoryMap.get(itemName).put(sizeKey,
+                    itemInventoryMap.get(itemName).getOrDefault(sizeKey, 0) + quantity);
         }
 
         // Check inventory availability and reserve items
-        for (Map.Entry<String, Integer> entry : itemQuantityMap.entrySet()) {
-            String itemName = entry.getKey();
-            int requestedQuantity = entry.getValue();
+        for (Map.Entry<String, Map<String, Integer>> itemEntry : itemInventoryMap.entrySet()) {
+            String itemName = itemEntry.getKey();
+            Map<String, Integer> sizeQuantities = itemEntry.getValue();
 
             // Find the cargo item by name
             List<CargoItem> matchingItems = cargoItemService.searchItems(itemName);
@@ -140,13 +141,32 @@ public class OrderService {
             // Use the first matching item (assuming item names are unique)
             CargoItem cargoItem = matchingItems.get(0);
 
-            // Check if there's enough inventory
-            if (!cargoItem.isAvailableInQuantity(requestedQuantity)) {
-                throw new RuntimeException("Insufficient quantity available for: " + itemName);
-            }
+            // Check if this item has sizes in inventory
+            boolean itemHasSizes = cargoItem.getSizeQuantities() != null && !cargoItem.getSizeQuantities().isEmpty();
 
-            // Reserve the inventory (temporarily reduce quantity)
-            cargoItemService.reserveItems(cargoItem.getId(), requestedQuantity);
+            for (Map.Entry<String, Integer> sizeEntry : sizeQuantities.entrySet()) {
+                String sizeKey = sizeEntry.getKey();
+                int requestedQuantity = sizeEntry.getValue();
+
+                if ("NO_SIZE".equals(sizeKey)) {
+                    // Regular item without size - use normal inventory
+                    if (!cargoItem.isAvailableInQuantity(requestedQuantity)) {
+                        throw new RuntimeException("Insufficient quantity available for: " + itemName);
+                    }
+                    // Reserve the inventory (temporarily reduce quantity)
+                    cargoItemService.reserveItems(cargoItem.getId(), requestedQuantity);
+                } else {
+                    // Sized item - use size-specific inventory
+                    if (!itemHasSizes) {
+                        throw new RuntimeException("Item " + itemName + " does not have size options");
+                    }
+                    if (!cargoItemService.checkSizeAvailability(cargoItem.getId(), sizeKey, requestedQuantity)) {
+                        throw new RuntimeException("Insufficient quantity available for: " + itemName + " (Size: " + sizeKey + ")");
+                    }
+                    // Reserve from size-specific inventory
+                    cargoItemService.reserveSizedItem(cargoItem.getId(), sizeKey, requestedQuantity);
+                }
+            }
         }
 
         // Set summary information
@@ -336,40 +356,61 @@ public class OrderService {
 
     /**
      * Releases inventory that was reserved for an order
+     * Now properly handles sized items using OrderItem.size field.
      */
     private void releaseReservedInventory(Order order) {
         // Get all items in the order
         List<OrderItem> orderItems = order.getOrderItems();
 
-        // Group items by name and sum quantities
-        Map<String, Integer> itemQuantityMap = new HashMap<>();
+        // Group items by name and size for inventory restoration
+        Map<String, Map<String, Integer>> itemInventoryMap = new HashMap<>();
+
         for (OrderItem item : orderItems) {
             String itemName = item.getItemName();
+            String size = item.getSize(); // Can be null for non-sized items
             int quantity = item.getQuantity();
 
-            itemQuantityMap.put(itemName,
-                    itemQuantityMap.getOrDefault(itemName, 0) + quantity);
+            itemInventoryMap.computeIfAbsent(itemName, k -> new HashMap<>());
+            String sizeKey = size != null ? size : "NO_SIZE";
+            itemInventoryMap.get(itemName).put(sizeKey,
+                    itemInventoryMap.get(itemName).getOrDefault(sizeKey, 0) + quantity);
         }
 
-        // Restore quantities to inventory
-        for (Map.Entry<String, Integer> entry : itemQuantityMap.entrySet()) {
-            String itemName = entry.getKey();
-            int quantity = entry.getValue();
+        // Restore inventory
+        for (Map.Entry<String, Map<String, Integer>> itemEntry : itemInventoryMap.entrySet()) {
+            String itemName = itemEntry.getKey();
+            Map<String, Integer> sizeQuantities = itemEntry.getValue();
 
             // Find the cargo item by name
             List<CargoItem> matchingItems = cargoItemService.searchItems(itemName);
             if (!matchingItems.isEmpty()) {
                 CargoItem cargoItem = matchingItems.get(0);
 
-                // Restore the quantity (add back to inventory)
-                cargoItemService.updateQuantity(
-                        cargoItem.getId(),
-                        cargoItem.getQuantity() + quantity
-                );
+                for (Map.Entry<String, Integer> sizeEntry : sizeQuantities.entrySet()) {
+                    String sizeKey = sizeEntry.getKey();
+                    int quantity = sizeEntry.getValue();
+
+                    if ("NO_SIZE".equals(sizeKey)) {
+                        // Regular item without size - restore to normal inventory
+                        cargoItemService.updateQuantity(
+                                cargoItem.getId(),
+                                cargoItem.getQuantity() + quantity
+                        );
+                    } else {
+                        // Sized item - restore to size-specific inventory
+                        Map<String, Integer> currentSizes = cargoItem.getSizeQuantities();
+                        if (currentSizes != null && currentSizes.containsKey(sizeKey)) {
+                            cargoItemService.updateSizeQuantity(
+                                    cargoItem.getId(),
+                                    sizeKey,
+                                    currentSizes.get(sizeKey) + quantity
+                            );
+                        }
+                    }
+                }
             }
         }
     }
-
     /**
      * Validate that a user exists
      */

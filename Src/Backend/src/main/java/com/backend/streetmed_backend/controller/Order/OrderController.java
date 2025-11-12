@@ -259,6 +259,12 @@ public class OrderController {
                         OrderItem item = new OrderItem();
                         item.setItemName((String) itemData.get("itemName"));
                         item.setQuantity((Integer) itemData.get("quantity"));
+
+                        // Handle size field if present
+                        if (itemData.containsKey("size")) {
+                            item.setSize((String) itemData.get("size"));
+                        }
+
                         orderItems.add(item);
                     }
                 }

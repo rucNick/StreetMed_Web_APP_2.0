@@ -22,6 +22,12 @@ public class OrderItem {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
+
+    @Column(name = "size")
+    private String size;
+
+
+
     // Default constructor
     public OrderItem() {}
 
@@ -57,4 +63,13 @@ public class OrderItem {
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
 }

@@ -193,7 +193,6 @@ const Guest = ({ onLogout }) => {
     }
   };
 
-  // 2) actual post to backend
   const placeOrderWithLocation = async (latitude, longitude) => {
     if (cart.length === 0) {
       setCartError("Your cart is empty.");
@@ -229,26 +228,17 @@ const Guest = ({ onLogout }) => {
         combinedUserNotes += `; Email: ${email}`;
       }
       
-      // Add size information for items that have sizes
-      const itemsWithSizes = cart.filter(c => c.size).map(c => `${c.name}: Size ${c.size}`).join(", ");
-      if (itemsWithSizes) {
-        combinedUserNotes += `; Sizes: ${itemsWithSizes}`;
-      }
+      // Don't add size info to notes anymore - it's in the items
       
-      // Add custom items note if any
-      const customItems = cart.filter(c => c.isCustom).map(c => c.name).join(", ");
-      if (customItems) {
-        combinedUserNotes += `; Custom Items Requested: ${customItems}`;
-      }
-      
-      // payload - CRITICAL: use c.name, not c.displayName
+      // payload - include size in each item
       const payload = {
         deliveryAddress,
         phoneNumber: phone,  // Backend expects 'phoneNumber'
         notes: combinedUserNotes,
         items: cart.map((c) => ({
-          itemName: c.name,  // Use original name without size (e.g., "Coat" not "Coat (XL)")
+          itemName: c.name,  // Use original name without size
           quantity: c.quantity,
+          size: c.size || null  // Include size field directly
         })),
         authenticated: false,  // Indicate guest user
         userId: -1  // Explicitly set guest user ID

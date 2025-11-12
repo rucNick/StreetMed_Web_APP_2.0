@@ -238,31 +238,26 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
       // Debug log to check cart structure
       console.log("Cart items before sending:", cart);
       
-      // Add size information to notes if items have sizes
-      const itemsWithSizes = cart.filter(item => item.size);
-      let finalNotes = notes;
-      if (itemsWithSizes.length > 0) {
-        const sizeInfo = itemsWithSizes.map(item => 
-          `${item.name}: Size ${item.size}`
-        ).join(", ");
-        finalNotes = `${notes} | Sizes: ${sizeInfo}`;
-      }
-      
       const payload = {
         authenticated: true,
         userId,
         deliveryAddress,
-        notes: finalNotes,
+        notes,  // Keep original notes without size info appended
         phoneNumber,
         items: cart.map((item) => {
-          // Use base name for backend, not display name
+          // Send size information as part of each item
           console.log("Mapping item:", {
             original: item,
-            sending: { itemName: item.name, quantity: item.quantity }
+            sending: { 
+              itemName: item.name, 
+              quantity: item.quantity,
+              size: item.size || null  // Include size in the item data
+            }
           });
           return {
             itemName: item.name,  // Use 'name' field (base name), NOT 'displayName'
-            quantity: item.quantity
+            quantity: item.quantity,
+            size: item.size || null  // Include size if present
           };
         }),
       };
