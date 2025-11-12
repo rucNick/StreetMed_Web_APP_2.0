@@ -1,3 +1,4 @@
+// Volunteer_Order.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicAxios } from '../../config/axiosConfig';
@@ -12,6 +13,7 @@ const VolunteerOrders = ({ userData }) => {
   const [ordersError, setOrdersError] = useState('');
   const [activeTab, setActiveTab] = useState("PENDING");
   const [isLoading, setIsLoading] = useState(false);
+  const [roundInfo, setRoundInfo] = useState({ roundIds: [], message: '' });
 
   // Load pending orders from priority queue
   const loadPendingOrders = useCallback(async () => {
@@ -33,12 +35,25 @@ const VolunteerOrders = ({ userData }) => {
       
       if (response.data.status === "success") {
         setPendingOrders(response.data.orders || []);
+        if (response.data.roundIds) {
+          setRoundInfo({
+            roundIds: response.data.roundIds,
+            message: response.data.roundIds.length > 0 
+              ? `Showing orders from your rounds: ${response.data.roundIds.join(', ')}`
+              : 'You need to sign up for rounds to see orders'
+          });
+        }
       } else {
         setOrdersError(response.data.message || "Failed to load pending orders");
       }
     } catch (error) {
       console.error("Error loading pending orders:", error);
-      setOrdersError(error.response?.data?.message || error.message);
+      if (error.response?.status === 403 || error.response?.data?.message?.includes('No rounds')) {
+        setOrdersError("You need to be signed up for a round to view orders");
+        setRoundInfo({ roundIds: [], message: 'Sign up for rounds to access orders' });
+      } else {
+        setOrdersError(error.response?.data?.message || error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -230,6 +245,7 @@ const VolunteerOrders = ({ userData }) => {
 
   const activeCount = myAssignments.filter(a => a.status !== 'COMPLETED' && a.status !== 'CANCELLED').length;
   const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').length;
+
   return (
     <div className="page-container">
       <header className="site-header">
@@ -297,6 +313,21 @@ const VolunteerOrders = ({ userData }) => {
               {isLoading ? 'Refreshing...' : '🔄 Refresh'}
             </button>
           </div>
+
+          {/* Round Info Banner */}
+          {roundInfo.message && activeTab === "PENDING" && (
+            <div style={{
+              padding: '10px 15px',
+              backgroundColor: roundInfo.roundIds.length > 0 ? '#e8f5e9' : '#fff3e0',
+              color: roundInfo.roundIds.length > 0 ? '#2e7d32' : '#e65100',
+              borderRadius: '4px',
+              margin: '10px 0',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}>
+              {roundInfo.message}
+            </div>
+          )}
 
           {/* Tab Buttons */}
           <div className="drawer-container orders-filterGroup">
@@ -368,10 +399,33 @@ const VolunteerOrders = ({ userData }) => {
                   backgroundColor: '#f9f9f9',
                   borderRadius: '8px'
                 }}>
-                  <h3 style={{ color: '#27ae60', fontSize: '24px' }}>🎉 All Clear!</h3>
-                  <p style={{ color: '#666', marginTop: '10px' }}>
-                    No pending orders at the moment. Great job keeping up!
+                  <h3 style={{ color: '#666', fontSize: '24px' }}>
+                    {roundInfo.roundIds && roundInfo.roundIds.length > 0 
+                      ? '🎉 All Clear!' 
+                      : '📅 No Orders Available'}
+                  </h3>
+                  <p style={{ color: '#999', marginTop: '10px' }}>
+                    {roundInfo.roundIds && roundInfo.roundIds.length > 0 
+                      ? "All orders in your rounds have been assigned. Check back later!"
+                      : "You need to sign up for a round first to see available orders."}
                   </p>
+                  {(!roundInfo.roundIds || roundInfo.roundIds.length === 0) && (
+                    <button 
+                      onClick={() => navigate('/')}
+                      style={{
+                        marginTop: '20px',
+                        padding: '10px 30px',
+                        backgroundColor: '#3498db',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        fontSize: '16px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Go to Dashboard → Sign up for Rounds
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ padding: '20px' }}>
@@ -436,12 +490,26 @@ const VolunteerOrders = ({ userData }) => {
                           </span>
                         </div>
                         
+                        {order.roundId && (
+                          <div style={{
+                            marginBottom: '10px',
+                            padding: '8px',
+                            backgroundColor: '#e3f2fd',
+                            borderRadius: '4px',
+                            fontSize: '14px'
+                          }}>
+                            <strong>🔄 Round #{order.roundId}</strong>
+                            {order.roundTitle && ` - ${order.roundTitle}`}
+                          </div>
+                        )}
+                        
                         <div style={{ marginBottom: '15px' }}>
                           <p style={{ marginBottom: '8px' }}><strong>📦 Items:</strong></p>
                           <ul style={{ margin: '0 0 0 20px', padding: 0 }}>
-                            {order.orderItems?.map((item, i) => (
+                            {order.items?.map((item, i) => (
                               <li key={i} style={{ marginBottom: '4px' }}>
                                 {item.itemName} × {item.quantity}
+                                {item.size && ` (Size: ${item.size})`}
                               </li>
                             ))}
                           </ul>
@@ -457,11 +525,6 @@ const VolunteerOrders = ({ userData }) => {
                           {order.notes && (
                             <p style={{ marginBottom: '5px' }}>
                               <strong>📝 Notes:</strong> {order.notes}
-                            </p>
-                          )}
-                          {order.roundId && (
-                            <p style={{ marginBottom: '5px' }}>
-                              <strong>🔄 Round:</strong> #{order.roundId}
                             </p>
                           )}
                         </div>
@@ -555,6 +618,19 @@ const VolunteerOrders = ({ userData }) => {
                           </span>
                         </div>
                         
+                        {assignment.roundId && (
+                          <div style={{
+                            marginBottom: '10px',
+                            padding: '6px 10px',
+                            backgroundColor: '#e8f5e9',
+                            borderRadius: '4px',
+                            fontSize: '14px',
+                            display: 'inline-block'
+                          }}>
+                            <strong>Round #{assignment.roundId}</strong>
+                          </div>
+                        )}
+                        
                         <div style={{ marginBottom: '15px' }}>
                           <p style={{ marginBottom: '8px' }}>
                             <strong>Order ID:</strong> #{assignment.orderId}
@@ -564,6 +640,7 @@ const VolunteerOrders = ({ userData }) => {
                             {assignment.items?.map((item, i) => (
                               <li key={i} style={{ marginBottom: '4px' }}>
                                 {item.itemName} × {item.quantity}
+                                {item.size && ` (Size: ${item.size})`}
                               </li>
                             ))}
                           </ul>

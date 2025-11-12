@@ -1,8 +1,12 @@
 package com.backend.streetmed_backend.controller.Rounds;
 
 import com.backend.streetmed_backend.entity.order_entity.Order;
+import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
+import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
+import com.backend.streetmed_backend.repository.Order.OrderItemRepository;
+import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.service.orderService.OrderService;
 import com.backend.streetmed_backend.service.roundService.RoundsService;
 import com.backend.streetmed_backend.service.roundService.RoundSignupService;
@@ -18,10 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -33,6 +34,13 @@ public class VolunteerRoundsController {
     private final RoundSignupService roundSignupService;
     private final Executor asyncExecutor;
     private final OrderService orderService;
+
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderAssignmentRepository orderAssignmentRepository;
 
     @Autowired
     public VolunteerRoundsController(RoundsService roundsService,
@@ -214,6 +222,74 @@ public class VolunteerRoundsController {
                 }
 
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, asyncExecutor);
+    }
+
+
+    @GetMapping("/{roundId}/my-orders")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getMyRoundOrders(
+            @PathVariable Integer roundId,
+            @RequestParam("authenticated") Boolean authenticated,
+            @RequestParam("userId") Integer userId,
+            @RequestParam("userRole") String userRole) {
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (!Boolean.TRUE.equals(authenticated)) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("status", "error", "message", "Not authenticated"));
+                }
+
+                // Check if volunteer is signed up for this round
+                Optional<RoundSignup> signup = roundSignupService.findByRoundIdAndUserId(roundId, userId);
+                if (signup.isEmpty() || !"CONFIRMED".equals(signup.get().getStatus())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("status", "error", "message", "You are not confirmed for this round"));
+                }
+
+                // Get all orders for this round
+                List<Order> roundOrders = orderRepository.findActiveOrdersByRoundId(roundId);
+
+                List<Map<String, Object>> orderList = new ArrayList<>();
+                for (Order order : roundOrders) {
+                    Map<String, Object> orderInfo = new HashMap<>();
+                    orderInfo.put("orderId", order.getOrderId());
+                    orderInfo.put("status", order.getStatus());
+                    orderInfo.put("deliveryAddress", order.getDeliveryAddress());
+                    orderInfo.put("phoneNumber", order.getPhoneNumber());
+                    orderInfo.put("notes", order.getNotes());
+                    orderInfo.put("requestTime", order.getRequestTime());
+                    orderInfo.put("items", order.getOrderItems());
+
+                    // Check if this volunteer has accepted this order
+                    Optional<OrderAssignment> assignment =
+                            orderAssignmentRepository.findByOrderIdAndVolunteerId(order.getOrderId(), userId);
+
+                    if (assignment.isPresent()) {
+                        orderInfo.put("myAssignment", true);
+                        orderInfo.put("assignmentStatus", assignment.get().getStatus());
+                        orderInfo.put("assignmentId", assignment.get().getAssignmentId());
+                    } else {
+                        // Check if another volunteer has it
+                        Optional<OrderAssignment> otherAssignment =
+                                orderAssignmentRepository.findActiveAssignmentForOrder(order.getOrderId());
+                        orderInfo.put("assignedToOther", otherAssignment.isPresent());
+                    }
+
+                    orderList.add(orderInfo);
+                }
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("orders", orderList);
+                response.put("roundId", roundId);
+                response.put("totalOrders", orderList.size());
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("status", "error", "message", e.getMessage()));
             }
         }, asyncExecutor);
     }

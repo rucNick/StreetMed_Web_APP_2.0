@@ -50,9 +50,6 @@ public class OrderController {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
-    private OrderAssignmentRepository orderAssignmentRepository;
-
-    @Autowired
     public OrderController(OrderManagementService orderManagementService,
                            OrderAssignmentService orderAssignmentService,
                            OrderService orderService,

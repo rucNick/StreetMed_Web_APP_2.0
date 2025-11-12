@@ -1,3 +1,4 @@
+// Volunteer_Dashboard.js
 import React, { useState, useEffect, useCallback } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -26,7 +27,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const [showRoundsModal, setShowRoundsModal] = useState(false);
   const [fullViewModalOpen, setFullViewModalOpen] = useState(false);
   const [selectedRoundDetails, setSelectedRoundDetails] = useState(null);
-  const [roundOrders, setRoundOrders] = useState([]);
+  const [, setRoundOrders] = useState([]);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showPastRounds, setShowPastRounds] = useState(false);
@@ -280,20 +281,26 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                   borderRadius: '8px'
                 }}>
                   <p>No active assignments</p>
-                  <button 
-                    onClick={() => navigate("/volunteer/orders")}
-                    style={{
-                      marginTop: '10px',
-                      padding: '8px 16px',
-                      backgroundColor: '#ff6b00',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Go to Order Queue →
-                  </button>
+                  {myUpcomingRounds.length === 0 ? (
+                    <p style={{ marginTop: '10px', color: '#666', fontSize: '14px' }}>
+                      Sign up for rounds to access orders
+                    </p>
+                  ) : (
+                    <button 
+                      onClick={() => navigate("/volunteer/orders")}
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 16px',
+                        backgroundColor: '#ff6b00',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Go to Order Queue →
+                    </button>
+                  )}
                 </div>
               ) : (
                 activeAssignments.map((assignment) => (
@@ -313,6 +320,12 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                         {assignment.status === 'IN_PROGRESS' ? 'IN PROGRESS' : assignment.status}
                       </span>
                     </div>
+                    
+                    {assignment.roundId && (
+                      <p style={{ marginBottom: '8px', color: '#666', fontSize: '14px' }}>
+                        <strong>Round #{assignment.roundId}</strong>
+                      </p>
+                    )}
                     
                     <p><strong>Items:</strong> {assignment.items?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
                     <p><strong>Address:</strong> {assignment.deliveryAddress}</p>
@@ -357,6 +370,9 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                 <p><strong>Location: </strong> 📍{r.location}</p>
                 <p><strong>Start: </strong>{new Date(r.startTime).toLocaleString()}</p>
                 <p><strong>End: </strong>{new Date(r.endTime).toLocaleString()}</p>
+                <p style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
+                  <strong>Orders:</strong> {r.currentOrderCount || 0} / {r.orderCapacity || 20}
+                </p>
                 <br />
                 <button className="open-view-btn" onClick={() => openFullViewModal(r.roundId)}>
                   View Details
@@ -443,6 +459,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                     <p>Start: {new Date(r.startTime).toLocaleString()}</p>
                     <p>End: {new Date(r.endTime).toLocaleString()}</p>
                     <p>Available Slots: {r.availableSlots}</p>
+                    <p>Order Capacity: {r.currentOrderCount || 0}/{r.orderCapacity || 20}</p>
                     <p>Already Signed Up? {r.userSignedUp ? "Yes" : "No"}</p>
                     {r.userSignedUp ? (
                       <p style={{ color: "green" }}>You are already signed up.</p>
@@ -473,6 +490,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               <p><strong>Start:</strong> {new Date(selectedRoundDetails.startTime).toLocaleString()}</p>
               <p><strong>End:</strong> {new Date(selectedRoundDetails.endTime).toLocaleString()}</p>
               <p><strong>Available Slots:</strong> {selectedRoundDetails.availableSlots}</p>
+              <p><strong>Order Capacity:</strong> {selectedRoundDetails.currentOrderCount || 0}/{selectedRoundDetails.orderCapacity || 20}</p>
               <p><strong>Already Signed Up?</strong> {selectedRoundDetails.userSignedUp ? "Yes" : "No"}</p>
               
               {selectedRoundDetails.userSignedUp &&
@@ -495,6 +513,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               <h2>Order Full Details</h2>
               <p>Order ID: {selectedOrder.orderId}</p>
               <p>Status: {selectedOrder.status}</p>
+              {selectedOrder.roundId && <p>Round ID: {selectedOrder.roundId}</p>}
               <p>Delivery Address: {selectedOrder.deliveryAddress}</p>
               <p>Phone Number: {selectedOrder.phoneNumber}</p>
               <p>Note: {selectedOrder.notes}</p>
@@ -505,6 +524,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                   {selectedOrder.items.map((itm, idx) => (
                     <p key={idx}>
                       {itm.itemName} - Quantity: {itm.quantity}
+                      {itm.size && ` (Size: ${itm.size})`}
                     </p>
                   ))}
                 </div>

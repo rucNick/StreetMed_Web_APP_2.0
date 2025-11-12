@@ -1,9 +1,13 @@
 package com.backend.streetmed_backend.controller.Rounds;
 
+import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
+import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.service.roundService.RoundsService;
 import com.backend.streetmed_backend.service.roundService.RoundSignupService;
+import com.backend.streetmed_backend.service.orderService.OrderRoundAssignmentService;
+import com.backend.streetmed_backend.service.orderService.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,15 +33,100 @@ public class AdminRoundsController {
     private final RoundsService roundsService;
     private final RoundSignupService roundSignupService;
     private final Executor asyncExecutor;
+    private final OrderRoundAssignmentService orderRoundAssignmentService;
+    private final OrderService orderService;
+
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     public AdminRoundsController(RoundsService roundsService,
                                  RoundSignupService roundSignupService,
+                                 OrderRoundAssignmentService orderRoundAssignmentService,
+                                 OrderService orderService,
                                  @Qualifier("authExecutor") Executor asyncExecutor) {
         this.roundsService = roundsService;
         this.roundSignupService = roundSignupService;
+        this.orderRoundAssignmentService = orderRoundAssignmentService;
+        this.orderService = orderService;
         this.asyncExecutor = asyncExecutor;
     }
+
+
+    @Operation(summary = "Auto-assign unassigned orders to rounds",
+            description = "Automatically assigns all unassigned orders to available rounds based on capacity.")
+    @PostMapping("/auto-assign-orders")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> autoAssignOrders(
+            @RequestBody Map<String, Object> requestData) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Boolean authenticated = (Boolean) requestData.get("authenticated");
+                if (!Boolean.TRUE.equals(authenticated)) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Not authenticated");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+                }
+
+                // Use the service to assign unassigned orders
+                int assignedCount = orderRoundAssignmentService.assignUnassignedOrders();
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("message", assignedCount + " orders were assigned to rounds");
+                response.put("assignedCount", assignedCount);
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, asyncExecutor);
+    }
+
+    @Operation(summary = "Get order assignment status for a round",
+            description = "Shows how many orders are assigned to a round and its capacity.")
+    @GetMapping("/{roundId}/order-status")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getRoundOrderStatus(
+            @PathVariable Integer roundId,
+            @RequestParam("authenticated") Boolean authenticated) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (!Boolean.TRUE.equals(authenticated)) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Not authenticated");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+                }
+
+                Rounds round = roundsService.getRound(roundId);
+                long currentOrderCount = orderRepository.countByRoundId(roundId);
+                Integer orderCapacity = round.getOrderCapacity() != null ? round.getOrderCapacity() : 20;
+                List<Order> roundOrders = orderService.getOrdersForRound(roundId);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("roundId", roundId);
+                response.put("roundTitle", round.getTitle());
+                response.put("currentOrderCount", currentOrderCount);
+                response.put("orderCapacity", orderCapacity);
+                response.put("availableSlots", orderCapacity - currentOrderCount);
+                response.put("capacityPercentage", (currentOrderCount * 100.0) / orderCapacity);
+                response.put("orders", roundOrders);
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, asyncExecutor);
+    }
+
 
     @Operation(summary = "Create a new rounds schedule",
             description = "Creates a new rounds schedule with the provided details. Only accessible by administrators.")
@@ -49,18 +138,7 @@ public class AdminRoundsController {
     })
     @PostMapping("/create")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> createRound(
-            @RequestBody @Schema(example = """
-            {
-                "authenticated": true,
-                "adminUsername": "admin",
-                "title": "Downtown Outreach",
-                "description": "Medical outreach in downtown area",
-                "startTime": "2024-04-15T18:00:00",
-                "endTime": "2024-04-15T21:00:00",
-                "location": "Market Square",
-                "maxParticipants": 5
-            }
-            """) Map<String, Object> requestData) {
+            @RequestBody Map<String, Object> requestData) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Boolean authenticated = (Boolean) requestData.get("authenticated");
@@ -68,7 +146,7 @@ public class AdminRoundsController {
 
                 if (!Boolean.TRUE.equals(authenticated)) {
                     Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put(getStatus(), "error");
+                    errorResponse.put("status", "error");
                     errorResponse.put("message", "Not authenticated");
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
                 }
@@ -91,17 +169,21 @@ public class AdminRoundsController {
                 round.setLocation((String) requestData.get("location"));
                 round.setMaxParticipants((Integer) requestData.get("maxParticipants"));
 
+                // NEW: Set order capacity (default to 20 if not provided)
+                Integer orderCapacity = (Integer) requestData.get("orderCapacity");
+                round.setOrderCapacity(orderCapacity != null ? orderCapacity : 20);
+
                 Rounds savedRound = roundsService.createRound(round);
 
                 Map<String, Object> response = new HashMap<>();
-                response.put(getStatus(), "success");
+                response.put("status", "success");
                 response.put("message", "Round created successfully");
                 response.put("roundId", savedRound.getRoundId());
 
                 return ResponseEntity.ok(response);
             } catch (Exception e) {
                 Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put(getStatus(), "error");
+                errorResponse.put("status", "error");
                 errorResponse.put("message", e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
             }
@@ -120,18 +202,19 @@ public class AdminRoundsController {
     public CompletableFuture<ResponseEntity<Map<String, Object>>> updateRound(
             @PathVariable Integer roundId,
             @RequestBody @Schema(example = """
-            {
-                "authenticated": true,
-                "adminUsername": "admin",
-                "title": "Updated Downtown Outreach",
-                "description": "Updated description",
-                "startTime": "2024-04-15T19:00:00",
-                "endTime": "2024-04-15T22:00:00",
-                "location": "Updated location",
-                "maxParticipants": 6,
-                "status": "SCHEDULED"
-            }
-            """) Map<String, Object> requestData) {
+        {
+            "authenticated": true,
+            "adminUsername": "admin",
+            "title": "Updated Downtown Outreach",
+            "description": "Updated description",
+            "startTime": "2024-04-15T19:00:00",
+            "endTime": "2024-04-15T22:00:00",
+            "location": "Updated location",
+            "maxParticipants": 6,
+            "orderCapacity": 25,
+            "status": "SCHEDULED"
+        }
+        """) Map<String, Object> requestData) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Boolean authenticated = (Boolean) requestData.get("authenticated");
@@ -139,7 +222,7 @@ public class AdminRoundsController {
 
                 if (!Boolean.TRUE.equals(authenticated)) {
                     Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put(getStatus(), "error");
+                    errorResponse.put("status", "error");
                     errorResponse.put("message", "Not authenticated");
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
                 }
@@ -166,21 +249,24 @@ public class AdminRoundsController {
                 if (requestData.containsKey("maxParticipants")) {
                     existingRound.setMaxParticipants((Integer) requestData.get("maxParticipants"));
                 }
-                if (requestData.containsKey(getStatus())) {
-                    existingRound.setStatus((String) requestData.get(getStatus()));
+                if (requestData.containsKey("orderCapacity")) {
+                    existingRound.setOrderCapacity((Integer) requestData.get("orderCapacity"));
+                }
+                if (requestData.containsKey("status")) {
+                    existingRound.setStatus((String) requestData.get("status"));
                 }
 
                 Rounds updatedRound = roundsService.updateRound(roundId, existingRound);
 
                 Map<String, Object> response = new HashMap<>();
-                response.put(getStatus(), "success");
+                response.put("status", "success");
                 response.put("message", "Round updated successfully");
                 response.put("roundId", updatedRound.getRoundId());
 
                 return ResponseEntity.ok(response);
             } catch (Exception e) {
                 Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put(getStatus(), "error");
+                errorResponse.put("status", "error");
                 errorResponse.put("message", e.getMessage());
 
                 if (e.getMessage().contains("not found")) {

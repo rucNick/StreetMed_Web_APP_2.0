@@ -44,6 +44,7 @@ public interface RoundSignupRepository extends JpaRepository<RoundSignup, Intege
     // Check if a round has a team lead
     @Query("SELECT COUNT(rs) > 0 FROM RoundSignup rs WHERE rs.roundId = :roundId AND rs.role = 'TEAM_LEAD' AND rs.status = 'CONFIRMED'")
     boolean hasTeamLead(@Param("roundId") Integer roundId);
+    List<RoundSignup> findByUserIdAndStatus(Integer userId, String status);
 
     // Check if a round has a clinician
     @Query("SELECT COUNT(rs) > 0 FROM RoundSignup rs WHERE rs.roundId = :roundId AND rs.role = 'CLINICIAN' AND rs.status = 'CONFIRMED'")

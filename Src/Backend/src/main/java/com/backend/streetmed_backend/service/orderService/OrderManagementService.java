@@ -3,8 +3,10 @@ package com.backend.streetmed_backend.service.orderService;
 import com.backend.streetmed_backend.dto.order.*;
 import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
-import com.backend.streetmed_backend.entity.order_entity.OrderItem;
+import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
+import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
 import com.backend.streetmed_backend.repository.Order.OrderRepository;
+import com.backend.streetmed_backend.repository.Rounds.RoundSignupRepository;
 import com.backend.streetmed_backend.service.roundService.RoundCapacityService;
 import com.backend.streetmed_backend.util.ResponseUtil;
 import org.slf4j.Logger;
@@ -12,19 +14,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -36,6 +35,13 @@ public class OrderManagementService {
     private final OrderAssignmentService orderAssignmentService;
     private final RoundCapacityService roundCapacityService;
     private final OrderRepository orderRepository;
+
+
+    @Autowired
+    private RoundSignupRepository roundSignupRepository;
+
+    @Autowired
+    private OrderAssignmentRepository orderAssignmentRepository;
 
     @Autowired
     public OrderManagementService(OrderService orderService,
@@ -58,48 +64,62 @@ public class OrderManagementService {
         }
 
         try {
-            Page<Order> ordersPage = orderRepository.findPendingOrdersPrioritized(
-                    PageRequest.of(request.getPage(), request.getSize())
+            // Get rounds the volunteer is signed up for
+            List<RoundSignup> volunteerRounds = roundSignupRepository.findByUserIdAndStatus(
+                    request.getUserId(), "CONFIRMED");
+
+            List<Integer> roundIds = volunteerRounds.stream()
+                    .map(RoundSignup::getRoundId)
+                    .collect(Collectors.toList());
+
+            if (roundIds.isEmpty()) {
+                return ResponseUtil.success("No rounds assigned", Collections.emptyMap());
+            }
+
+            // Get orders for those rounds that aren't already accepted by someone else
+            Page<Order> ordersPage = orderRepository.findPendingOrdersForRounds(
+                    roundIds, PageRequest.of(request.getPage(), request.getSize())
             );
 
             List<Map<String, Object>> orderList = new ArrayList<>();
             LocalDateTime now = LocalDateTime.now();
 
             for (Order order : ordersPage.getContent()) {
-                Map<String, Object> orderInfo = new HashMap<>();
-                long waitingHours = Duration.between(order.getRequestTime(), now).toHours();
+                // Check if order already has an active assignment
+                Optional<OrderAssignment> existingAssignment =
+                        orderAssignmentRepository.findActiveAssignmentForOrder(order.getOrderId());
 
-                orderInfo.put("orderId", order.getOrderId());
-                orderInfo.put("requestTime", order.getRequestTime());
-                orderInfo.put("waitingHours", waitingHours);
-                orderInfo.put("priority", calculatePriority(waitingHours));
-                orderInfo.put("deliveryAddress", order.getDeliveryAddress());
-                orderInfo.put("items", order.getOrderItems());
-                orderInfo.put("status", order.getStatus());
-                orderInfo.put("phoneNumber", order.getPhoneNumber());
-                orderInfo.put("notes", order.getNotes());
+                // Only show if not assigned or assigned to this volunteer
+                if (existingAssignment.isEmpty() ||
+                        existingAssignment.get().getVolunteerId().equals(request.getUserId())) {
 
-                if (order.getRoundId() != null) {
-                    orderInfo.put("estimatedRoundDate", "Assigned to round " + order.getRoundId());
+                    Map<String, Object> orderInfo = new HashMap<>();
+                    long waitingHours = Duration.between(order.getRequestTime(), now).toHours();
+
+                    orderInfo.put("orderId", order.getOrderId());
+                    orderInfo.put("roundId", order.getRoundId());
+                    orderInfo.put("requestTime", order.getRequestTime());
+                    orderInfo.put("waitingHours", waitingHours);
+                    orderInfo.put("priority", calculatePriority(waitingHours));
+                    orderInfo.put("deliveryAddress", order.getDeliveryAddress());
+                    orderInfo.put("items", order.getOrderItems());
+                    orderInfo.put("status", order.getStatus());
+                    orderInfo.put("phoneNumber", order.getPhoneNumber());
+                    orderInfo.put("notes", order.getNotes());
+
+                    if (existingAssignment.isPresent()) {
+                        orderInfo.put("alreadyAccepted", true);
+                        orderInfo.put("assignmentStatus", existingAssignment.get().getStatus());
+                    }
+
+                    orderList.add(orderInfo);
                 }
-
-                orderList.add(orderInfo);
             }
-
-            LocalDateTime oldestTime = orderRepository.findOldestPendingOrderTime();
-            long oldestWaitingHours = oldestTime != null ?
-                    Duration.between(oldestTime, now).toHours() : 0;
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("orders", orderList);
-
-            Map<String, Object> pagination = new HashMap<>();
-            pagination.put("page", request.getPage());
-            pagination.put("totalOrders", ordersPage.getTotalElements());
-            pagination.put("oldestWaitingHours", oldestWaitingHours);
-            response.put("pagination", pagination);
-
+            response.put("roundIds", roundIds); // Show which rounds they're viewing
             response.put("authenticated", true);
 
             return ResponseEntity.ok(response);

@@ -18,6 +18,7 @@ function Round_Admin() {
     endTime: "",
     location: "",
     maxParticipants: "",
+    orderCapacity: "20",  // NEW: Add order capacity with default 20
     teamLeadId: "",
     clinicianId: ""
   });
@@ -25,10 +26,11 @@ function Round_Admin() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState(null);
-  // modalTab: "details" | "lottery" | "signups"
+  // modalTab: "details" | "lottery" | "signups" | "orders"
   const [modalTab, setModalTab] = useState("details");
   const [modalLotteryResult, setModalLotteryResult] = useState("");
   const [modalRoundDetails, setModalRoundDetails] = useState(null);
+  const [roundOrders, setRoundOrders] = useState([]);  // NEW: Store orders for round
 
   const [updateRoundStep, setUpdateRoundStep] = useState("inputId");
   const [roundIdToUpdate, setRoundIdToUpdate] = useState("");
@@ -76,7 +78,8 @@ function Round_Admin() {
         startTime: newRound.startTime,
         endTime: newRound.endTime,
         location: newRound.location,
-        maxParticipants: parseInt(newRound.maxParticipants, 10)
+        maxParticipants: parseInt(newRound.maxParticipants, 10),
+        orderCapacity: parseInt(newRound.orderCapacity, 10) || 20  // NEW: Include order capacity
       };
       if (newRound.teamLeadId.trim() !== "") {
         const tid = parseInt(newRound.teamLeadId, 10);
@@ -127,7 +130,43 @@ function Round_Admin() {
     }
   };
 
-  // 4. modal(lottory, detail, manage signup)
+  // NEW: Fetch orders for a round
+  const fetchRoundOrders = async () => {
+    try {
+      const response = await secureAxios.get(`/api/admin/rounds/${selectedRound.roundId}/order-status`, {
+        params: {
+          authenticated: true
+        }
+      });
+      if (response.data.status === "success") {
+        setRoundOrders(response.data.orders || []);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage(error.response?.data?.message || error.message);
+    }
+  };
+
+  // NEW: Auto-assign unassigned orders
+  const autoAssignOrders = async () => {
+    try {
+      const response = await secureAxios.post('/api/admin/rounds/auto-assign-orders', {
+        authenticated: true,
+        adminUsername: userData.username
+      });
+      if (response.data.status === "success") {
+        setMessage(response.data.message);
+        fetchRounds();
+      } else {
+        setMessage(response.data.message || "Error auto-assigning orders");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage(error.response?.data?.message || error.message);
+    }
+  };
+
+  // 4. modal(lottory, detail, manage signup, orders)
 
   const openModal = (round) => {
     setSelectedRound(round);
@@ -135,6 +174,7 @@ function Round_Admin() {
     setModalTab("details");
     setModalLotteryResult("");
     setModalRoundDetails(null);
+    setRoundOrders([]);
   };
 
   const closeModal = () => {
@@ -277,6 +317,7 @@ function Round_Admin() {
         endTime: updateRoundData.endTime,
         location: updateRoundData.location,
         maxParticipants: parseInt(updateRoundData.maxParticipants, 10),
+        orderCapacity: parseInt(updateRoundData.orderCapacity, 10) || 20, // NEW: Include order capacity
         status: updateRoundData.status
       };
       const response = await secureAxios.put(`/api/admin/rounds/${updateRoundData.roundId}`, payload);
@@ -333,6 +374,9 @@ function Round_Admin() {
         </nav>
   
         <div className="navbar-right">
+          <button className="nav-btn action-btn" onClick={autoAssignOrders}>
+            Auto-Assign Orders
+          </button>
           <button className="nav-btn back-btn" onClick={() => navigate("/")}>
             Back to Dashboard
           </button>
@@ -384,6 +428,7 @@ function Round_Admin() {
                     <th className="table-header-cell">End Time</th>
                     <th className="table-header-cell">Location</th>
                     <th className="table-header-cell">Max</th>
+                    <th className="table-header-cell">Orders</th>
                     <th className="table-header-cell">Status</th>
                     <th className="table-header-cell">Action</th>
                   </tr>
@@ -402,6 +447,9 @@ function Round_Admin() {
                       </td>
                       <td className="table-cell">{round.location}</td>
                       <td className="table-cell">{round.maxParticipants}</td>
+                      <td className="table-cell">
+                        {round.currentOrderCount || 0}/{round.orderCapacity || 20}
+                      </td>
                       <td className="table-cell">{round.status}</td>
                       <td className="table-cell">
                         <button
@@ -479,6 +527,18 @@ function Round_Admin() {
                     setNewRound({
                       ...newRound,
                       maxParticipants: e.target.value,
+                    })
+                  }
+                />
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Order Capacity (default: 20)"
+                  value={newRound.orderCapacity}
+                  onChange={(e) =>
+                    setNewRound({
+                      ...newRound,
+                      orderCapacity: e.target.value,
                     })
                   }
                 />
@@ -610,6 +670,18 @@ function Round_Admin() {
                   <input
                     className="input"
                     type="text"
+                    placeholder="Order Capacity"
+                    value={updateRoundData.orderCapacity || 20}
+                    onChange={(e) =>
+                      setUpdateRoundData({
+                        ...updateRoundData,
+                        orderCapacity: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    className="input"
+                    type="text"
                     placeholder="Status"
                     value={updateRoundData.status || ""}
                     onChange={(e) =>
@@ -629,7 +701,7 @@ function Round_Admin() {
         )}
       </div>
   
-      {/* ─────────────────────  MODAL (original content unchanged)  ───────────────────── */}
+      {/* ─────────────────────  MODAL  ───────────────────── */}
       {modalOpen && selectedRound && (
         <div className="item-modal-overlay" onClick={closeModal}>
           <div className="item-modal" onClick={(e) => e.stopPropagation()}>
@@ -657,6 +729,15 @@ function Round_Admin() {
               >
                 Manage Sign‑ups
               </button>
+              <button
+                className={`modal-chip ${modalTab === "orders" ? "selected" : ""}`}
+                onClick={() => {
+                  setModalTab("orders");
+                  fetchRoundOrders();
+                }}
+              >
+                Orders
+              </button>
             </div>
   
             <div className="modal-body">
@@ -669,6 +750,9 @@ function Round_Admin() {
                   <p><strong>End Time:</strong> {new Date(selectedRound.endTime).toLocaleString()}</p>
                   <p><strong>Location:</strong> {selectedRound.location}</p>
                   <p><strong>Max Participants:</strong> {selectedRound.maxParticipants}</p>
+                  <p><strong>Order Capacity:</strong> {selectedRound.orderCapacity || 20}</p>
+                  <p><strong>Current Orders:</strong> {selectedRound.currentOrderCount || 0}/{selectedRound.orderCapacity || 20}</p>
+                  <p><strong>Available Order Slots:</strong> {(selectedRound.orderCapacity || 20) - (selectedRound.currentOrderCount || 0)}</p>
                   <p><strong>Status:</strong> {selectedRound.status}</p>
                 </div>
               )}
@@ -729,6 +813,41 @@ function Round_Admin() {
                     </table>
                   ) : (
                     <p>No sign‑ups available.</p>
+                  )}
+                </div>
+              )}
+
+              {/* ORDERS */}
+              {modalTab === "orders" && (
+                <div>
+                  <p><strong>Order Capacity:</strong> {roundOrders.length || 0} / {selectedRound.orderCapacity || 20}</p>
+                  {roundOrders && roundOrders.length > 0 ? (
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th className="table-header-cell">Order ID</th>
+                          <th className="table-header-cell">User ID</th>
+                          <th className="table-header-cell">Status</th>
+                          <th className="table-header-cell">Address</th>
+                          <th className="table-header-cell">Request Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {roundOrders.map((order, idx) => (
+                          <tr key={idx}>
+                            <td className="table-cell">{order.orderId}</td>
+                            <td className="table-cell">{order.userId === -1 ? "Guest" : order.userId}</td>
+                            <td className="table-cell">{order.status}</td>
+                            <td className="table-cell">{order.deliveryAddress}</td>
+                            <td className="table-cell">
+                              {new Date(order.requestTime).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p>No orders assigned to this round yet.</p>
                   )}
                 </div>
               )}

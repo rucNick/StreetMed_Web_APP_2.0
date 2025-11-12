@@ -41,6 +41,18 @@ public class Rounds {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "order_capacity")
+    private Integer orderCapacity = 20;
+
+    // Add getter and setter
+    public Integer getOrderCapacity() {
+        return orderCapacity;
+    }
+
+    public void setOrderCapacity(Integer orderCapacity) {
+        this.orderCapacity = orderCapacity;
+    }
+
     // Default constructor
     public Rounds() {
         this.createdAt = LocalDateTime.now();

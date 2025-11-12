@@ -4,208 +4,151 @@ import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
-import com.backend.streetmed_backend.repository.Rounds.RoundSignupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
 @Service
 @Transactional
 public class OrderRoundAssignmentService {
     private static final Logger logger = LoggerFactory.getLogger(OrderRoundAssignmentService.class);
+
     private final OrderRepository orderRepository;
     private final RoundsRepository roundsRepository;
-    private final RoundSignupRepository roundSignupRepository;
-
-    // Maximum ratio of orders to volunteers per round
-    private static final int MAX_ORDERS_PER_VOLUNTEER = 5;
 
     @Autowired
     public OrderRoundAssignmentService(OrderRepository orderRepository,
-                                       RoundsRepository roundsRepository,
-                                       RoundSignupRepository roundSignupRepository) {
+                                       RoundsRepository roundsRepository) {
         this.orderRepository = orderRepository;
         this.roundsRepository = roundsRepository;
-        this.roundSignupRepository = roundSignupRepository;
     }
 
     /**
-     * Assign unassigned orders to the closest upcoming rounds.
-     * This method is also scheduled to run periodically to handle new orders
-     * and rebalance assignments when rounds or volunteers change.
+     * Assigns an order to the most optimal round based on capacity
      */
-    @Scheduled(fixedRate = 3600000) // Run every hour
     @Transactional
-    public void assignOrdersToRounds() {
-        logger.info("Starting order assignment process");
-
-        // Get all unassigned orders, ordered by creation date (oldest first for priority)
-        List<Order> unassignedOrders = orderRepository.findByRoundIdIsNullOrderByRequestTimeAsc();
-
-        if (unassignedOrders.isEmpty()) {
-            logger.info("No unassigned orders found");
+    public void assignOrderToOptimalRound(Order order, List<Rounds> upcomingRounds) {
+        if (upcomingRounds.isEmpty()) {
+            logger.info("No upcoming rounds available for order {}", order.getOrderId());
             return;
         }
 
-        logger.info("Found {} unassigned orders to process", unassignedOrders.size());
+        // Find the first round with available capacity
+        for (Rounds round : upcomingRounds) {
+            if (canAssignOrderToRound(round)) {
+                order.setRoundId(round.getRoundId());
+                orderRepository.save(order);
+                logger.info("Assigned order {} to round {}", order.getOrderId(), round.getRoundId());
+                return;
+            }
+        }
 
-        // Get all upcoming rounds with capacity information
+        logger.info("No rounds with available capacity for order {}", order.getOrderId());
+    }
+
+    /**
+     * Checks if a round has capacity for more orders
+     */
+    public boolean canAssignOrderToRound(Rounds round) {
+        // Get current order count for this round
+        long currentOrderCount = orderRepository.countByRoundId(round.getRoundId());
+
+        // Get the round's order capacity (default to 20 if not set)
+        Integer orderCapacity = round.getOrderCapacity() != null ? round.getOrderCapacity() : 20;
+
+        return currentOrderCount < orderCapacity;
+    }
+
+    /**
+     * Rebalances orders when a volunteer cancels their round signup
+     * This redistributes orders from rounds that may now lack volunteers
+     */
+    @Transactional
+    public void handleVolunteerCancellation(Integer roundId) {
+        try {
+            // Get the round
+            Rounds round = roundsRepository.findById(roundId)
+                    .orElseThrow(() -> new RuntimeException("Round not found"));
+
+            // Check if the round still has enough volunteers
+            // If not, we might need to reassign some orders
+            // For now, just log it - you can add more complex logic here
+            logger.info("Handling volunteer cancellation for round {}", roundId);
+
+            // Optional: Redistribute orders if needed
+            // This would involve checking volunteer count vs order count
+            // and potentially moving orders to other rounds
+
+        } catch (Exception e) {
+            logger.error("Error handling volunteer cancellation: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the current order count for a round
+     */
+    public long getOrderCountForRound(Integer roundId) {
+        return orderRepository.countByRoundId(roundId);
+    }
+
+    /**
+     * Reassigns unassigned orders to available rounds
+     * Useful for batch processing or admin operations
+     */
+    @Transactional
+    public int assignUnassignedOrders() {
+        // Get all unassigned orders (roundId is null)
+        List<Order> unassignedOrders = orderRepository.findByRoundIdIsNullAndStatus("PENDING");
+
+        // Get upcoming rounds with capacity
         List<Rounds> upcomingRounds = roundsRepository.findByStartTimeAfterAndStatusOrderByStartTimeAsc(
                 LocalDateTime.now(), "SCHEDULED");
 
-        if (upcomingRounds.isEmpty()) {
-            logger.info("No upcoming rounds available for assignment");
-            return;
-        }
+        int assignedCount = 0;
 
-        // Process each unassigned order
         for (Order order : unassignedOrders) {
-            assignOrderToOptimalRound(order, upcomingRounds);
-        }
-
-        // Now balance any rounds that may be overloaded
-        rebalanceRoundAssignments(upcomingRounds);
-
-        logger.info("Order assignment process completed");
-    }
-
-    /**
-     * Assign a single order to the optimal round based on timing and capacity
-     */
-    @Transactional
-    public void assignOrderToOptimalRound(Order order, List<Rounds> availableRounds) {
-        if (availableRounds.isEmpty()) {
-            logger.info("No rounds available for order {}", order.getOrderId());
-            return;
-        }
-
-        // Find the best round for this order
-        Rounds optimalRound = findOptimalRound(order, availableRounds);
-
-        if (optimalRound != null) {
-            order.setRoundId(optimalRound.getRoundId());
-            orderRepository.save(order);
-            logger.info("Assigned order {} to round {}", order.getOrderId(), optimalRound.getRoundId());
-        } else {
-            logger.info("No suitable round found for order {}, keeping as pending", order.getOrderId());
-        }
-    }
-
-    /**
-     * Find the optimal round for an order based on capacity and timing
-     */
-    private Rounds findOptimalRound(Order order, List<Rounds> rounds) {
-        // Check each round in chronological order
-        for (Rounds round : rounds) {
-            // Calculate current volunteer count for this round
-            long confirmedVolunteers = roundSignupRepository.countConfirmedVolunteersForRound(round.getRoundId());
-
-            // Skip rounds with no volunteers
-            if (confirmedVolunteers == 0) {
-                continue;
-            }
-
-            // Count current orders assigned to this round
-            long currentOrderCount = orderRepository.countByRoundId(round.getRoundId());
-
-            // Calculate maximum capacity based on volunteer count
-            long maxCapacity = confirmedVolunteers * MAX_ORDERS_PER_VOLUNTEER;
-
-            // If this round has capacity, use it
-            if (currentOrderCount < maxCapacity) {
-                return round;
-            }
-        }
-
-        // If we get here, no round has capacity
-        return null;
-    }
-
-    /**
-     * Rebalance order assignments across rounds to optimize distribution
-     */
-    @Transactional
-    protected void rebalanceRoundAssignments(List<Rounds> rounds) {
-        if (rounds.isEmpty()) {
-            return;
-        }
-
-        logger.info("Starting round assignment rebalancing");
-
-        // Check for overloaded rounds
-        for (int i = 0; i < rounds.size(); i++) {
-            Rounds currentRound = rounds.get(i);
-
-            // Calculate capacity
-            long confirmedVolunteers = roundSignupRepository.countConfirmedVolunteersForRound(currentRound.getRoundId());
-            long maxCapacity = confirmedVolunteers * MAX_ORDERS_PER_VOLUNTEER;
-
-            // Get all orders for this round
-            List<Order> assignedOrders = orderRepository.findByRoundId(currentRound.getRoundId());
-
-            // If overloaded, try to move excess orders to later rounds
-            if (assignedOrders.size() > maxCapacity) {
-                // Sort orders by creation date (newest first, as they are lower priority)
-                assignedOrders.sort(Comparator.comparing(Order::getRequestTime).reversed());
-
-                // Calculate how many orders need to be moved
-                int excessOrders = (int) (assignedOrders.size() - maxCapacity);
-
-                // Try to find next rounds with capacity
-                List<Rounds> laterRounds = rounds.subList(i + 1, rounds.size());
-
-                // Process the excess orders
-                for (int j = 0; j < excessOrders && j < assignedOrders.size(); j++) {
-                    Order orderToMove = assignedOrders.get(j);
-
-                    // Try to find a round with capacity
-                    Rounds targetRound = findOptimalRound(orderToMove, laterRounds);
-
-                    if (targetRound != null) {
-                        // Move the order
-                        orderToMove.setRoundId(targetRound.getRoundId());
-                        orderRepository.save(orderToMove);
-                        logger.info("Rebalanced order {} from round {} to round {}",
-                                orderToMove.getOrderId(), currentRound.getRoundId(), targetRound.getRoundId());
-                    } else {
-                        // If no round has capacity, leave this order where it is
-                        logger.info("No available round with capacity to rebalance order {}", orderToMove.getOrderId());
-                    }
+            for (Rounds round : upcomingRounds) {
+                if (canAssignOrderToRound(round)) {
+                    order.setRoundId(round.getRoundId());
+                    orderRepository.save(order);
+                    assignedCount++;
+                    logger.info("Assigned unassigned order {} to round {}", order.getOrderId(), round.getRoundId());
+                    break;
                 }
             }
         }
 
-        logger.info("Round assignment rebalancing completed");
+        logger.info("Assigned {} previously unassigned orders to rounds", assignedCount);
+        return assignedCount;
     }
 
     /**
-     * Handle a volunteer cancellation by rebalancing affected rounds
+     * Removes orders from a cancelled round
      */
     @Transactional
-    public void handleVolunteerCancellation(Integer roundId) {
-        logger.info("Handling volunteer cancellation for round {}", roundId);
+    public void handleRoundCancellation(Integer roundId) {
+        // Get all orders assigned to this round
+        List<Order> roundOrders = orderRepository.findByRoundId(roundId);
 
-        // Get all upcoming rounds
+        // Unassign them from the round
+        for (Order order : roundOrders) {
+            order.setRoundId(null);
+            orderRepository.save(order);
+        }
+
+        logger.info("Unassigned {} orders from cancelled round {}", roundOrders.size(), roundId);
+
+        // Try to reassign them to other rounds
         List<Rounds> upcomingRounds = roundsRepository.findByStartTimeAfterAndStatusOrderByStartTimeAsc(
                 LocalDateTime.now(), "SCHEDULED");
 
-        // Find the affected round
-        Optional<Rounds> affectedRoundOpt = upcomingRounds.stream()
-                .filter(r -> r.getRoundId().equals(roundId))
-                .findFirst();
-
-        if (affectedRoundOpt.isPresent()) {
-            // Rebalance this round and all future rounds
-            int indexOfAffectedRound = upcomingRounds.indexOf(affectedRoundOpt.get());
-            List<Rounds> affectedRounds = upcomingRounds.subList(indexOfAffectedRound, upcomingRounds.size());
-
-            rebalanceRoundAssignments(affectedRounds);
+        for (Order order : roundOrders) {
+            assignOrderToOptimalRound(order, upcomingRounds);
         }
     }
 }

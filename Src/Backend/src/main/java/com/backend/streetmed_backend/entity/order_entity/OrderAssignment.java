@@ -1,5 +1,6 @@
 package com.backend.streetmed_backend.entity.order_entity;
 
+import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

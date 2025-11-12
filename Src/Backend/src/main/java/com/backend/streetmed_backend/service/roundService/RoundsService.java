@@ -3,6 +3,7 @@ package com.backend.streetmed_backend.service.roundService;
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
 import com.backend.streetmed_backend.entity.user_entity.User;
+import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundSignupRepository;
 import com.backend.streetmed_backend.repository.User.UserRepository;
@@ -31,6 +32,10 @@ public class RoundsService {
     private final EmailService emailService;
     private final RoundSignupService roundSignupService;
     private static final Logger logger = LoggerFactory.getLogger(RoundsService.class);
+
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     public RoundsService(RoundsRepository roundsRepository,
@@ -266,6 +271,15 @@ public class RoundsService {
         roundDetails.put("status", round.getStatus());
         roundDetails.put("maxParticipants", round.getMaxParticipants());
 
+        // Add order capacity information
+        roundDetails.put("orderCapacity", round.getOrderCapacity() != null ? round.getOrderCapacity() : 20);
+
+        // Add current order count
+        long currentOrderCount = orderRepository.countByRoundId(roundId);
+        roundDetails.put("currentOrderCount", currentOrderCount);
+        roundDetails.put("availableOrderSlots",
+                (round.getOrderCapacity() != null ? round.getOrderCapacity() : 20) - currentOrderCount);
+
         // Calculate availability
         long confirmedVolunteers = roundSignupRepository.countConfirmedVolunteersForRound(roundId);
         int availableSlots = round.getMaxParticipants() - (int)confirmedVolunteers;
@@ -337,6 +351,13 @@ public class RoundsService {
         return roundDetails;
     }
 
+    public boolean canAcceptMoreOrders(Integer roundId) {
+        Rounds round = getRound(roundId);
+        long currentOrderCount = orderRepository.countByRoundId(roundId);
+        Integer orderCapacity = round.getOrderCapacity() != null ? round.getOrderCapacity() : 20;
+        return currentOrderCount < orderCapacity;
+    }
+
     /**
      * Get all signups with user details for a round
      */
@@ -367,5 +388,9 @@ public class RoundsService {
         }
 
         return signupsWithDetails;
+    }
+
+    public long getOrderCountForRound(Integer roundId) {
+        return orderRepository.countByRoundId(roundId);
     }
 }

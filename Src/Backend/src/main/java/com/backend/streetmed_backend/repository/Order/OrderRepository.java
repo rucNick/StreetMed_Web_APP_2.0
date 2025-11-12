@@ -62,4 +62,20 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByRoundId(Integer roundId);
     long countByRoundId(Integer roundId);
     List<Order> findByUserIdOrderByRequestTimeDesc(Integer userId);
+    /**
+     * Find unassigned orders with specific status
+     */
+    List<Order> findByRoundIdIsNullAndStatus(String status);
+
+    /**
+     * Get order count and capacity info for a round
+     */
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.roundId = :roundId AND o.status != 'CANCELLED'")
+    long countActiveOrdersForRound(@Param("roundId") Integer roundId);
+
+    @Query("SELECT o FROM Order o WHERE o.roundId IN :roundIds AND o.status = 'PENDING' ORDER BY o.requestTime ASC")
+    Page<Order> findPendingOrdersForRounds(@Param("roundIds") List<Integer> roundIds, Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE o.roundId = :roundId AND o.status != 'CANCELLED'")
+    List<Order> findActiveOrdersByRoundId(@Param("roundId") Integer roundId);
 }
