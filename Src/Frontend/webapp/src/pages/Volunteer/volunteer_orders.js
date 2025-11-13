@@ -205,6 +205,13 @@ const VolunteerOrders = ({ userData }) => {
     }
   };
 
+  const activeAssignments = myAssignments.filter(
+  a => a.status === 'ACCEPTED' || a.status === 'IN_PROGRESS'
+  );
+
+const activeCount = activeAssignments.length; // Use filtered count
+const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').length;
+
   const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -242,9 +249,6 @@ const VolunteerOrders = ({ userData }) => {
       loadMyAssignments();
     }
   }, [activeTab, loadPendingOrders, loadMyAssignments]);
-
-  const activeCount = myAssignments.filter(a => a.status !== 'COMPLETED' && a.status !== 'CANCELLED').length;
-  const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').length;
 
   return (
     <div className="page-container">
@@ -351,7 +355,7 @@ const VolunteerOrders = ({ userData }) => {
                 color: activeTab === "ASSIGNED" ? 'white' : 'black'
               }}
             >
-              📋 My Assignments ({activeCount})
+              📋 My Assignments ({activeAssignments.length})
             </button>
           </div>
 
@@ -555,7 +559,7 @@ const VolunteerOrders = ({ userData }) => {
               )
             ) : (
               // Assignments View
-              myAssignments.length === 0 ? (
+              activeAssignments.length === 0 ? (
                 <div style={{ 
                   padding: '60px', 
                   textAlign: 'center',
@@ -586,7 +590,7 @@ const VolunteerOrders = ({ userData }) => {
               ) : (
                 <div style={{ padding: '20px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    {myAssignments.map(assignment => (
+                    {activeAssignments.map(assignment => (
                       <div 
                         key={assignment.assignmentId} 
                         style={{

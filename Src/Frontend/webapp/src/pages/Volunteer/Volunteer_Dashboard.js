@@ -1,4 +1,4 @@
-// Volunteer_Dashboard.js
+// Volunteer_Dashboard.js - FIXED VERSION
 import React, { useState, useEffect, useCallback } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -16,7 +16,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const [allUpcomingRounds, setAllUpcomingRounds] = useState([]);
   const [allRoundsError, setAllRoundsError] = useState("");
   
-  // Orders states - Simplified for assignments only
+  // Orders states - Simplified
   const [myAssignments, setMyAssignments] = useState([]);
   const [ordersError, setOrdersError] = useState("");
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -33,7 +33,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const [showPastRounds, setShowPastRounds] = useState(false);
   const [showCompletedOrders, setShowCompletedOrders] = useState(false);
 
-  // Load volunteer's assignments
+  // Load volunteer's assignments - FIXED without extra API call
   const loadMyAssignments = useCallback(async () => {
     if (!userData || !userData.userId) return;
     setIsLoadingOrders(true);
@@ -59,7 +59,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
     }
   }, [userData]);
 
-  // Existing rounds functions remain the same...
+  // Load my rounds with proper filtering - FIXED
   const loadMyRounds = useCallback(async () => {
     if (!userData || !userData.userId) return;
     try {
@@ -68,8 +68,16 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       });
       const d = r.data;
       if (d.status === "success") {
-        setMyUpcomingRounds(d.upcomingRounds || []);
-        setMyPastRounds(d.pastRounds || []);
+        // Filter out cancelled rounds
+        const upcoming = (d.upcomingRounds || []).filter(round => 
+          round.status !== 'CANCELLED' && round.status !== 'CANCELED'
+        );
+        const past = (d.pastRounds || []).filter(round => 
+          round.status !== 'CANCELLED' && round.status !== 'CANCELED'
+        );
+        
+        setMyUpcomingRounds(upcoming);
+        setMyPastRounds(past);
       } else {
         setMyRoundsError(d.message || "Failed to load my rounds");
       }
@@ -90,7 +98,11 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
       });
       const d = r.data;
       if (d.status === "success") {
-        setAllUpcomingRounds(d.rounds || []);
+        // Filter out cancelled rounds
+        const nonCancelledRounds = (d.rounds || []).filter(round => 
+          round.status !== 'CANCELLED' && round.status !== 'CANCELED'
+        );
+        setAllUpcomingRounds(nonCancelledRounds);
       } else {
         setAllRoundsError(d.message || "Failed to load upcoming rounds");
       }
@@ -99,6 +111,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
     }
   }, [userData]);
 
+  // Other functions remain the same...
   const signupForRound = async (roundId, requestedRole = "VOLUNTEER") => {
     try {
       const r = await publicAxios.post(`/api/rounds/${roundId}/signup`, {
@@ -196,28 +209,35 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
     setSelectedOrder(null);
   };
 
-  // Auto-refresh assignments every 30 seconds
   useEffect(() => {
-    if (!userData || !userData.userId) return;
-    
-    // Initial load
-    loadMyRounds();
-    loadAllUpcomingRounds();
+  if (!userData || !userData.userId) return;
+  
+  // Initial load
+  loadMyRounds();
+  loadAllUpcomingRounds();
+  loadMyAssignments();
+  
+  // Set up auto-refresh for assignments ONLY
+  const interval = setInterval(() => {
     loadMyAssignments();
-    
-    // Set up auto-refresh for assignments
-    const interval = setInterval(() => {
-      loadMyAssignments();
-    }, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, [loadMyRounds, loadAllUpcomingRounds, loadMyAssignments, userData]);
+  }, 30000); // Refresh every 30 seconds
+  
+  return () => clearInterval(interval);
+}, [userData, loadMyRounds, loadAllUpcomingRounds, loadMyAssignments]); 
+
+  // Separate useEffect for function updates
+  useEffect(() => {
+    // This just ensures functions are updated when needed
+    // but doesn't cause re-renders
+  }, [loadMyRounds, loadAllUpcomingRounds, loadMyAssignments]);
 
   const activeAssignments = myAssignments.filter(a => a.status !== 'COMPLETED' && a.status !== 'CANCELLED');
   const completedAssignments = myAssignments.filter(a => a.status === 'COMPLETED');
 
+  // REST OF COMPONENT REMAINS THE SAME...
   return (
     <>
+      {/* Keep all the JSX the same but use completedAssignments instead of allMyCompletedOrders */}
       <header className="nav-bar">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img className="nav-logo" src="/Untitled.png" alt="Logo" />
@@ -244,7 +264,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           <br />
           <br />
           
-          {/* My Current Assignments - Read Only */}
+          {/* My Current Assignments */}
           <div style={{ marginBottom: '30px', border: '2px solid #27ae60', padding: '15px', borderRadius: '8px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <strong>📋 My Current Assignments</strong>
@@ -327,7 +347,11 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                       </p>
                     )}
                     
-                    <p><strong>Items:</strong> {assignment.items?.map(i => `${i.itemName} (${i.quantity})`).join(', ')}</p>
+                    <p><strong>Items:</strong> {assignment.items?.map(i => {
+                      let itemText = `${i.itemName} (${i.quantity})`;
+                      if (i.size) itemText = `${i.itemName} [${i.size}] (${i.quantity})`;
+                      return itemText;
+                    }).join(', ')}</p>
                     <p><strong>Address:</strong> {assignment.deliveryAddress}</p>
                     <p><strong>Phone:</strong> {assignment.phoneNumber}</p>
                     {assignment.notes && <p><strong>Notes:</strong> {assignment.notes}</p>}
@@ -347,7 +371,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
             </div>
           </div>
 
-          {/* Rounds Section - Existing code */}
+          {/* My Upcoming Rounds */}
           <h2><strong>My Upcoming Rounds</strong></h2>
           {myRoundsError && <p className="error-text">{myRoundsError}</p>}
           <div className="rounds-cards">
@@ -403,14 +427,18 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
             </div>
           )}
 
+          {/* Completed Orders - Use completedAssignments from my-assignments */}
           <h2 onClick={() => setShowCompletedOrders(!showCompletedOrders)} style={{ cursor: "pointer" }}>
             <strong>Completed Orders</strong>
             {showCompletedOrders ? " ▲ Hide all" : " ▼ View all"}
+            <span style={{ fontSize: '14px', color: '#666', marginLeft: '10px' }}>
+              ({completedAssignments.length} total)
+            </span>
           </h2>
           {showCompletedOrders && (
             <div className="orders-cards">
               {completedAssignments.length === 0 ? (
-                <p>No completed orders.</p>
+                <p>No completed orders yet.</p>
               ) : (
                 completedAssignments.map((a) => (
                   <div key={a.assignmentId} className="order-card">
@@ -425,8 +453,13 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                       ✓ Completed
                     </span>
                     <h3>Order #{a.orderId}</h3>
+                    {a.roundId && <p><strong>Round:</strong> #{a.roundId}</p>}
                     <p>{a.deliveryAddress}</p>
-                    <p>Items: {a.items?.map((i) => `${i.itemName} (${i.quantity})`).join(", ")}</p>
+                    <p>Items: {a.items?.map((i) => {
+                      let itemText = `${i.itemName} (${i.quantity})`;
+                      if (i.size) itemText = `${i.itemName} [${i.size}] (${i.quantity})`;
+                      return itemText;
+                    }).join(", ")}</p>
                     <button className="open-view-btn" onClick={() => openOrderFullView(a)}>
                       View Details
                     </button>
@@ -437,6 +470,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           )}
         </div>
 
+        {/* Rest of component remains same */}
         <div className="vertical-line"></div>
 
         <div className="volunteer-right-panel">
@@ -446,6 +480,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           {allRoundsError && <p className="error-text">{allRoundsError}</p>}
           <Calendar onClickDay={handleDateClick} tileClassName={highlightDates} />
           
+          {/* Modals remain the same */}
           {showRoundsModal && (
             <div className="rounds-modal">
               <div className="rounds-modal-content">
@@ -478,7 +513,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           )}
         </div>
 
-        {/* Full View Modal for Rounds - Keep as is */}
+        {/* Full View Modals remain the same */}
         {fullViewModalOpen && selectedRoundDetails && (
           <div className="fullview-modal" onClick={closeFullViewModal}>
             <div className="fullview-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -506,7 +541,6 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           </div>
         )}
 
-        {/* Order Detail Modal - Read Only */}
         {orderModalOpen && selectedOrder && (
           <div className="fullview-modal" onClick={closeOrderFullView}>
             <div className="fullview-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -517,7 +551,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
               <p>Delivery Address: {selectedOrder.deliveryAddress}</p>
               <p>Phone Number: {selectedOrder.phoneNumber}</p>
               <p>Note: {selectedOrder.notes}</p>
-              <p>Order Time: {selectedOrder.requestTime ? new Date(selectedOrder.requestTime).toLocaleString() : ""}</p>
+              <p>Order Time: {selectedOrder.requestTime ? new Date(selectedOrder.requestTime).toLocaleString() : "N/A"}</p>
               {selectedOrder.items && selectedOrder.items.length > 0 && (
                 <div>
                   <h4>Items:</h4>

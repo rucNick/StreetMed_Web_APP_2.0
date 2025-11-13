@@ -137,23 +137,24 @@ public class OrderAssignmentService {
         OrderAssignment assignment = orderAssignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
 
-        // Verify volunteer owns this assignment
         if (!assignment.getVolunteerId().equals(volunteerId)) {
             throw new RuntimeException("Unauthorized: Assignment belongs to another volunteer");
         }
 
-        // Verify status transition is valid
-        if (!assignment.isInProgress() && !assignment.isAccepted()) {
-            throw new RuntimeException("Invalid status transition: Order must be IN_PROGRESS or ACCEPTED before completing");
+        if (assignment.getStatus() != AssignmentStatus.IN_PROGRESS) {
+            throw new RuntimeException("Can only complete orders that are in progress");
         }
 
+        // Update assignment status
         assignment.setStatus(AssignmentStatus.COMPLETED);
+        assignment.setCompletedAt(LocalDateTime.now());
 
-        // Update order status
+        // Update the order status AND set the volunteer ID
         Order order = orderRepository.findById(assignment.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         order.setStatus("COMPLETED");
         order.setDeliveryTime(LocalDateTime.now());
+        order.setAssignedVolunteerId(volunteerId);
         orderRepository.save(order);
 
         return orderAssignmentRepository.save(assignment);
@@ -232,5 +233,10 @@ public class OrderAssignmentService {
     @Transactional(readOnly = true)
     public Optional<OrderAssignment> getOrderAssignment(Integer orderId) {
         return orderAssignmentRepository.findActiveAssignmentForOrder(orderId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderAssignment> getAllAssignments(Integer volunteerId) {
+        return orderAssignmentRepository.findByVolunteerId(volunteerId);
     }
 }

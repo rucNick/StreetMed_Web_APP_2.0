@@ -48,6 +48,18 @@ public class OrderAssignment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
     // Default constructor
     public OrderAssignment() {
         this.createdAt = LocalDateTime.now();

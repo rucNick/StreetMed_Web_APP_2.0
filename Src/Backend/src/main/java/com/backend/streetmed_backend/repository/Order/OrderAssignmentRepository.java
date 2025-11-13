@@ -46,4 +46,6 @@ public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment
             "WHERE a.roundId = :roundId " +
             "AND a.status IN ('ACCEPTED', 'IN_PROGRESS')")
     long countActiveOrdersForRound(@Param("roundId") Integer roundId);
+
+    List<OrderAssignment> findByVolunteerId(Integer volunteerId);
 }

@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.tomcat.util.log.SystemLogHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -20,11 +21,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.logging.Logger;
+
 
 @Tag(name = "Admin Rounds Management", description = "APIs for administrators to manage street medicine rounds")
 @RestController
@@ -169,16 +173,35 @@ public class AdminRoundsController {
                 round.setLocation((String) requestData.get("location"));
                 round.setMaxParticipants((Integer) requestData.get("maxParticipants"));
 
-                // NEW: Set order capacity (default to 20 if not provided)
+                // Set order capacity (default to 20 if not provided)
                 Integer orderCapacity = (Integer) requestData.get("orderCapacity");
                 round.setOrderCapacity(orderCapacity != null ? orderCapacity : 20);
 
                 Rounds savedRound = roundsService.createRound(round);
 
+                // AUTO-ASSIGN UNASSIGNED ORDERS TO THIS NEW ROUND
+                int assignedCount = 0;
+                try {
+                    List<Order> unassignedOrders = orderRepository.findByRoundIdIsNullAndStatus("PENDING");
+                    int maxToAssign = savedRound.getOrderCapacity() != null ? savedRound.getOrderCapacity() : 20;
+
+                    for (Order order : unassignedOrders) {
+                        if (assignedCount >= maxToAssign) {
+                            break;
+                        }
+                        order.setRoundId(savedRound.getRoundId());
+                        orderRepository.save(order);
+                        assignedCount++;
+                    }
+                } catch (Exception ignored) {
+                  ;
+                }
+
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
                 response.put("message", "Round created successfully");
                 response.put("roundId", savedRound.getRoundId());
+                response.put("ordersAutoAssigned", assignedCount);
 
                 return ResponseEntity.ok(response);
             } catch (Exception e) {
@@ -717,6 +740,194 @@ public class AdminRoundsController {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
                 }
 
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, asyncExecutor);
+    }
+
+    @Operation(summary = "Manually assign an order to a specific round",
+            description = "Allows admin to manually assign or reassign an order to a different round.")
+    @PutMapping("/orders/{orderId}/assign-round")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> assignOrderToRound(
+            @PathVariable Integer orderId,
+            @RequestBody Map<String, Object> requestData) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Boolean authenticated = (Boolean) requestData.get("authenticated");
+                String adminUsername = (String) requestData.get("adminUsername");
+                Integer targetRoundId = (Integer) requestData.get("roundId");
+
+                if (!Boolean.TRUE.equals(authenticated)) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Not authenticated");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+                }
+
+                // Find the order
+                Order order = orderRepository.findById(orderId)
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+
+                Integer previousRoundId = order.getRoundId();
+
+                // If targetRoundId is provided, verify the round exists and has capacity
+                if (targetRoundId != null) {
+                    Rounds targetRound = roundsService.getRound(targetRoundId);
+
+                    // Check if round is in the future
+                    if (targetRound.getStartTime().isBefore(LocalDateTime.now())) {
+                        throw new RuntimeException("Cannot assign orders to past rounds");
+                    }
+
+                    // Check if round is scheduled
+                    if (!"SCHEDULED".equals(targetRound.getStatus())) {
+                        throw new RuntimeException("Cannot assign orders to " + targetRound.getStatus().toLowerCase() + " rounds");
+                    }
+
+                    // Check capacity
+                    if (!orderRoundAssignmentService.canAssignOrderToRound(targetRound)) {
+                        throw new RuntimeException("Round " + targetRoundId + " has reached its order capacity");
+                    }
+                }
+
+                // Update the order's round assignment
+                order.setRoundId(targetRoundId);
+                Order updatedOrder = orderRepository.save(order);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("orderId", orderId);
+                response.put("previousRoundId", previousRoundId);
+                response.put("newRoundId", targetRoundId);
+                response.put("message", targetRoundId != null ?
+                        "Order assigned to round " + targetRoundId :
+                        "Order unassigned from round");
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, asyncExecutor);
+    }
+
+    @Operation(summary = "Reassign multiple orders between rounds",
+            description = "Bulk reassign orders from one round to another or to unassigned status.")
+    @PostMapping("/orders/bulk-reassign")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> bulkReassignOrders(
+            @RequestBody Map<String, Object> requestData) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Boolean authenticated = (Boolean) requestData.get("authenticated");
+                String adminUsername = (String) requestData.get("adminUsername");
+                Integer sourceRoundId = (Integer) requestData.get("sourceRoundId");
+                Integer targetRoundId = (Integer) requestData.get("targetRoundId");
+                List<Integer> orderIds = (List<Integer>) requestData.get("orderIds");
+                if (!Boolean.TRUE.equals(authenticated)) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Not authenticated");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+                }
+
+                List<Order> ordersToReassign;
+
+                if (orderIds != null && !orderIds.isEmpty()) {
+                    // Reassign specific orders
+                    ordersToReassign = orderRepository.findAllById(orderIds);
+                } else if (sourceRoundId != null) {
+                    // Reassign all orders from source round
+                    ordersToReassign = orderRepository.findByRoundId(sourceRoundId);
+                } else {
+                    throw new IllegalArgumentException("Either orderIds or sourceRoundId must be provided");
+                }
+
+                // Verify target round if provided
+                if (targetRoundId != null) {
+                    Rounds targetRound = roundsService.getRound(targetRoundId);
+
+                    if (!"SCHEDULED".equals(targetRound.getStatus())) {
+                        throw new RuntimeException("Cannot assign orders to " + targetRound.getStatus().toLowerCase() + " rounds");
+                    }
+
+                    // Check if all orders can fit in target round
+                    long currentOrdersInTarget = orderRepository.countByRoundId(targetRoundId);
+                    Integer targetCapacity = targetRound.getOrderCapacity() != null ? targetRound.getOrderCapacity() : 20;
+                    long availableSlots = targetCapacity - currentOrdersInTarget;
+
+                    if (ordersToReassign.size() > availableSlots) {
+                        throw new RuntimeException("Target round only has " + availableSlots +
+                                " available slots, but trying to assign " + ordersToReassign.size() + " orders");
+                    }
+                }
+
+                // Perform reassignment
+                int reassignedCount = 0;
+                for (Order order : ordersToReassign) {
+                    order.setRoundId(targetRoundId);
+                    orderRepository.save(order);
+                    reassignedCount++;
+                }
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("ordersReassigned", reassignedCount);
+                response.put("sourceRoundId", sourceRoundId);
+                response.put("targetRoundId", targetRoundId);
+                response.put("message", reassignedCount + " orders reassigned successfully");
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            }
+        }, asyncExecutor);
+    }
+
+    @Operation(summary = "Get unassigned orders",
+            description = "Get all orders that are not assigned to any round.")
+    @GetMapping("/orders/unassigned")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> getUnassignedOrders(
+            @RequestParam("authenticated") Boolean authenticated,
+            @RequestParam("adminUsername") String adminUsername) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (!Boolean.TRUE.equals(authenticated)) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("status", "error");
+                    errorResponse.put("message", "Not authenticated");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+                }
+
+                List<Order> unassignedOrders = orderRepository.findByRoundIdIsNullAndStatus("PENDING");
+
+                List<Map<String, Object>> orderList = new ArrayList<>();
+                for (Order order : unassignedOrders) {
+                    Map<String, Object> orderInfo = new HashMap<>();
+                    orderInfo.put("orderId", order.getOrderId());
+                    orderInfo.put("status", order.getStatus());
+                    orderInfo.put("requestTime", order.getRequestTime());
+                    orderInfo.put("deliveryAddress", order.getDeliveryAddress());
+                    orderInfo.put("phoneNumber", order.getPhoneNumber());
+                    orderInfo.put("notes", order.getNotes());
+                    orderInfo.put("items", order.getOrderItems());
+                    orderList.add(orderInfo);
+                }
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("orders", orderList);
+                response.put("count", orderList.size());
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
             }
         }, asyncExecutor);

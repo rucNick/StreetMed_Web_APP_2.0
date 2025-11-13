@@ -6,24 +6,88 @@ import '../../css/Admin/Admin_Orders.css';
 const AdminOrders = ({ userData }) => {
   const navigate = useNavigate();
 
+  // ============= STATE MANAGEMENT =============
   const [orders, setOrders] = useState([]);
   const [ordersError, setOrdersError] = useState('');
   const [orderFilter, setOrderFilter] = useState("PENDING");
   const [isLoading, setIsLoading] = useState(false);
   const [roundCapacities, setRoundCapacities] = useState({});
+  const [availableRounds, setAvailableRounds] = useState([]);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedOrderForAssign, setSelectedOrderForAssign] = useState(null);
+  const [selectedRoundId, setSelectedRoundId] = useState('');
+  const [unassignedOrders, setUnassignedOrders] = useState([]);
 
-  // Load all orders for admin view
+  // ============= API FUNCTIONS =============
+  
+  // Load available rounds for assignment dropdown
+  const loadAvailableRounds = async () => {
+    try {
+      const response = await secureAxios.get('/api/admin/rounds/upcoming', {
+        params: {
+          authenticated: true,
+          adminUsername: userData.username
+        }
+      });
+      
+      if (response.data.status === "success") {
+        setAvailableRounds(response.data.rounds || []);
+      }
+    } catch (error) {
+      console.error("Error loading rounds:", error);
+    }
+  };
+
+  // Load unassigned orders count - memoized to avoid dependency issues
+  const loadUnassignedOrders = useCallback(async () => {
+    try {
+      const response = await secureAxios.get('/api/admin/rounds/orders/unassigned', {
+        params: {
+          authenticated: true,
+          adminUsername: userData.username
+        }
+      });
+      
+      if (response.data.status === "success") {
+        setUnassignedOrders(response.data.orders || []);
+      }
+    } catch (error) {
+      console.error("Error loading unassigned orders:", error);
+    }
+  }, [userData.username]);
+
+  // Load round capacity information - FIXED to use query params
+  const loadRoundCapacity = async (roundId) => {
+    try {
+      const response = await secureAxios.get(`/api/orders/rounds/${roundId}/capacity`, {
+        params: {
+          authenticated: "true",
+          userRole: "ADMIN"
+        }
+      });
+      
+      if (response.data.status === "success") {
+        setRoundCapacities(prev => ({
+          ...prev,
+          [roundId]: response.data.summary
+        }));
+      }
+    } catch (error) {
+      console.error(`Error loading capacity for round ${roundId}:`, error);
+    }
+  };
+
+  // Main function to load all orders - FIXED dependency
   const loadOrders = useCallback(async (status) => {
     try {
       setIsLoading(true);
       setOrdersError('');
       
-      // Use query parameters instead of headers to avoid CORS issues
       const response = await secureAxios.get('/api/orders/all', {
         params: {
           authenticated: true,
           userId: userData.userId,
-          userRole: "ADMIN"  // Changed to ADMIN
+          userRole: "ADMIN"
         }
       });
       
@@ -31,11 +95,14 @@ const AdminOrders = ({ userData }) => {
         const fetched = response.data.orders || [];
         setOrders(status === "ALL" ? fetched : fetched.filter(o => o.status === status));
         
-        // Load round capacities for monitoring
+        // Load round capacities for all unique rounds
         const uniqueRounds = [...new Set(fetched.map(o => o.roundId).filter(Boolean))];
         for (const roundId of uniqueRounds) {
           loadRoundCapacity(roundId);
         }
+        
+        // Load unassigned orders count
+        loadUnassignedOrders();
       } else {
         setOrdersError(response.data.message || "Failed to load orders");
       }
@@ -49,30 +116,46 @@ const AdminOrders = ({ userData }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [userData.userId]);
+  }, [userData.userId, loadUnassignedOrders]); // Added loadUnassignedOrders to dependencies
 
-  // Load round capacity for monitoring
-  const loadRoundCapacity = async (roundId) => {
+  // ============= ORDER ACTIONS =============
+
+  // Open assignment modal
+  const openAssignModal = (order) => {
+    setSelectedOrderForAssign(order);
+    setSelectedRoundId(order.roundId || '');
+    setAssignModalOpen(true);
+    loadAvailableRounds();
+  };
+
+  // Assign order to a round
+  const assignOrderToRound = async () => {
+    if (!selectedOrderForAssign) return;
+    
     try {
-      const response = await secureAxios.get(`/api/orders/rounds/${roundId}/capacity`, {
-        params: {
+      const response = await secureAxios.put(
+        `/api/admin/rounds/orders/${selectedOrderForAssign.orderId}/assign-round`,
+        {
           authenticated: true,
-          userRole: "ADMIN"
+          adminUsername: userData.username,
+          roundId: selectedRoundId ? parseInt(selectedRoundId) : null
         }
-      });
+      );
       
       if (response.data.status === "success") {
-        setRoundCapacities(prev => ({
-          ...prev,
-          [roundId]: response.data.capacity
-        }));
+        alert(response.data.message);
+        setAssignModalOpen(false);
+        loadOrders(orderFilter);
+      } else {
+        alert(response.data.message || "Failed to assign order");
       }
     } catch (error) {
-      console.error(`Error loading capacity for round ${roundId}:`, error);
+      console.error("Error assigning order:", error);
+      alert(error.response?.data?.message || error.message);
     }
   };
 
-  // Cancel an order (Admin action)
+  // Cancel an order
   const cancelOrder = async (orderId) => {
     if (!window.confirm(`Are you sure you want to cancel order ${orderId}?`)) {
       return;
@@ -97,7 +180,7 @@ const AdminOrders = ({ userData }) => {
     }
   };
 
-  // Update order status (Admin action)
+  // Update order status
   const updateOrderStatus = async (orderId, newStatus) => {
     if (!window.confirm(`Update order ${orderId} to ${newStatus}?`)) {
       return;
@@ -123,7 +206,7 @@ const AdminOrders = ({ userData }) => {
     }
   };
 
-  // Delete order (Admin action)
+  // Delete an order permanently
   const deleteOrder = async (orderId) => {
     if (!window.confirm(`Are you sure you want to DELETE order ${orderId}? This action cannot be undone.`)) {
       return;
@@ -150,15 +233,9 @@ const AdminOrders = ({ userData }) => {
     }
   };
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleString();
-    } catch {
-      return dateString;
-    }
-  };
+  // ============= UTILITY FUNCTIONS =============
 
+  // Calculate order age
   const getOrderAge = (requestTime) => {
     if (!requestTime) return 'Unknown';
     const now = new Date();
@@ -173,26 +250,58 @@ const AdminOrders = ({ userData }) => {
     return `${diffDays}d`;
   };
 
+  // Handle filter change
   const handleFilterChange = (status) => {
     setOrderFilter(status);
     loadOrders(status);
   };
 
+  // Format order items with sizes
+  const formatOrderItems = (orderItems) => {
+    if (!orderItems || orderItems.length === 0) return 'N/A';
+    
+    return orderItems.map(item => {
+      let itemText = `${item.itemName} (${item.quantity})`;
+      if (item.size) {
+        itemText = `${item.itemName} [${item.size}] (${item.quantity})`;
+      }
+      return itemText;
+    }).join(', ');
+  };
+
+  // Get order type display
+  const getOrderTypeDisplay = (order) => {
+    // Check if it's a guest order based on userId
+    if (order.userId === -1) {
+      return 'GUEST';
+    }
+    // Otherwise use the orderType field
+    return order.orderType || 'CLIENT';
+  };
+
+  // ============= EFFECTS =============
+  
   useEffect(() => {
     loadOrders(orderFilter);
   }, [loadOrders, orderFilter]);
 
+  // ============= COMPUTED VALUES =============
+  
   // Calculate statistics
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === 'PENDING').length,
     processing: orders.filter(o => o.status === 'PROCESSING').length,
     completed: orders.filter(o => o.status === 'COMPLETED').length,
-    cancelled: orders.filter(o => o.status === 'CANCELLED').length
+    cancelled: orders.filter(o => o.status === 'CANCELLED').length,
+    unassigned: unassignedOrders.length
   };
 
+  // ============= RENDER =============
+  
   return (
     <div className="page-container">
+      {/* HEADER SECTION */}
       <header className="site-header">
         <div className="header-content">
           <div className="logo-container">
@@ -200,7 +309,7 @@ const AdminOrders = ({ userData }) => {
             <span className="site-title">Order Management - Admin</span>
           </div>
           <div className="header-right">
-            <span style={{ marginRight: '20px', color: '#666', fontSize: '14px' }}>
+            <span className="user-info">
               Logged in as: {userData.username} (Admin)
             </span>
             <button
@@ -214,40 +323,38 @@ const AdminOrders = ({ userData }) => {
       </header>
   
       <main className="main-content">
-        {/* Statistics Bar */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '15px', 
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{stats.total}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Total Orders</div>
+        {/* STATISTICS BAR */}
+        <div className="stats-bar">
+          <div className="stat-item">
+            <div className="stat-value">{stats.total}</div>
+            <div className="stat-label">Total Orders</div>
           </div>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff6b00' }}>{stats.pending}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Pending</div>
+          <div className="stat-item">
+            <div className="stat-value stat-pending">{stats.pending}</div>
+            <div className="stat-label">Pending</div>
           </div>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#3498db' }}>{stats.processing}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Processing</div>
+          <div className="stat-item">
+            <div className="stat-value stat-processing">{stats.processing}</div>
+            <div className="stat-label">Processing</div>
           </div>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#27ae60' }}>{stats.completed}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Completed</div>
+          <div className="stat-item">
+            <div className="stat-value stat-completed">{stats.completed}</div>
+            <div className="stat-label">Completed</div>
           </div>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#e74c3c' }}>{stats.cancelled}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Cancelled</div>
+          <div className="stat-item">
+            <div className="stat-value stat-cancelled">{stats.cancelled}</div>
+            <div className="stat-label">Cancelled</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-value stat-unassigned">{stats.unassigned}</div>
+            <div className="stat-label">Unassigned</div>
           </div>
         </div>
 
-        <div className="cargo-card orders-card">
-          <div className="cargo-header orders-header">
-            <h2 className="cargo-title orders-title">All Orders</h2>
+        {/* ORDERS CARD */}
+        <div className="orders-card">
+          <div className="orders-header">
+            <h2 className="orders-title">All Orders</h2>
             <button
               className="manage-btn"
               onClick={() => loadOrders(orderFilter)}
@@ -257,12 +364,12 @@ const AdminOrders = ({ userData }) => {
             </button>
           </div>
   
-          {/* Filter Buttons */}
-          <div className="drawer-container orders-filterGroup">
+          {/* FILTER BUTTONS */}
+          <div className="orders-filterGroup">
             {["ALL", "PENDING", "PROCESSING", "COMPLETED", "CANCELLED"].map(status => (
               <button
                 key={status}
-                className={`manage-btn filter-btn ${orderFilter === status ? "active" : ""}`}
+                className={`filter-btn ${orderFilter === status ? "active" : ""}`}
                 onClick={() => handleFilterChange(status)}
                 disabled={isLoading}
               >
@@ -272,31 +379,25 @@ const AdminOrders = ({ userData }) => {
             ))}
           </div>
   
-          {/* Error Message */}
+          {/* ERROR MESSAGE */}
           {ordersError && (
-            <div style={{ 
-              padding: '10px', 
-              margin: '10px 0', 
-              backgroundColor: '#ffebee', 
-              color: '#c62828', 
-              borderRadius: '4px' 
-            }}>
+            <div className="error-message">
               Error: {ordersError}
             </div>
           )}
   
-          {/* Orders Table */}
+          {/* ORDERS TABLE */}
           <div className="table-scroll">
             {isLoading ? (
-              <div style={{ padding: '20px', textAlign: 'center' }}>
+              <div className="loading-container">
                 Loading orders...
               </div>
             ) : orders.length === 0 ? (
-              <div style={{ padding: '20px', textAlign: 'center' }}>
+              <div className="empty-state">
                 No {orderFilter.toLowerCase()} orders found.
               </div>
             ) : (
-              <table className="cargo-table orders-table">
+              <table className="orders-table">
                 <thead>
                   <tr>
                     <th>Order ID</th>
@@ -323,12 +424,10 @@ const AdminOrders = ({ userData }) => {
                         </span>
                       </td>
                       <td>{getOrderAge(order.requestTime)}</td>
-                      <td>{order.orderType || 'STANDARD'}</td>
+                      <td>{getOrderTypeDisplay(order)}</td>
                       <td>{order.userId === -1 ? 'Guest' : `User #${order.userId}`}</td>
-                      <td>
-                        {order.orderItems?.map(item => 
-                          `${item.itemName} (${item.quantity})`
-                        ).join(', ') || 'N/A'}
+                      <td title={formatOrderItems(order.orderItems)}>
+                        {formatOrderItems(order.orderItems)}
                       </td>
                       <td>{order.deliveryAddress || 'N/A'}</td>
                       <td>{order.phoneNumber || 'N/A'}</td>
@@ -341,15 +440,17 @@ const AdminOrders = ({ userData }) => {
                       </td>
                       <td>
                         {order.roundId ? (
-                          <span>
+                          <span className="round-info">
                             Round #{order.roundId}
                             {roundCapacities[order.roundId] && (
-                              <span style={{ fontSize: '11px', color: '#666' }}>
-                                <br />({roundCapacities[order.roundId].current}/{roundCapacities[order.roundId].max})
+                              <span className="round-capacity">
+                                <br />({roundCapacities[order.roundId].totalOrders}/{roundCapacities[order.roundId].maxCapacity})
                               </span>
                             )}
                           </span>
-                        ) : 'Any'}
+                        ) : (
+                          <span className="unassigned-label">Unassigned</span>
+                        )}
                       </td>
                       <td>
                         {order.assignedVolunteerId ? 
@@ -357,13 +458,22 @@ const AdminOrders = ({ userData }) => {
                           '-'}
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                        <div className="action-buttons">
+                          {/* ASSIGN BUTTON - Always visible */}
+                          <button
+                            className="manage-btn assign-btn"
+                            onClick={() => openAssignModal(order)}
+                            title="Assign to Round"
+                          >
+                            Assign
+                          </button>
+                          
+                          {/* PENDING STATUS ACTIONS */}
                           {order.status === "PENDING" && (
                             <>
                               <button
-                                className="manage-btn"
+                                className="manage-btn process-btn"
                                 onClick={() => updateOrderStatus(order.orderId, 'PROCESSING')}
-                                style={{ backgroundColor: '#3498db', fontSize: '12px', padding: '4px 8px' }}
                                 title="Mark as Processing"
                               >
                                 Process
@@ -371,19 +481,19 @@ const AdminOrders = ({ userData }) => {
                               <button
                                 className="manage-btn cancel-btn"
                                 onClick={() => cancelOrder(order.orderId)}
-                                style={{ fontSize: '12px', padding: '4px 8px' }}
                                 title="Cancel Order"
                               >
                                 Cancel
                               </button>
                             </>
                           )}
+                          
+                          {/* PROCESSING STATUS ACTIONS */}
                           {order.status === "PROCESSING" && (
                             <>
                               <button
                                 className="manage-btn complete-btn"
                                 onClick={() => updateOrderStatus(order.orderId, 'COMPLETED')}
-                                style={{ fontSize: '12px', padding: '4px 8px' }}
                                 title="Mark as Completed"
                               >
                                 Complete
@@ -391,18 +501,18 @@ const AdminOrders = ({ userData }) => {
                               <button
                                 className="manage-btn cancel-btn"
                                 onClick={() => cancelOrder(order.orderId)}
-                                style={{ fontSize: '12px', padding: '4px 8px' }}
                                 title="Cancel Order"
                               >
                                 Cancel
                               </button>
                             </>
                           )}
+                          
+                          {/* COMPLETED/CANCELLED STATUS ACTIONS */}
                           {(order.status === "COMPLETED" || order.status === "CANCELLED") && (
                             <button
-                              className="manage-btn"
+                              className="manage-btn delete-btn"
                               onClick={() => deleteOrder(order.orderId)}
-                              style={{ backgroundColor: '#e74c3c', fontSize: '12px', padding: '4px 8px' }}
                               title="Delete Order"
                             >
                               Delete
@@ -417,28 +527,72 @@ const AdminOrders = ({ userData }) => {
             )}
           </div>
           
-          {/* Summary Footer */}
+          {/* SUMMARY FOOTER */}
           {!isLoading && (
-            <div style={{ 
-              marginTop: '20px', 
-              padding: '15px', 
-              backgroundColor: '#f9f9f9', 
-              borderRadius: '4px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+            <div className="summary-footer">
               <div>
                 <strong>Total Orders:</strong> {orders.length}
                 {orderFilter !== "ALL" && ` (filtered by ${orderFilter.toLowerCase()})`}
               </div>
-              <div style={{ fontSize: '12px', color: '#666' }}>
+              <div className="timestamp">
                 Last updated: {new Date().toLocaleTimeString()}
               </div>
             </div>
           )}
         </div>
       </main>
+
+      {/* ASSIGN ORDER MODAL */}
+      {assignModalOpen && selectedOrderForAssign && (
+        <div className="modal-overlay" onClick={() => setAssignModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>Assign Order #{selectedOrderForAssign.orderId} to Round</h2>
+            
+            <div className="modal-field">
+              <label>
+                <strong>Current Round:</strong> 
+                {selectedOrderForAssign.roundId ? 
+                  ` Round #${selectedOrderForAssign.roundId}` : 
+                  ' Unassigned'}
+              </label>
+            </div>
+            
+            <div className="modal-field">
+              <label>
+                <strong>Select New Round:</strong>
+                <select 
+                  value={selectedRoundId} 
+                  onChange={e => setSelectedRoundId(e.target.value)}
+                >
+                  <option value="">-- Unassign from Round --</option>
+                  {availableRounds.map(round => (
+                    <option key={round.roundId} value={round.roundId}>
+                      Round #{round.roundId} - {round.title} 
+                      ({round.currentOrderCount || 0}/{round.orderCapacity || 20} orders)
+                      - {new Date(round.startTime).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            
+            <div className="modal-buttons">
+              <button 
+                className="modal-cancel"
+                onClick={() => setAssignModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="modal-confirm"
+                onClick={assignOrderToRound}
+              >
+                Assign Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

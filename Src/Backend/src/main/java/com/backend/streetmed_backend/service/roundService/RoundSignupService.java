@@ -5,6 +5,7 @@ import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
 import com.backend.streetmed_backend.entity.user_entity.User;
 import com.backend.streetmed_backend.entity.user_entity.UserMetadata;
 import com.backend.streetmed_backend.entity.user_entity.VolunteerSubRole;
+import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundSignupRepository;
 import com.backend.streetmed_backend.repository.User.UserRepository;
@@ -35,6 +36,9 @@ public class RoundSignupService {
 
     @Autowired
     private OrderRoundAssignmentService orderRoundAssignmentService;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     public RoundSignupService(RoundsRepository roundsRepository,
@@ -220,6 +224,11 @@ public class RoundSignupService {
             try {
                 Rounds round = roundsRepository.findById(signup.getRoundId()).orElse(null);
                 if (round != null) {
+                    // Skip cancelled rounds
+                    if ("CANCELED".equals(round.getStatus()) || "CANCELLED".equals(round.getStatus())) {
+                        continue;
+                    }
+
                     Map<String, Object> roundInfo = new HashMap<>();
 
                     // Basic round info
@@ -230,6 +239,11 @@ public class RoundSignupService {
                     roundInfo.put("endTime", round.getEndTime());
                     roundInfo.put("location", round.getLocation());
                     roundInfo.put("status", round.getStatus());
+
+                    // Add actual order count
+                    long actualOrderCount = orderRepository.countByRoundId(round.getRoundId());
+                    roundInfo.put("currentOrderCount", actualOrderCount);
+                    roundInfo.put("orderCapacity", round.getOrderCapacity() != null ? round.getOrderCapacity() : 20);
 
                     // Signup info
                     roundInfo.put("signupId", signup.getSignupId());

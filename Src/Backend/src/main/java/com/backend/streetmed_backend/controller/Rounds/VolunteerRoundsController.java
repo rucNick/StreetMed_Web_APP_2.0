@@ -5,7 +5,6 @@ import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
 import com.backend.streetmed_backend.entity.rounds_entity.Rounds;
 import com.backend.streetmed_backend.entity.rounds_entity.RoundSignup;
 import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
-import com.backend.streetmed_backend.repository.Order.OrderItemRepository;
 import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.service.orderService.OrderService;
 import com.backend.streetmed_backend.service.roundService.RoundsService;
@@ -78,6 +77,11 @@ public class VolunteerRoundsController {
                 List<Map<String, Object>> roundsWithAvailability = new ArrayList<>();
 
                 for (Rounds round : upcomingRounds) {
+                    // IMPORTANT: Skip cancelled rounds
+                    if ("CANCELED".equals(round.getStatus()) || "CANCELLED".equals(round.getStatus())) {
+                        continue;
+                    }
+
                     Map<String, Object> roundInfo = new HashMap<>();
                     roundInfo.put("roundId", round.getRoundId());
                     roundInfo.put("title", round.getTitle());
@@ -86,6 +90,10 @@ public class VolunteerRoundsController {
                     roundInfo.put("endTime", round.getEndTime());
                     roundInfo.put("location", round.getLocation());
                     roundInfo.put("status", round.getStatus());
+
+                    long actualOrderCount = orderRepository.countByRoundId(round.getRoundId());
+                    roundInfo.put("currentOrderCount", actualOrderCount);
+                    roundInfo.put("orderCapacity", round.getOrderCapacity() != null ? round.getOrderCapacity() : 20);
 
                     // Check if round has available slots
                     long confirmedVolunteers = roundSignupService.countConfirmedVolunteersForRound(round.getRoundId());
@@ -106,7 +114,6 @@ public class VolunteerRoundsController {
                     boolean isClinician = false;
 
                     if (userSignedUp) {
-                        // Get user's signup for this round
                         RoundSignup signup = roundSignupService.findByRoundIdAndUserId(round.getRoundId(), userId)
                                 .orElse(null);
 

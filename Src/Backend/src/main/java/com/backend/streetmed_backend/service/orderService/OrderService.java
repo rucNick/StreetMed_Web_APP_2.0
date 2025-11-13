@@ -111,6 +111,12 @@ public class OrderService {
             throw new RuntimeException("Order must contain at least one item");
         }
 
+        // Determine order type based on user
+        if (order.getUserId() == GUEST_USER_ID) {
+            order.setOrderType(Order.OrderType.GUEST);  // Set GUEST type for guest users
+        } else {
+            order.setOrderType(Order.OrderType.CLIENT);  // Set CLIENT type for registered users
+        }
         // Group items by name and size for inventory checking
         // Structure: Map<ItemName, Map<Size, Quantity>>
         // null size means regular item without size

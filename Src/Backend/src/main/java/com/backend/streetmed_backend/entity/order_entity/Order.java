@@ -66,8 +66,8 @@ public class Order {
     @Column(name = "longitude")
     private Double longitude;
 
-    @Column(name = "volunteer_id")
-    private Integer volunteerId;
+    @Column(name = "assigned_volunteer_id")
+    private Integer assignedVolunteerId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -202,12 +202,12 @@ public class Order {
         this.longitude = longitude;
     }
 
-    public Integer getVolunteerId() {
-        return volunteerId;
+    public Integer getAssignedVolunteerId() {
+        return assignedVolunteerId;
     }
 
-    public void setVolunteerId(Integer volunteerId) {
-        this.volunteerId = volunteerId;
+    public void setAssignedVolunteerId(Integer assignedVolunteerId) {
+        this.assignedVolunteerId = assignedVolunteerId;
     }
 
     public List<OrderItem> getOrderItems() {

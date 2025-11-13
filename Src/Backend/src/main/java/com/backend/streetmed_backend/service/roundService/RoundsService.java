@@ -7,6 +7,7 @@ import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundsRepository;
 import com.backend.streetmed_backend.repository.Rounds.RoundSignupRepository;
 import com.backend.streetmed_backend.repository.User.UserRepository;
+import com.backend.streetmed_backend.service.orderService.OrderRoundAssignmentService;
 import com.backend.streetmed_backend.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,9 @@ public class RoundsService {
     private final RoundSignupService roundSignupService;
     private static final Logger logger = LoggerFactory.getLogger(RoundsService.class);
 
+
+    @Autowired
+    private OrderRoundAssignmentService orderRoundAssignmentService;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -174,6 +178,9 @@ public class RoundsService {
         round.setStatus("CANCELED");
         round.setUpdatedAt(LocalDateTime.now());
 
+        logger.info("Handling order reassignment for cancelled round {}", roundId);
+        orderRoundAssignmentService.handleRoundCancellation(roundId);
+
         // Update all signups to canceled
         List<RoundSignup> signups = roundSignupRepository.findByRoundId(roundId);
         for (RoundSignup signup : signups) {
@@ -185,7 +192,6 @@ public class RoundsService {
             try {
                 User user = userRepository.findById(signup.getUserId()).orElse(null);
                 if (user != null && user.getEmail() != null && emailService.isEmailServiceEnabled()) {
-                    // Create a simple email notification
                     Map<String, Object> emailData = new HashMap<>();
                     emailData.put("roundTitle", round.getTitle());
                     emailData.put("startTime", round.getStartTime());

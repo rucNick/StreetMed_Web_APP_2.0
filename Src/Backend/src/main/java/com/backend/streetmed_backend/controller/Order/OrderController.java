@@ -4,7 +4,6 @@ import com.backend.streetmed_backend.dto.order.*;
 import com.backend.streetmed_backend.entity.order_entity.Order;
 import com.backend.streetmed_backend.entity.order_entity.OrderAssignment;
 import com.backend.streetmed_backend.entity.order_entity.OrderItem;
-import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
 import com.backend.streetmed_backend.repository.Order.OrderItemRepository;
 import com.backend.streetmed_backend.repository.Order.OrderRepository;
 import com.backend.streetmed_backend.security.TLSService;
@@ -336,7 +335,7 @@ public class OrderController {
         }, authExecutor);
     }
 
-    @Operation(summary = "Get my active assignments")
+    @Operation(summary = "Get my assignments (including completed)")
     @GetMapping("/my-assignments")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getMyAssignments(
             @RequestHeader("User-Id") Integer userId,
@@ -356,16 +355,18 @@ public class OrderController {
             }
 
             try {
-                List<OrderAssignment> assignments = orderAssignmentService.getActiveAssignments(userId);
+                // CHANGED: Use getAllAssignments instead of getActiveAssignments
+                List<OrderAssignment> allAssignments = orderAssignmentService.getAllAssignments(userId);
 
                 // Enrich with order details
                 List<Map<String, Object>> enrichedAssignments = new ArrayList<>();
-                for (OrderAssignment assignment : assignments) {
+                for (OrderAssignment assignment : allAssignments) {
                     Map<String, Object> assignmentData = new HashMap<>();
                     assignmentData.put("assignmentId", assignment.getAssignmentId());
                     assignmentData.put("orderId", assignment.getOrderId());
                     assignmentData.put("status", assignment.getStatus().toString());
                     assignmentData.put("acceptedAt", assignment.getAcceptedAt());
+                    assignmentData.put("completedAt", assignment.getCompletedAt()); // Include completed time
                     assignmentData.put("roundId", assignment.getRoundId());
 
                     // Get order details
@@ -378,6 +379,7 @@ public class OrderController {
                         assignmentData.put("notes", order.getNotes());
                         assignmentData.put("items", order.getOrderItems());
                         assignmentData.put("requestTime", order.getRequestTime());
+                        assignmentData.put("deliveryTime", order.getDeliveryTime());
                     } catch (Exception e) {
                         logger.warn("Could not fetch order details for assignment {}: {}",
                                 assignment.getAssignmentId(), e.getMessage());
@@ -387,10 +389,17 @@ public class OrderController {
                 }
 
                 Map<String, Object> responseData = new HashMap<>();
+                responseData.put("status", "success");
                 responseData.put("assignments", enrichedAssignments);
-                responseData.put("totalActive", assignments.size());
+                responseData.put("totalActive", allAssignments.stream()
+                        .filter(a -> a.getStatus() != OrderAssignment.AssignmentStatus.COMPLETED
+                                && a.getStatus() != OrderAssignment.AssignmentStatus.CANCELLED)
+                        .count());
+                responseData.put("totalCompleted", allAssignments.stream()
+                        .filter(a -> a.getStatus() == OrderAssignment.AssignmentStatus.COMPLETED)
+                        .count());
 
-                return ResponseUtil.successData(responseData);
+                return ResponseEntity.ok(responseData);
 
             } catch (Exception e) {
                 logger.error("Error fetching assignments: {}", e.getMessage());
@@ -621,11 +630,12 @@ public class OrderController {
     @GetMapping("/rounds/{roundId}/capacity")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getRoundCapacity(
             @PathVariable Integer roundId,
-            @RequestHeader("Authentication-Status") String authStatus,
-            @RequestHeader("User-Role") String userRole,
+            @RequestParam(required = false) String authenticated,
+            @RequestParam(required = false) String userRole,
             HttpServletRequest httpRequest) {
 
         return CompletableFuture.supplyAsync(() -> {
+            String authStatus = "true".equals(authenticated) ? "true" : "false";
             GetRoundCapacityRequest request = new GetRoundCapacityRequest(authStatus, userRole, roundId);
             return orderManagementService.getRoundCapacity(request);
         }, readOnlyExecutor);
