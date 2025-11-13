@@ -26,36 +26,19 @@ public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final AdminService adminService;
-    private final Executor authExecutor;
     private final Executor readOnlyExecutor;
     private final TLSService tlsService;
 
     @Autowired
     public AdminController(AdminService adminService,
-                           @Qualifier("authExecutor") Executor authExecutor,
                            @Qualifier("readOnlyExecutor") Executor readOnlyExecutor,
                            TLSService tlsService) {
         this.adminService = adminService;
-        this.authExecutor = authExecutor;
         this.readOnlyExecutor = readOnlyExecutor;
         this.tlsService = tlsService;
     }
 
-    @Operation(summary = "Update volunteer sub role")
-    @PutMapping("/volunteer/subrole")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> updateVolunteerSubRole(
-            @RequestBody UpdateVolunteerSubRoleRequest request,
-            HttpServletRequest httpRequest) {
-
-        if (tlsService.isHttpsRequired(httpRequest, true)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
-        }
-
-        return CompletableFuture.supplyAsync(() ->
-                adminService.updateVolunteerSubRole(request), authExecutor);
-    }
-
+    // Keep async for read operations
     @Operation(summary = "Get all users")
     @GetMapping("/users")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getAllUsers(
@@ -75,70 +58,77 @@ public class AdminController {
         }, readOnlyExecutor);
     }
 
-    @Operation(summary = "Delete user")
-    @DeleteMapping("/user/delete")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> deleteUser(
-            @RequestBody DeleteUserRequest request,
-            HttpServletRequest httpRequest) {
-
-        if (tlsService.isHttpsRequired(httpRequest, true)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
-        }
-
-        return CompletableFuture.supplyAsync(() ->
-                adminService.deleteUser(request), authExecutor);
-    }
-
+    // Use synchronous execution for write operations
     @Operation(summary = "Create a new user")
     @PostMapping("/user/create")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> createUser(
+    public ResponseEntity<Map<String, Object>> createUser(
             @RequestBody CreateUserRequest request,
             HttpServletRequest httpRequest) {
 
         if (tlsService.isHttpsRequired(httpRequest, true)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+            return ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection");
         }
 
-        return CompletableFuture.supplyAsync(() ->
-                adminService.createUser(request), authExecutor);
+        return adminService.createUser(request);
+    }
+
+    @Operation(summary = "Delete user")
+    @DeleteMapping("/user/delete")
+    public ResponseEntity<Map<String, Object>> deleteUser(
+            @RequestBody DeleteUserRequest request,
+            HttpServletRequest httpRequest) {
+
+        if (tlsService.isHttpsRequired(httpRequest, true)) {
+            return ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection");
+        }
+
+        return adminService.deleteUser(request);
     }
 
     @Operation(summary = "Update user information")
     @PutMapping("/user/update/{userId}")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> updateUser(
+    public ResponseEntity<Map<String, Object>> updateUser(
             @PathVariable Integer userId,
             @RequestBody UpdateUserRequest request,
             HttpServletRequest httpRequest) {
 
         if (tlsService.isHttpsRequired(httpRequest, true)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+            return ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection");
         }
 
         request.setUserId(userId);
-        return CompletableFuture.supplyAsync(() ->
-                adminService.updateUser(request), authExecutor);
+        return adminService.updateUser(request);
     }
 
     @Operation(summary = "Reset user password")
     @PutMapping("/user/reset-password/{userId}")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> resetPassword(
+    public ResponseEntity<Map<String, Object>> resetPassword(
             @PathVariable Integer userId,
             @RequestBody ResetPasswordRequest request,
             HttpServletRequest httpRequest) {
 
         if (tlsService.isHttpsRequired(httpRequest, true)) {
-            return CompletableFuture.completedFuture(
-                    ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
+            return ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection");
         }
 
         request.setUserId(userId);
-        return CompletableFuture.supplyAsync(() ->
-                adminService.resetUserPassword(request), authExecutor);
+        return adminService.resetUserPassword(request);
     }
 
+    @Operation(summary = "Update volunteer sub role")
+    @PutMapping("/volunteer/subrole")
+    public ResponseEntity<Map<String, Object>> updateVolunteerSubRole(
+            @RequestBody UpdateVolunteerSubRoleRequest request,
+            HttpServletRequest httpRequest) {
+
+        if (tlsService.isHttpsRequired(httpRequest, true)) {
+            return ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection");
+        }
+
+        return adminService.updateVolunteerSubRole(request);
+    }
+
+    // Keep async for read-only operations
     @Operation(summary = "Get user details")
     @GetMapping("/user/{userId}")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> getUserDetails(
