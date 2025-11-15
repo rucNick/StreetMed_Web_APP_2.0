@@ -17,16 +17,13 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(""); // Clear any previous messages
+    setMessage("");
 
     try {
       if (isInitialized()) {
         console.log("Using secure login with encryption over HTTPS");
-
         const loginData = { username, password };
         const encryptedData = await encrypt(JSON.stringify(loginData));
-
-        // Use secureAxios for HTTPS connection
         const response = await fetch(`${baseURL}/api/auth/login`, {
           method: "POST",
           headers: {
@@ -38,122 +35,70 @@ const Login = ({ onLoginSuccess }) => {
           mode: 'cors'
         });
 
-        // Check for network/TLS errors
         if (!response.ok) {
-          if (response.status === 500) {
-            setMessage("Server error. Your session may have expired.");
-            setShowSessionErrorModal(true);
-            return;
-          } else if (response.status === 403) {
-            // Check if it's an HTTPS requirement error
-            const responseText = await response.text();
-            try {
-              const errorData = JSON.parse(responseText);
-              if (errorData.httpsRequired) {
-                setMessage("Secure connection required. Please ensure you're using HTTPS.");
-                // Redirect to HTTPS if not already
-                if (window.location.protocol !== 'https:') {
+          const responseText = await response.text();
+          try {
+            const errorData = JSON.parse(responseText);
+            if (errorData.httpsRequired) {
+              setMessage("Secure connection required. Redirecting...");
+              if (window.location.protocol !== 'https:') {
+                setTimeout(() => {
                   window.location.href = window.location.href.replace('http:', 'https:');
-                }
-                return;
+                }, 1500);
               }
-            } catch {
-              // Not JSON, continue with normal error handling
+              return;
             }
+          } catch {
+            // not JSON, handle as generic error
           }
+          throw new Error(`Server error: ${response.status}`);
         }
 
-        try {
-          const encryptedResponse = await response.text();
-          const decryptedResponse = await decrypt(encryptedResponse);
-          const data = JSON.parse(decryptedResponse);
+        const encryptedResponse = await response.text();
+        const decryptedResponse = await decrypt(encryptedResponse);
+        const data = JSON.parse(decryptedResponse);
 
-          if (data.authenticated || data.status === "success") {
-            setMessage("Login success!");
-            console.log("User info:", data);
-
-            // Store user data in both localStorage and sessionStorage for security
-            const userData = {
-              username: data.username,
-              userId: data.userId,
-              role: data.role,
-              authToken: data.authToken,
-              volunteerSubRole: data.volunteerSubRole
-            };
-            
-            localStorage.setItem("auth_user", JSON.stringify(userData));
-            sessionStorage.setItem("auth_user", JSON.stringify(userData));
-
-            onLoginSuccess(userData);
-            navigate("/");
-          } else {
-            throw new Error(data.message || "Login failed");
-          }
-        } catch (decryptError) {
-          // Handle session expiration or decryption errors
-          console.error("Decryption error:", decryptError);
-          if (decryptError.message.includes('atob') || 
-              decryptError.message.includes('session') ||
-              decryptError.message.includes('decode')) {
-            setMessage("Your session has expired.");
-            setShowSessionErrorModal(true);
-          } else {
-            throw decryptError;
-          }
+        if (data.authenticated || data.status === "success") {
+          setMessage("Login success!");
+          const userData = {
+            username: data.username,
+            userId: data.userId,
+            role: data.role,
+            authToken: data.authToken,
+            volunteerSubRole: data.volunteerSubRole
+          };
+          localStorage.setItem("auth_user", JSON.stringify(userData));
+          sessionStorage.setItem("auth_user", JSON.stringify(userData));
+          onLoginSuccess(userData);
+          navigate("/");
+        } else {
+          throw new Error(data.message || "Login failed");
         }
       } else {
-        // Fallback: Use secureAxios for non-encrypted login over HTTPS
-        console.log("Using secure HTTPS login without encryption");
-        
-        try {
-          const response = await secureAxios.post('/api/auth/login', {
-            username,
-            password
-          });
-
-          if (response.data.authenticated || response.data.status === "success") {
-            setMessage("Login success!");
-            
-            const userData = {
-              username: response.data.username,
-              userId: response.data.userId,
-              role: response.data.role,
-              authToken: response.data.authToken,
-              volunteerSubRole: response.data.volunteerSubRole
-            };
-            
-            localStorage.setItem("auth_user", JSON.stringify(userData));
-            sessionStorage.setItem("auth_user", JSON.stringify(userData));
-
-            onLoginSuccess(userData);
-            navigate("/");
-          } else {
-            setMessage(response.data.message || "Login failed");
-          }
-        } catch (axiosError) {
-          if (axiosError.code === 'ERR_CERT_AUTHORITY_INVALID') {
-            setMessage("Certificate error. Please accept the certificate and try again.");
-            window.dispatchEvent(new CustomEvent('certificate-error', { 
-              detail: { url: baseURL }
-            }));
-          } else {
-            setMessage(axiosError.response?.data?.message || "Login failed");
-          }
+        const response = await secureAxios.post('/api/auth/login', { username, password });
+        if (response.data.authenticated || response.data.status === "success") {
+          setMessage("Login success!");
+          const userData = {
+            username: response.data.username,
+            userId: response.data.userId,
+            role: response.data.role,
+            authToken: response.data.authToken,
+            volunteerSubRole: response.data.volunteerSubRole
+          };
+          localStorage.setItem("auth_user", JSON.stringify(userData));
+          sessionStorage.setItem("auth_user", JSON.stringify(userData));
+          onLoginSuccess(userData);
+          navigate("/");
+        } else {
+          setMessage(response.data.message || "Login failed");
         }
       }
     } catch (error) {
       console.error("Login error:", error);
-      
-      // Check if it's a certificate or session-related error
-      if (error.message.includes('Failed to fetch') || 
-          error.message.includes('NetworkError')) {
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         setMessage("Connection error. Please check your connection and certificate.");
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: baseURL }
-        }));
-      } else if (error.message.includes('session') || 
-          error.message.includes('atob') || 
-          error.message.includes('decode')) {
+        window.dispatchEvent(new CustomEvent('certificate-error', { detail: { url: baseURL } }));
+      } else if (error.message.includes('session') || error.message.includes('atob') || error.message.includes('decode')) {
         setMessage("Session error. Please refresh the page.");
         setShowSessionErrorModal(true);
       } else {
@@ -178,37 +123,32 @@ const Login = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="page-container">
-      <header className="site-header">
-        <div className="logo-container">
-          <img src="/Untitled.png" alt="Site Logo" className="logo" />
-          <h2 className="site-title">Street Med Go</h2>
+    <div className="login-page-wrapper">
+      <header className="login-site-header">
+        <div className="login-logo-container">
         </div>
-        <button className="go-back-btn" onClick={handleGoBack}>
+        <button className="login-go-back-btn" onClick={handleGoBack}>
           Go Back
         </button>
       </header>
-
-      <div className="login-container">
+      <div className="login-content-wrapper">
         <div className="login-card">
-          <h1 className="login-title">Login</h1>
-          
-          <form onSubmit={handleSubmit}>
+           {/* New logo and title inside the card */}
+           <img src="/Untitled.png" alt="Logo" className="login-card-logo" />
+          <h1 className="login-card-title">Log In</h1>
+          <form className="login-form" onSubmit={handleSubmit}>
             <div className="input-group">
-              <label htmlFor="email">Email or UserName</label>
               <input
                 type="text"
-                id="email"
-                name="email"
-                placeholder="Email or UserName"
+                id="username"
+                name="username"
+                placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
-
             <div className="input-group">
-              <label htmlFor="password">Password</label>
               <input
                 type="password"
                 id="password"
@@ -219,34 +159,20 @@ const Login = ({ onLoginSuccess }) => {
                 required
               />
             </div>
-
-            <a href="#!" className="forgot-password" onClick={handleResetPasswordClick}>
+            <a href="#!" className="forgot-password-link" onClick={handleResetPasswordClick}>
               Forgot Password?
             </a>
-
-            {message && (
-              <div className="message" style={{ color: "red", textAlign: "center", fontSize: "0.9rem", marginBottom: "1rem" }}>
-                {message}
-              </div>
-            )}
-
-            <button type="submit" className="login-btn login-btn-login">
+            {message && <div className="login-message">{message}</div>}
+            <button type="submit" className="login-submit-btn">
               Log in
             </button>
-
-            <div className="divider">
-              <span>or</span>
-            </div>
-
-            <button type="button" className="login-btn login-btn-signup" onClick={handleSignUpClick}>
-              Sign up
-            </button>
           </form>
+\          <p className="signup-text">
+            Don't have an account? <a href="#" className="signup-link" onClick={handleSignUpClick}>Sign up here</a>.
+          </p>
         </div>
       </div>
-      
-      {/* Session Error Modal */}
-      <SessionErrorModal 
+      <SessionErrorModal
         isOpen={showSessionErrorModal}
         onClose={() => setShowSessionErrorModal(false)}
       />

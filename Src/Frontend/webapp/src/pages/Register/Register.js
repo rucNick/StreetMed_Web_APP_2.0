@@ -8,7 +8,7 @@ import {
   isInitialized
 } from '../../security/ecdhClient';
 import { secureAxios } from '../../config/axiosConfig';
-import '../../css/Login/Register.css';
+import '../../css/Login/Register.css'; // Note: This should be a new file
 import SessionErrorModal from '../../components/SessionErrorModal';
 
 const Register = () => {
@@ -27,7 +27,7 @@ const Register = () => {
           setSecurityInitialized(true);
         } else if (result.requiresCertAcceptance) {
           console.warn("Certificate acceptance required");
-          window.dispatchEvent(new CustomEvent('certificate-error', { 
+          window.dispatchEvent(new CustomEvent('certificate-error', {
             detail: { url: baseURL }
           }));
         } else {
@@ -35,9 +35,9 @@ const Register = () => {
         }
       } catch (error) {
         console.error("Error during security initialization:", error);
-        if (error.message.includes('Failed to fetch') || 
+        if (error.message.includes('Failed to fetch') ||
             error.message.includes('NetworkError')) {
-          window.dispatchEvent(new CustomEvent('certificate-error', { 
+          window.dispatchEvent(new CustomEvent('certificate-error', {
             detail: { url: baseURL }
           }));
         }
@@ -97,7 +97,6 @@ const Register = () => {
       setEmailError('');
       return true;
     }
-    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setEmailError('The email is not formatted correctly');
@@ -125,79 +124,56 @@ const Register = () => {
 
   const handleContinue = (e) => {
     e.preventDefault();
-  
-    // Validate username
     if (!username.trim()) {
       setUsernameError('Username is required');
       return;
     }
-  
     const usernameRegex = /^[A-Za-z]+$/;
     if (!usernameRegex.test(username)) {
       setUsernameError('Username can only contain English letters');
       return;
     }
     setUsernameError('');
-  
-    // Validate email format if provided (but don't require it)
     if (email.trim() && !validateEmail()) {
       return;
     }
-  
-    // Validate phone format if provided (but don't require it)
     if (phone.trim() && !validatePhone()) {
       return;
     }
-  
-    // Move to step 2 even if no email or phone is provided
     setStep(2);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(''); // Clear previous messages
-  
+    setMessage('');
     const isUsernameValid = validateUsername();
     const isPasswordValid = validatePassword();
     const isConfirmPasswordValid = validateConfirmPassword();
-    
-    // Only validate email and phone if they're provided
     let isEmailValid = true;
     let isPhoneValid = true;
-    
     if (email.trim()) {
       isEmailValid = validateEmail();
     }
-    
     if (phone.trim()) {
       isPhoneValid = validatePhone();
     }
-  
-    if (!isUsernameValid || !isPasswordValid || !isConfirmPasswordValid ||
-        !isEmailValid || !isPhoneValid) {
+    if (!isUsernameValid || !isPasswordValid || !isConfirmPasswordValid || !isEmailValid || !isPhoneValid) {
       return;
     }
-  
     const userData = {
       username,
       password,
       role: "CLIENT"
     };
-    
-    // Only include email and phone if they're provided
     if (email.trim()) {
       userData.email = email;
     }
-    
     if (phone.trim()) {
       userData.phone = phone;
     }
-    
-    // Include name fields if provided
     if (firstName.trim()) {
       userData.firstName = firstName;
     }
-    
     if (lastName.trim()) {
       userData.lastName = lastName;
     }
@@ -217,7 +193,6 @@ const Register = () => {
           mode: 'cors'
         });
 
-        // Check for HTTPS requirement
         if (response.status === 403) {
           const responseText = await response.text();
           try {
@@ -232,22 +207,18 @@ const Register = () => {
               return;
             }
           } catch {
-            // Not JSON, continue with normal error handling
           }
         }
-
         try {
           const encryptedResponse = await response.text();
           const decryptedResponse = await decrypt(encryptedResponse);
           const data = JSON.parse(decryptedResponse);
-
           if (data.status === 'success') {
             setMessage('Successful registration!');
             setTimeout(() => {
               navigate('/login');
             }, 2000);
           } else {
-            // Specific error handling based on error message
             if (data.message.includes('Username already exists')) {
               setMessage('This username is already taken. Please try a different username.');
             } else if (data.message.includes('Email already exists')) {
@@ -258,8 +229,7 @@ const Register = () => {
           }
         } catch (decryptError) {
           console.error("Decryption error:", decryptError);
-          // Handle session expiration or decryption errors
-          if (decryptError.message.includes('atob') || 
+          if (decryptError.message.includes('atob') ||
               decryptError.message.includes('session') ||
               decryptError.message.includes('decode')) {
             setMessage("Your session has expired. Please refresh the page.");
@@ -269,12 +239,9 @@ const Register = () => {
           }
         }
       } else {
-        // Fallback: Use secureAxios for non-encrypted registration over HTTPS
         console.log("Using secure HTTPS registration without encryption");
-        
         try {
           const response = await secureAxios.post('/api/auth/register', userData);
-          
           if (response.data.status === 'success') {
             setMessage('Successful registration!');
             setTimeout(() => {
@@ -292,7 +259,7 @@ const Register = () => {
         } catch (axiosError) {
           if (axiosError.code === 'ERR_CERT_AUTHORITY_INVALID') {
             setMessage("Certificate error. Please accept the certificate and try again.");
-            window.dispatchEvent(new CustomEvent('certificate-error', { 
+            window.dispatchEvent(new CustomEvent('certificate-error', {
               detail: { url: baseURL }
             }));
           } else if (axiosError.response?.status === 403 && axiosError.response?.data?.httpsRequired) {
@@ -309,16 +276,14 @@ const Register = () => {
       }
     } catch (error) {
       console.error("Registration error:", error);
-      
-      // User-friendly error handling
-      if (error.message.includes('Failed to fetch') || 
+      if (error.message.includes('Failed to fetch') ||
           error.message.includes('NetworkError')) {
         setMessage("Connection error. Please check your connection and certificate.");
-        window.dispatchEvent(new CustomEvent('certificate-error', { 
+        window.dispatchEvent(new CustomEvent('certificate-error', {
           detail: { url: baseURL }
         }));
-      } else if (error.message.includes('session') || 
-          error.message.includes('atob') || 
+      } else if (error.message.includes('session') ||
+          error.message.includes('atob') ||
           error.message.includes('decode')) {
         setMessage("Session error. Please refresh the page.");
         setShowSessionErrorModal(true);
@@ -327,7 +292,6 @@ const Register = () => {
       } else if (error.message.includes('Email already exists')) {
         setMessage("This email is already registered. Please use a different email or try logging in.");
       } else if (error.message.includes('400')) {
-        // Generic 400 error probably means validation error
         setMessage("Registration failed. Please check your information and try again.");
       } else {
         setMessage("Registration failed: " + error.message);
@@ -341,132 +305,132 @@ const Register = () => {
 
   return (
     <div className="signup-page-container">
+      {/* --- This div is for the blurred background layer --- */}
+      <div className="background-image-layer"></div>
+
       <header className="site-header">
         <div className="logo-container">
-          <img src="/Untitled.png" alt="Site Logo" className="logo" />
-          <h2 className="site-title">Street Med Go</h2>
         </div>
         <button className="go-back-btn" onClick={handleGoBack}>
           Go Back
         </button>
       </header>
 
-      <button className="go-back-btn" onClick={handleGoBack}>
-        Go back
-      </button>
-
-      {/* step 1 */}
-      {step === 1 && (
+      {/* Main content wrapper with a single card for both steps */}
       <div className="signup-container">
         <div className="signup-card">
-          <h2 className="signup-title">Sign Up</h2>
-          <form onSubmit={handleContinue}>
-            {/* Username field */}
-            <input
-              type="text"
-              placeholder="Username (Required)"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-            {usernameError && <p className="error-text">{usernameError}</p>}
-            
-            <input
-              type="email"
-              placeholder="Email (Optional)"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
 
-            <div className="divider"><span>Or</span></div>
+          {/* New logo and title inside the card */}
+          <img src="/Untitled.png" alt="Logo" className="signup-card-logo" />
+          <h2 className="signup-card-subtitle">Create Your Account</h2>
 
-            <input
-              type="tel"
-              placeholder="Phone Number (Optional)"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-
-            {emailError && <p className="error-text">{emailError}</p>}
-            {phoneError && <p className="error-text">{phoneError}</p>}
-            
-            <p className="form-note">Email or Phone Number is recommended but not required</p>
-
-            <button type="submit" className="signup-btn">
-              Continue
-            </button>
-          </form>
-        </div>
-      </div>
-    )}
-
-      {/* step 2 */}
-      {step === 2 && (
-        <div className="signup-container">
-          <div className="signup-card">
-            <h2 className="signup-title">Welcome, {username}</h2>
-            <form onSubmit={handleSubmit}>
-              {/* First and last name fields moved to step 2 */}
-              <div className="input-row">
+          {step === 1 && (
+            <form onSubmit={handleContinue}>
+              <div className="input-group">
                 <input
                   type="text"
-                  placeholder="First Name (Optional)"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  id="username"
+                  placeholder="Full Name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
                 />
-                <input
-                  type="text"
-                  placeholder="Last Name (Optional)"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
+                {usernameError && <p className="error-text">{usernameError}</p>}
               </div>
-              
-              <input
-                type="password"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              {passwordError && <p className="error-text">{passwordError}</p>}
 
-              <input
-                type="password"
-                placeholder="Re-enter password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-              {confirmPasswordError && (
-                <p className="error-text">{confirmPasswordError}</p>
-              )}
+              <div className="input-group">
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="Email Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                {emailError && <p className="error-text">{emailError}</p>}
+              </div>
+
+              <div className="input-group">
+                <input
+                  type="tel"
+                  id="phone"
+                  placeholder="Password"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+                {phoneError && <p className="error-text">{phoneError}</p>}
+              </div>
+
+              <button type="submit" className="signup-btn">
+                Sign Up
+              </button>
+            </form>
+          )}
+
+          {step === 2 && (
+            <form onSubmit={handleSubmit}>
+              <div className="input-group">
+                <label htmlFor="firstName">Full Name</label>
+                <div className="input-row">
+                  <input
+                    type="text"
+                    id="firstName"
+                    placeholder="Full Name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    id="lastName"
+                    placeholder="Last Name (Optional)"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                {passwordError && <p className="error-text">{passwordError}</p>}
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                {confirmPasswordError && (<p className="error-text">{confirmPasswordError}</p>)}
+              </div>
 
               <button type="submit" className="signup-btn">
                 Sign up
               </button>
-
-              {message && (
-                <p className={message.includes('Successful') ? 'success-text' : 'error-text'}>
-                  {message}
-                </p>
-              )}
-
-              {securityInitialized ? (
-                <p className="security-indicator success">🔒 Secure connection established</p>
-              ) : (
-                <p className="security-indicator fail">Establishing secure connection...</p>
-              )}
             </form>
-          </div>
+          )}
+          
+          {message && (<p className={message.includes('Successful') ? 'success-text' : 'error-text'}>{message}</p>)}
+          
+          {securityInitialized ? (
+            <p className="security-indicator success">🔒 Secure connection established</p>
+          ) : (
+            <p className="security-indicator fail">Establishing secure connection...</p>
+          )}
         </div>
-      )}
-
-      {/* Session Error Modal */}
-      <SessionErrorModal 
-        isOpen={showSessionErrorModal}
-        onClose={() => setShowSessionErrorModal(false)}
-      />
+      </div>
+      
+      <SessionErrorModal isOpen={showSessionErrorModal} onClose={() => setShowSessionErrorModal(false)} />
     </div>
   );
 };

@@ -3,30 +3,33 @@
     justify-content: space-between;
     align-items: center;
     height: 83px;
-    background-color: #d9d9d9;
     padding: 0 27px;
   }
   
   .store-logo {
     width: 65px;
     height: 65px;
+    margin-left: 30px;
     object-fit: contain;
+
   }
   
   .logout-button {
-    background-color: #444;
+    background-color: #ffffff12;
     color: white;
     border: none;
+    margin-top:  15px;
     padding: 10px 20px;
     border-radius: 25px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 25px;
+    font-family: 'Courier';
   }
   
   .admin-dashboard {
     display: flex;
     height: calc(100vh - 83px);
-    background-color: #c8c9c7;
+    background-color: #0f1c38;
   }
   
   .admin-left {
@@ -34,14 +37,15 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    max-width: 440px;   
-    padding: 40px 50px;  
+    max-width: 440px;
+    padding: 40px 50px;
   }
   
   .admin-greeting {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
+    font-family: 'Courier';
   }
   
   .admin-card {
@@ -49,38 +53,48 @@
     align-items: center;
     justify-content: space-between;
     border-radius: 24px;
-    padding: 28px 32px;  
-    font-size: 19px;  
+    padding: 28px 32px;
+    font-size: 19px;
     font-weight: 500;
     box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.15);
     cursor: pointer;
+    font-family: 'Courier';
   }
   
   .light-blue {
-    background-color: #d1dae2;
+    background-color: #002a69;
   }
   
   .light-yellow {
-    background-color: #decda7;
+    background-color: #ffb922;
   }
   
-  .card-icon {
-    font-size: 26px;    
-    margin-right: 16px;
-  }
+
   
-  .card-text {
+  .card-text-blue {
     flex: 1;
-    margin-left: 14px;
+    text-align: center;
+    font-weight: bold;
+    color: #fff;
+    font-size: 25px;
+  }
+
+  .card-text-yellow {
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+    color: #000000;
+    font-size: 25px;
   }
   
   .card-badge {
     border-radius: 50%;
-    padding: 7px 12px;  
+    padding: 7px 12px;
     font-size: 13px;
     font-weight: bold;
     min-width: 28px;
     text-align: center;
+  
   }
   
   .blue-badge {
@@ -112,28 +126,29 @@
   }
   
   .alerts-card {
-    background-color: white;
+    background-color: #ffffff12;
     border-radius: 20px;
-    padding: 60px 50px; 
+    padding: 60px 50px;
     box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 900px;
+    font-family: 'Courier';
   }
   
   .alerts-title {
-    font-size: 36px; 
+    font-size: 36px;
     font-weight: bold;
-    color: #333;
+    color: #ffffff;
     margin-bottom: 28px;
   }
   
   .alert-entry {
     display: flex;
     justify-content: space-between;
-    padding: 20px 0;  
+    padding: 20px 0;
     border-top: 1px solid #ddd;
-    font-size: 22px;  
-    color: #333;
+    font-size: 22px;
+    color: #ffffff;
   }
   
   .alert-entry:first-of-type {
@@ -145,4 +160,4 @@
     padding: 8px 14px;
     font-size: 16px;
   }
-  
+
