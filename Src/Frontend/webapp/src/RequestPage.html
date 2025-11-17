@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f3f4f6;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: blue;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: darkblue;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Pitt Street Medicine Client Request Form</h2>
+    <form id="myForm">
+        <label for="fname">Name:</label>
+        <input type="text" id="fname" name="fname" value="Name">
+        
+        <button type="button" id="getLocation">Get Location</button>
+        <p id="location">Latitude: N/A | Longitude: N/A</p>
+
+        <h2>Items</h2>
+        <div class="cart-item">
+            <span>band aids</span>
+            <input type="number" id="item1" value="0" min="0">
+        </div>
+        <div class="cart-item">
+            <span>antibiotics</span>
+            <input type="number" id="item2" value="0" min="0">
+        </div>
+        <div class="cart-item">
+            <span>rubbing alcohol</span>
+            <input type="number" id="item3" value="0" min="0">
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+    <p>If you click the "Submit" button, the form data will be sent to a backend handler.</p>
+    
+</div>
+
+<script>
+    document.getElementById("getLocation").addEventListener("click", function () {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                document.getElementById("location").textContent = `Latitude: ${lat} | Longitude: ${lon}`;
+            });
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    });
+
+    document.getElementById("myForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const fullName = document.getElementById("fname").value;
+        const locationText = document.getElementById("location").textContent;
+        alert(`Form submitted with First Name: ${firstName}, ${locationText}`);
+    });
+</script>
+
+</body>
+</html>
