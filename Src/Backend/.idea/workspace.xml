@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< Updated upstream
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/AdminController.java" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/CorsConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/WebMvcConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/WebMvcConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/OptionsRequestFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/OptionsRequestFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/RequestCorsFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/RequestCorsFilter.java" afterDir="false" />
+>>>>>>> Stashed changes
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Dockerfile" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;rucNick&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/rucNick/StreetMed_Web_APP_2.0.git&quot;,
+    &quot;accountId&quot;: &quot;37c70a02-1ff5-477a-8a81-2fce5036184b&quot;
+  }
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2uBmgumEBzbMZ2gyAziDLjaExir" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Maven.demo-sqlite [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.demo-sqlite [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.demo-sqlite [install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.streetmed-backend [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.streetmed-backend [install].executor&quot;: &quot;Run&quot;,
+    &quot;Notification.DisplayName-DoNotAsk-Database detector&quot;: &quot;数据库检测器&quot;,
+    &quot;Notification.DoNotAsk-Database detector&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.StreetMedBackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.StreetmedBackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;database.data.extractors.current.export.id&quot;: &quot;Comma-separated (CSV)_id&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+<<<<<<< Updated upstream
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Desktop/smp/StreetMed_Web_APP_2.0/Src/Backend&quot;,
+=======
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Desktop/StreetMed@Pitt/StreetMed_Web_APP_2.0/Src/Backend&quot;,
+>>>>>>> Stashed changes
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="StreetmedBackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ACTIVE_PROFILES" value="local" />
+      <module name="streetmed-backend" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.backend.streetmed_backend.StreetmedBackendApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26199.169" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="" />
+      <created>1741730456049</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1741730456049</updated>
+      <workItem from="1741730457354" duration="1392000" />
+      <workItem from="1741818137639" duration="615000" />
+      <workItem from="1741973047467" duration="1882000" />
+      <workItem from="1742937843883" duration="1885000" />
+      <workItem from="1743026813904" duration="3447000" />
+      <workItem from="1743186145761" duration="234000" />
+      <workItem from="1743786249795" duration="638000" />
+      <workItem from="1743787929916" duration="5049000" />
+      <workItem from="1744237429510" duration="4176000" />
+      <workItem from="1744389838775" duration="2313000" />
+      <workItem from="1744830606536" duration="4000" />
+      <workItem from="1754146784009" duration="2507000" />
+      <workItem from="1754329855883" duration="763000" />
+      <workItem from="1754497079016" duration="1745000" />
+      <workItem from="1756718442023" duration="944000" />
+      <workItem from="1757308207776" duration="377000" />
+      <workItem from="1757372831261" duration="616000" />
+      <workItem from="1757548731902" duration="371000" />
+      <workItem from="1757884310062" duration="4033000" />
+      <workItem from="1757921276910" duration="8502000" />
+      <workItem from="1757959205174" duration="2442000" />
+<<<<<<< Updated upstream
+      <workItem from="1760393308964" duration="4270000" />
+      <workItem from="1760565279021" duration="5708000" />
+      <workItem from="1760646076220" duration="1965000" />
+      <workItem from="1761343619218" duration="629000" />
+      <workItem from="1761522967993" duration="8000" />
+      <workItem from="1761556993991" duration="62000" />
+      <workItem from="1761678302081" duration="10255000" />
+      <workItem from="1762288610822" duration="7188000" />
+      <workItem from="1762892567999" duration="14829000" />
+      <workItem from="1763014489127" duration="4346000" />
+      <workItem from="1763020412022" duration="32000" />
+=======
+>>>>>>> Stashed changes
+    </task>
+    <task id="LOCAL-00001" summary="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService">
+      <option name="closed" value="true" />
+      <created>1757924728291</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1757924728291</updated>
+    </task>
+    <task id="LOCAL-00002" summary="refine the emailservice">
+      <option name="closed" value="true" />
+      <created>1757924871926</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1757924871926</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Implement 2 Util classes and updater the AdminController using the util classes">
+      <option name="closed" value="true" />
+      <created>1757927994673</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1757927994673</updated>
+    </task>
+    <task id="LOCAL-00004" summary="move the private methods from controllers to the util class">
+      <option name="closed" value="true" />
+      <created>1757928996824</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1757928996824</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService" />
+    <MESSAGE value="refine the emailservice" />
+    <MESSAGE value="Implement 2 Util classes and updater the AdminController using the util classes" />
+    <MESSAGE value="move the private methods from controllers to the util class" />
+    <option name="LAST_COMMIT_MESSAGE" value="move the private methods from controllers to the util class" />
+  </component>
+</project>
