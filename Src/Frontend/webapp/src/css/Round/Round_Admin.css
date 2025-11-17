@@ -134,7 +134,7 @@
 }
 
 .action-button {
-  background: #decda7;
+  background: #ffb921 ;
   border: none;
   padding: 8px 16px;
   border-radius: 20px;
@@ -149,7 +149,7 @@
 
 /* ---------- forms ----------------------------------------------------- */
 .form-card {
-  background: #d1dae2;
+  background: #0f1c38;
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
@@ -293,7 +293,7 @@
 .form-title {
   text-align: center;
   font-size: 24px;
-  color: #444;
+  color: #ffffff;
   margin-bottom: 10px;
 }
 
