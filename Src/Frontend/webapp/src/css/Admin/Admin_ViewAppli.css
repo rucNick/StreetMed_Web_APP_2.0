@@ -21,7 +21,7 @@ body { font-family: Arial, sans-serif; }
   display:flex; align-items:center; gap:82px;
 }
 .logo { width:65px; height:65px; }
-.site-title { font-size:36px; color:#444; font-weight:400; }
+.site-title { font-size:36px; color:#ffffff; font-weight:400; }
 .manage-btn {
   background:#decda7; color:#333;
   border:none; border-radius:20px;

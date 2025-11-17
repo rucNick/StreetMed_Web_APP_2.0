@@ -212,12 +212,7 @@ const Cargo_Admin = ({ userData }) => {
       </header>
 
       <main className="main-content">
-        <div className="cargo-container"style={{
-      maxWidth: '1100px',  
-      width: '100%',
-      margin: '0 auto',
-      padding: '24px', 
-    }}>
+        <div className="cargo-container">
           <div className="cargo-header">
             <h2 className="cargo-title">Cargo Status</h2>
             <button 

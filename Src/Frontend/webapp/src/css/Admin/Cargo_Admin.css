@@ -70,6 +70,8 @@ body {
   overflow: hidden; /* prevent the page from scrolling */
   padding: 20px;
   margin: 0 auto;
+  background: #212c46;
+
 }
 
 .cargo-header {
@@ -92,6 +94,8 @@ body {
   gap: 12px;
   height: 100%;
   padding: 20px;
+  background-color: #212c46;
+
 }
 
 .table-title {
@@ -225,7 +229,7 @@ body {
   font-weight: 600;
   color: #333;
   margin-bottom: 12px;
-  background: #f6b800;
+  /* background: #f6b800; */
   
 }
 

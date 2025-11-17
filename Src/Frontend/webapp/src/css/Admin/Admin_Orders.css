@@ -32,9 +32,9 @@
 }
 
 .site-title {
-  font-size: 24px;
+  font-size: 2px;
   font-weight: bold;
-  color: #333;
+  color: #db1313;
 }
 
 .header-right {
@@ -320,7 +320,7 @@
   gap: 15px;
   margin-bottom: 20px;
   padding: 15px;
-  background-color: #f5f5f5;
+  background-color: #212c46;
   border-radius: 8px;
 }
 
@@ -332,12 +332,12 @@
 .stat-value {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #ffffff;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #666;
+  color: #ffffff;
   margin-top: 4px;
 }
 
