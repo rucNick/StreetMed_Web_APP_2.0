@@ -90,7 +90,7 @@ const Admin = ({ onLogout, userData }) => {
 
   return (
     <div className="page-container">
-      <header className="store-header">
+      <header className="store-header" style={{ backgroundColor: '#0f1c38' }}>
         <img src="/Untitled.png" alt="Logo" className="store-logo" />
         <button className="logout-button" onClick={handleLogout}>
           Logout
@@ -119,52 +119,45 @@ const Admin = ({ onLogout, userData }) => {
             className="admin-card light-blue"
             onClick={() => navigate('/cargo_admin')}
           >
-            <span className="card-icon">🚚</span>
-            <span className="card-text">Manage Cargo</span>
+            <span className="card-text-blue">Manage Cargo</span>
           </div>
 
           <div
             className="admin-card light-yellow"
             onClick={() => navigate('/admin/orders')}
           >
-            <span className="card-icon">📦</span>
-            <span className="card-text">All Orders</span>
+            <span className="card-text-yellow">All Orders</span>
           </div>
 
           <div
             className="admin-card light-blue"
             onClick={() => navigate('/admin/applications')}
           >
-            <span className="card-icon">👥</span>
-            <span className="card-text">Manage Volunteers</span>
+            <span className="card-text-blue">Manage Volunteers</span>
           </div>
 
           <div
             className="admin-card light-yellow"
             onClick={() => navigate('/admin/users')}
           >
-            <span className="card-icon">🧊</span>
-            <span className="card-text">Manage Users</span>
+            <span className="card-text-yellow">Manage Users</span>
           </div>
 
           <div
             className="admin-card light-blue"
             onClick={() => navigate('/round_admin')}
           >
-            <span className="card-icon">📆</span>
-            <span className="card-text">Manage Round</span>
+            <span className="card-text-blue">Manage Round</span>
           </div>
 
           <div
             className="admin-card light-yellow"
             onClick={() => navigate('/admin/feedback')}
           >
-            <span className="card-icon">💬</span>
-            <span className="card-text">View Feedback</span>
+            <span className="card-text-yellow">View Feedback</span>
           </div>
         </section>
 
-        <div className="divider-vertical"></div>
 
         <section className="admin-right">
           <div className="alerts-card">

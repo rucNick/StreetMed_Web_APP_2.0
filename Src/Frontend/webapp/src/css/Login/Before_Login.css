@@ -1,30 +1,69 @@
+/*
+ * Before_Login.css
+ * Styles for the public login/access portal, based on your original code
+ * with a new, sophisticated login card and full-screen background.
+*/
+
+/* --- Global and Reset --- */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: Arial, sans-serif;
-  background-color: #c8c9c7;
-}
 
-/* Make sure the page container allows scrolling */
-.page-container {
+/* --- Full-Screen Background Wrapper --- */
+.full-screen-wrapper {
+  position: relative;
   width: 100%;
   min-height: 100vh;
-  background-color: #c8c9c7;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
-  position: relative;
+  overflow: hidden;
 }
 
+
+/* --- The Dark Overlay --- */
+.background-image-layer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4); /* Dark overlay */
+  z-index: -1; /* Puts it on top of the blurred image, but behind content */
+}
+
+
+/* Optional: Overlay for better text readability */
+.full-screen-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* Place the image here */
+  background-image: url("/public/skyline.jpg"); /* **The image path goes here** */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  filter: blur(5px); /* This blurs only the background image on this layer */
+  transform: scale(1.05); /* Scales up the blurred image to hide edges */
+  z-index: -2; /* Pushes it behind all other content */
+}
+
+/* --- Header --- */
 .site-header {
   width: 100%;
   height: 83px;
-  background-color: #d9d9d9;
+  background-color: rgba(217, 217, 217, 0.85); /* Slightly transparent */
   display: flex;
   align-items: center;
   padding: 0 27px;
+  position: relative;
+  z-index: 10; /* Ensures it's on top */
 }
 
 .header-content {
@@ -32,66 +71,55 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-top: auto;
 }
-
 .logo-container {
   display: flex;
   align-items: center;
   gap: 82px;
 }
-
 .logo {
   width: 65px;
   height: 65px;
 }
-
 .site-title {
   color: #444;
-  font-size: 36px;
+  font-size: 36=px;
   font-weight: 400;
   line-height: 20px;
   letter-spacing: 0.1px;
 }
-
 .header-right {
   display: flex;
   align-items: center;
   gap: 30px;
 }
-
 .main-nav {
   display: flex;
   align-items: center;
 }
-
 .nav-list {
   display: flex;
   list-style: none;
   gap: 30px;
 }
-
 .nav-item {
   position: relative;
 }
-
 .nav-link {
   display: inline-block;
   background: none;
   border: none;
   color: #444;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 30px;
   font-weight: 500;
   transition: color 0.3s ease;
   padding: 5px 0;
   cursor: pointer;
 }
-
 .nav-link:hover {
   color: #000;
 }
-
 .nav-link:after {
   content: "";
   position: absolute;
@@ -102,11 +130,9 @@ body {
   background-color: #444;
   transition: width 0.3s ease;
 }
-
 .nav-link:hover:after {
   width: 100%;
 }
-
 .mobile-menu-toggle {
   display: none;
   background: none;
@@ -116,7 +142,6 @@ body {
   gap: 5px;
   padding: 5px;
 }
-
 .menu-bar {
   display: block;
   width: 25px;
@@ -125,187 +150,155 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Update main content styles to ensure content is scrollable */
-.main-content {
-  padding: 40px 20px; /* Reduce padding on mobile */
-  overflow-y: auto; /* Allow vertical scrolling */
-  width: 100%;
-}
+/* --- Login Page Content --- */
+.login-page-content {
+  /* Remove flex-grow: 1; as it's causing the issue */
+  /* flex-grow: 1; */ 
+  
+  /* Set a fixed height that spans the rest of the viewport */
+  min-height: calc(100vh - 83px); /* 83px is the height of your header */
 
-/* Make content responsive */
-.content-wrapper {
   display: flex;
-  flex-direction: column; /* Stack content vertically on mobile */
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
+  align-items: center; /* This centers the content vertically */
+  justify-content: center; /* This centers the content horizontally */
+  
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
 }
 
-/* Make feature article more responsive */
-.feature-article {
+.login-card {
+  /* Replace these background properties */
+  /* background-color: #d1dae2; */
+  /* background: linear-gradient(to bottom right, #d1dae2, #c8c9c7); */ /* Remove this if you want a consistent translucent background */
+  
+
+  background-color: rgba(255, 255, 255, 0.2); /* White with 20% opacity */
+  backdrop-filter: blur(1px); /* Apply a blur effect to content behind the card */
+  -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+
+  border-radius: 25px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Adjusted shadow for transparency */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Optional: A subtle border for definition */
+  
   width: 100%;
-  max-width: 100%;
-  background-color: #d1dae2;
-  border-radius: 25px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
-}
-
-.feature-image {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  margin: 30px auto 0;
-  display: block;
-  border-radius: 25px;
-  padding: 0 15px;
-  object-fit: contain;
-}
-
-.article-content {
-  margin: 22px 44px;
-  background-color: #efefef;
-  border-radius: 25px;
-  padding: 20px;
-}
-
-.article-title {
-  color: #444;
+  max-width: 1000px;
+  padding: 100px;
+  
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 20px;
-  letter-spacing: 0.2px;
-  margin-bottom: 19px;
 }
-
-.article-text {
-  color: #5a5a5a;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: 0.2px;
+/*Login box title*/
+.login-page-title {
+  font-size: 40px;
+  font-weight: bold;
+  
+  color: #fff;
+  margin-bottom: 8px;
+  font-family: 'Courier';
 }
-
-.content-blocks {
+.login-page-subtitle {
+  font-size: 30px;
+  color: #fff;
+  margin-bottom: 40px;
+  
+}
+.login-page-content {
+  flex-grow: 1;
   display: flex;
-  flex-direction: column;
-  gap: 90px;
-  flex: 1 1 732px;
-  max-width: 100%;
-}
-
-.content-block {
-  width: 100%;
-  height: auto;
-  border-radius: 25px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column; /* Stack content on mobile */
   align-items: center;
-  padding: 20px;
-  gap: 15px;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
 }
 
-.beige-block {
-  background-color: #decda7;
-}
-
-.blue-block {
-  background-color: #d1dae2;
-}
-
-.block-image {
+.button-row {
+  display: flex;
+  flex-direction: row; /* Arranges buttons side-by-side */
+  gap: 15px; /* Adds space between them */
+  margin-bottom: 45px;
   width: 100%;
-  max-width: 207px;
-  height: auto;
+}
+
+.login-option-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
   border-radius: 25px;
-  object-fit: cover;
-}
-
-.block-content {
-  background-color: #efefef;
-  border-radius: 25px;
-  padding: 24px;
-  flex: 1;
-  min-width: 250px;
-}
-
-.block-title {
-  color: #444;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 20px;
-  letter-spacing: 0.2px;
-  margin-bottom: 10px;
-}
-
-.block-text {
-  color: #5a5a5a;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: 0.2px;
-}
-
-@media (max-width: 1200px) {
-  .content-wrapper {
-    flex-direction: column;
-    align-items: center;
-  }
-  .feature-article,
-  .content-blocks {
-    max-width: 732px;
-    width: 100%;
-  }
-}
-
-/* Specific media queries for different screen sizes */
-@media (min-width: 768px) {
-  .main-content {
-    padding: 60px 40px;
-  }
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.1s;
+  font-family: 'Courier';
   
-  .content-wrapper {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
+}
+.login-option-btn:hover {
+  transform: translateY(-2px);
+}
+.primary-option {
+  background-color: #003295;
+  color: #fff;
+}
+.primary-option:hover {
+  background-color: #002c5d;
+}
+.secondary-option {
+  background-color: #ffb916;
+  color: #003295;
+}
+.secondary-option:hover {
+  background-color:#db9914;
+}
+.guest-option {
+  background-color: transparent;
+  color: #fff;
+  border: 4px solid#003295;
+}
+.guest-option:hover {
+  background-color: #f1f1f12c;
+}
+.divider {
   
-  .content-block {
-    flex-direction: row;
-  }
+  align-items: center; /* Vertically center the text and lines */
+  text-align: center;
+  margin: 25px 0 20px;
+  font-size: 40px;
+  color: #fff;
+  width: 100%;
+  font-family: 'Courier';
 }
 
-@media (max-width: 850px) {
-  .header-right {
-    gap: 15px;
-  }
-  .nav-list {
-    gap: 15px;
-  }
+.divider::before,
+.divider::after {
+  content: "";
+  flex-grow: 1; /* Makes the lines stretch to fill the space */
+  height: 2px;
+  background-color: #fff; /* Lighter divider line */
 }
 
-@media (max-width: 767px) {
-  /* Ensure mobile menu doesn't overlap content */
-  .nav-active + .main-content {
-    padding-top: 250px; /* Add more space to account for the mobile menu */
-  }
+.divider_bottom{
+  content: "";
+  flex-grow: 1; /* Makes the lines stretch to fill the space */
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3); /* Lighter divider line */
+  align-items: center; /* Vertically center the text and lines */
+  text-align: center;
+  margin: 25px 0 20px;
+  font-size: 40px;
+  color: #fff;
+  width: 100%;
+
   
-  /* Make sure text is readable on smaller screens */
-  .article-title {
-    font-size: 16px;
-  }
-  
-  .article-text {
-    font-size: 14px;
-  }
+
 }
+
+
+
+/* --- Media Queries --- */
 @media (max-width: 768px) {
   .mobile-menu-toggle {
     display: flex;
-    z-index: 102;
   }
-
   .nav-list {
     position: absolute;
     top: 83px;
@@ -321,61 +314,25 @@ body {
     opacity: 0;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
-
   .nav-active {
     transform: scaleY(1);
     opacity: 1;
   }
-
   .nav-item {
     margin: 10px 0;
     width: 100%;
   }
-
   .nav-link {
     display: block;
     width: 100%;
     text-align: left;
     padding: 10px 0;
   }
-
-  .nav-link:after {
-    display: none;
-  }
 }
-
-@media (max-width: 640px) {
-  .logo-container {
-    gap: 20px;
-  }
-  .site-title {
-    font-size: 24px;
-  }
-  .main-content {
-    padding: 40px 20px;
-  }
-  .article-content {
-    margin: 22px 20px;
-  }
-  .feature-image {
-    height: auto;
-  }
-  .content-block {
-    flex-direction: column;
-    padding: 20px;
-  }
-  .block-image {
-    width: 100%;
-    height: auto;
-    max-width: 207px;
-    max-height: 207px;
-  }
-}
-
 @media (max-width: 480px) {
   .site-header {
     height: auto;
-    padding: 15px;
+    padding: 150px;
   }
   .logo {
     width: 45px;
@@ -384,4 +341,13 @@ body {
   .site-title {
     font-size: 20px;
   }
+  .login-card {
+    padding: 100px 20px;
+  }
+}
+
+.login-card-logo {
+  width: 250px; /* Adjust the size of the logo as needed */
+  height: auto;
+  margin-bottom: 10px; /* Adds space between the logo and the title */
 }

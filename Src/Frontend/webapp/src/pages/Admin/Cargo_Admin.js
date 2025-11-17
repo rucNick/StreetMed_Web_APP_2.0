@@ -201,7 +201,7 @@ const Cargo_Admin = ({ userData }) => {
         <div className="header-content">
           <div className="logo-container">
             <img src="/Untitled.png" alt="Logo" className="logo" />
-            <span className="site-title">Cargo Management System</span>
+            <span className="site-title" style={{ color: '#fff' }} >Cargo Management System</span>
           </div>
           <div className="header-right">
             <button className="manage-btn" onClick={() => navigate(-1)}>
@@ -212,7 +212,12 @@ const Cargo_Admin = ({ userData }) => {
       </header>
 
       <main className="main-content">
-        <div className="cargo-container">
+        <div className="cargo-container"style={{
+      maxWidth: '1100px',  
+      width: '100%',
+      margin: '0 auto',
+      padding: '24px', 
+    }}>
           <div className="cargo-header">
             <h2 className="cargo-title">Cargo Status</h2>
             <button 
@@ -229,7 +234,7 @@ const Cargo_Admin = ({ userData }) => {
             <div style={{ 
               padding: '10px', 
               margin: '10px 0', 
-              backgroundColor: '#ffebee', 
+              backgroundColor: '#0f1c38', 
               color: '#c62828', 
               borderRadius: '4px' 
             }}>
@@ -279,7 +284,7 @@ const Cargo_Admin = ({ userData }) => {
                                 className="manage-btn"
                                 onClick={() => handleDeleteItem(item.id)}
                                 style={{ 
-                                  backgroundColor: '#f44336', 
+                                  backgroundColor: '#0f1c38', 
                                   color: 'white',
                                   fontSize: '12px',
                                   padding: '4px 8px'

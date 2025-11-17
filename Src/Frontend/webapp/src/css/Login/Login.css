@@ -1,183 +1,277 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #c8c9c7;
-    min-height: 100vh;
-  }
-  
-  .site-header {
-    width: 100%;
-    height: 83px;
-    background-color: #d9d9d9;
-    display: flex;
-    align-items: center;
-    padding: 0 27px;
-  }
-  
-  .logo-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .logo {
-    width: 65px;
-    height: 65px;
-    object-fit: contain;
-  }
-  
-  .site-title {
-    font-size: 36px;
-    font-weight: 400;
-    color: #444;
-    line-height: 20px;
-    letter-spacing: 0.1px;
-  }
-  
-  .page-container {
-    width: 100%;
-    min-height: calc(100vh - 83px);
-  }
-  
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px 20px;
-    min-height: calc(100vh - 83px); 
-  }
-  
-  .login-card {
-    background-color: #d1dae2;
-    border-radius: 25px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 420px;
-    padding: 30px;
-    margin: 0 auto;
-  }
-  
-  .login-title {
-    font-size: 24px;
-    font-weight: 600;
-    text-align: center;
-    color: #333;
-    margin-bottom: 24px;
-  }
-  
-  .login-card form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .input-group label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-  }
-  
-  .input-group input {
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .forgot-password {
-    display: inline-block;
-    text-decoration: underline;
-    font-size: 14px;
-    color: #555;
-    text-align: right;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-  
-  .login-btn {
-    display: block;
-    width: 100%;
-    padding: 12px 0;
-    border: none;
-    border-radius: 25px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  
-  .login-btn-login {
-    background-color: #003e7e;
-    color: #fff;
-  }
-  
-  .login-btn-signup {
-    background-color: #f78702;
-    color: #fff;
-  }
-  
-  .divider {
-    position: relative;
-    text-align: center;
-    margin: 20px 0;
-    font-size: 14px;
-    color: #888;
-  }
-  
-  .divider span {
-    background-color: #d1dae2; 
-    padding: 0 10px;
-    position: relative;
-    z-index: 1;
-  }
-  
-  .divider::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background-color: #ccc;
-    z-index: 0;
-  }
+/*
+ * Login.css - Themed for Street Med Go
+ * This file styles the authenticated Login page with the same aesthetic as Before_Login.
+*/
 
-  .go-back-btn {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #003e7e;
+/* --- Global and Reset --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Courier;
+  background-color: transparent; /* Allows background wrapper to show */
+}
+
+/* --- Full-Screen Background Wrapper (This will be in App.js or a top-level component) --- */
+.login-page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- The Blurred Background Layer --- */
+.login-page-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  background-image: url("/public/skyline.jpg"); /* **The image path goes here** */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* Add this line to match the blur */
+  filter: blur(5px); 
+  transform: scale(1.05);
+  z-index: -2;
+}
+
+/* --- The Dark Overlay --- */
+.login-page-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+/* --- Header --- */
+.login-site-header {
+  width: 100%;
+  height: 83px;
+  background-color: rgba(217, 217, 217, 0.105); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 27px;
+  position: relative;
+  z-index: 10;
+  
+}
+.login-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+}
+.login-logo {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+}
+/*"street med go"*/
+.login-site-title {
+  font-size: 30px;
+  font-weight: 600;
+  color: #444;
+  font-family: Courier;
+}
+.login-go-back-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: background 0.3s ease;
+  text-decoration: none;
+  font-weight: bold;
+  font-family: Courier;
+}
+.login-go-back-btn:hover {
+  background-color: rgba(0, 62, 126, 0.1);
+}
+
+/* --- Login Content Wrapper --- */
+.login-content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Login Card */
+.login-card {
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-radius: 25px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  font-family: Courier;
+}
+
+.login-card-title {
+  padding: 0px;
+  font-size: 40px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 50px;
+
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+ 
+}
+
+/*Username and password above box */
+.input-group label {
+  font-size: 30px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.input-group input {
+  padding: 10px;
+  padding-left: 50px;
+  font-size: 30px;
+  border: 1px solid #000000;
+  border-radius: 25px;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000000;
+  font-family: Courier;
+}
+.input-group input:focus {
+    border-color: #003e7e;
+    outline: none;
+}
+
+.forgot-password-link {
+  display: inline-block;
+  text-decoration: underline;
+  font-size: 24px;
+  color: #fff;
+  text-align: right;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.forgot-password-link:hover {
+    color: #e4b557;
+}
+
+.login-message {
+    color: #ff4d4f;
     font-size: 14px;
+    margin-top: -10px;
+}
+
+.login-submit-btn {
+  display: block;
+  width: 40%;
+  align-self: center;
+  padding: 10px 0;
+  border: none;
+  border-radius: 25px;
+  font-size: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #003e7e;
+  color: #fff;
+  transition: background-color 0.3s, transform 0.1s;
+  font-family: Courier;
+
+}
+.login-submit-btn:hover {
+  background-color: #002c5d;
+  transform: translateY(-2px);
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+  font-size: 14px;
+  color: #fff;
+}
+.divider span {
+  background-color: transparent;
+  padding: 0 10px;
+  position: relative;
+  z-index: 1;
+}
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #fff;
+  z-index: 0;
+}
+
+.signup-text {
+    font-size: 20px;
+    color: #fff;
+    margin-top: 20px;
+}
+
+.signup-link {
+    text-decoration: underline;
+    font-size: 24px;
+    color: #e4b557;
     cursor: pointer;
-    padding: 8px 16px;
-    transition: background 0.3s ease;
+}
+.signup-link:hover {
+    color: #d1a54c;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 20px;
   }
-  
-  .go-back-btn:hover {
-    background-color: rgba(0, 62, 126, 0.1);
+  .login-title {
+    font-size: 20px;
   }
-  
-  @media (max-width: 480px) {
-    .login-card {
-      padding: 20px;
-    }
-    .login-title {
-      font-size: 20px;
-    }
-    .login-btn {
-      font-size: 14px;
-    }
+  .login-btn {
+    font-size: 14px;
   }
-  
+}
+.Logo{
+  width: 900px; 
+  height: auto;
+  margin-bottom: 20px;
+}
