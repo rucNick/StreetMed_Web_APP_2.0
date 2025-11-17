@@ -314,7 +314,7 @@ const AdminOrders = ({ userData }) => {
             </span>
             <button
               className="manage-btn"
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/')}
             >
               ← Back to Dashboard
             </button>
