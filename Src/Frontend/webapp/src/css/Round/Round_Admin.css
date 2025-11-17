@@ -1,11 +1,12 @@
 /* ---------- page shell ------------------------------------------------ */
 .rounds-container {
-  background-color: #c8c9c7;
+  background-color: #0f1c38;
   min-height: calc(100vh - 83px);
   padding: 60px 40px;
   font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
+  color: #0f1c38;
 }
 
 .rounds-title {
@@ -13,7 +14,7 @@
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 40px;
-  color: #333;
+  color: #ffffff;
 }
 
 /* ---------- top nav --------------------------------------------------- */
@@ -29,13 +30,14 @@
   padding: 12px 28px;
   border-radius: 999px;
   background-color: #d1dae2;
-  color: #333;
+  color: #ffffff;
   border: none;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.25s;
 }
+
 
 .nav-btn:hover,
 .nav-btn.active {
@@ -54,7 +56,7 @@
 
 /* ---------- main card / section -------------------------------------- */
 .rounds-section {
-  background-color: #ffffff;
+  background-color: #212c46;
   border-radius: 20px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   padding: 30px;
@@ -73,7 +75,8 @@
 
 .section-header h2 {
   font-size: 24px;
-  color: #444;
+  color: #a42b2b;
+
   margin: 0;
 }
 
@@ -110,6 +113,7 @@
   width: 100%;
   border-collapse: collapse;
   background: #f9f9f9;
+  border-radius: 20px;
 }
 
 .table-header-cell {
@@ -118,6 +122,7 @@
   font-weight: 600;
   font-size: 14px;
   border: 1px solid #ccc;
+
 }
 
 .table-cell {
@@ -125,10 +130,11 @@
   border: 1px solid #ccc;
   font-size: 14px;
   background: #ffffff;
+
 }
 
 .action-button {
-  background: #decda7;
+  background: #ffb921 ;
   border: none;
   padding: 8px 16px;
   border-radius: 20px;
@@ -143,7 +149,7 @@
 
 /* ---------- forms ----------------------------------------------------- */
 .form-card {
-  background: #d1dae2;
+  background: #0f1c38;
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
@@ -240,9 +246,10 @@
   align-items: center;
   justify-content: space-between;
   height: 83px;
-  background-color: #d9d9d9;
+  background-color: #ffb921;
   padding: 0 27px;
   margin-bottom: 25px;
+  border-radius: 20px;
 }
 
 .navbar-left,
@@ -286,11 +293,34 @@
 .form-title {
   text-align: center;
   font-size: 24px;
-  color: #444;
+  color: #ffffff;
   margin-bottom: 10px;
 }
 
 .section-header:only-child,
 .section-header .btn-group:empty {
   justify-content: center;
+  background: #ffb921;  
 }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  /* NEW: make it a yellow strip */
+  padding: 14px 20px;
+  margin-bottom: 25px;
+  border-radius: 16px;
+  background: #ffb921;                 /* Pitt yellow */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.section-header h2 {
+  font-size: 20px;
+  margin: 0;
+  color: #003594;                      /* deep blue text */
+}
+
+
