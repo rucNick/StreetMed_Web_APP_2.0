@@ -63,16 +63,24 @@ body {
 .main-content {
   padding: 40px 60px;
 }
-
+/* 
 .cargo-container {
-  /* header is 65px; subtract main-content padding (24*2) and a little buffer */
   max-height: calc(100vh - 65px - 48px - 16px);
-  overflow: hidden; /* prevent the page from scrolling */
+  overflow: hidden; 
   padding: 20px;
   margin: 0 auto;
   background: #212c46;
 
+} */
+
+.cargo-container {
+  background:#212c46 ;
+  border-radius:12px;
+  padding:30px;
+  box-shadow:0 3px 6px rgba(0,0,0,0.1);
 }
+
+
 
 .cargo-header {
   display: flex;
@@ -94,7 +102,7 @@ body {
   gap: 12px;
   height: 100%;
   padding: 20px;
-  background-color: #212c46;
+  background: #d1dae2;
 
 }
 
@@ -212,7 +220,7 @@ body {
 }
 
 .beige-block {
-  background: #decda7
+  background: #d1dae2
 }
 
 .block-content {
@@ -278,7 +286,7 @@ body {
 }
 
 /* Buttons: Street Med gold */
-.manage-btn,
+
 .drawer-toggle,
 .cargo-button,
 .cargo-small-btn {

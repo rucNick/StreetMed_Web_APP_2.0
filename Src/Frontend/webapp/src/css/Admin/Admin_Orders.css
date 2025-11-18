@@ -50,17 +50,7 @@
   padding: 0 30px 30px;
 }
 
-/* Manage Button Styles */
-.manage-btn {
-  padding: 8px 16px;
-  background-color: #1890ff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
+
 
 .manage-btn:hover {
   background-color: #40a9ff;
@@ -75,9 +65,9 @@
 }
 
 /* Cargo/Orders Card Styles */
-.cargo-card,
+
 .orders-card {
-  background-color: white;
+  background-color: #212c46;
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -95,7 +85,7 @@
 .orders-title {
   font-size: 28px;
   font-weight: bold;
-  color: #333;
+  color: #ffffff;
 }
 
 /* Filter Group Styles */
@@ -122,9 +112,9 @@
 }
 
 .filter-btn.active {
-  background-color: #1890ff;
-  color: white;
-  border-color: #1890ff;
+  background-color: #f6b801;
+  color: rgb(0, 0, 0);
+  border-color: #f6b801;
 }
 
 /* Table Styles */
@@ -385,4 +375,8 @@
 .summary-footer .timestamp {
   font-size: 12px;
   color: #666;
+}
+
+.user-info{
+  color: #ffffff;
 }
