@@ -201,7 +201,7 @@ const Cargo_Admin = ({ userData }) => {
         <div className="header-content">
           <div className="logo-container">
             <img src="/Untitled.png" alt="Logo" className="logo" />
-            <span className="site-title" style={{ color: '#fff' }} >Cargo Management System</span>
+            <span className="site-title" style={{ color: '#fff' }} >Inventory Management System</span>
           </div>
           <div className="header-right">
             <button className="manage-btn" onClick={() => navigate(-1)}>
@@ -214,7 +214,7 @@ const Cargo_Admin = ({ userData }) => {
       <main className="main-content">
         <div className="cargo-container">
           <div className="cargo-header">
-            <h2 className="cargo-title">Cargo Status</h2>
+            <h2 className="cargo-title">Inventory Status</h2>
             <button 
               className="manage-btn" 
               onClick={fetchAllItems}
