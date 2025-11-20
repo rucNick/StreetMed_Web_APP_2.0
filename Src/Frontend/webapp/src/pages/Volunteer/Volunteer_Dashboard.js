@@ -350,6 +350,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
                     <p><strong>Items:</strong> {assignment.items?.map(i => {
                       let itemText = `${i.itemName} (${i.quantity})`;
                       if (i.size) itemText = `${i.itemName} [${i.size}] (${i.quantity})`;
+                      if (i.isCustom) itemText += ' 🛒[CUSTOM]';
                       return itemText;
                     }).join(', ')}</p>
                     <p><strong>Address:</strong> {assignment.deliveryAddress}</p>

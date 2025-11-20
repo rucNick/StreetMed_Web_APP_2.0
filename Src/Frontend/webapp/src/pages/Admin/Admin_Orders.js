@@ -258,16 +258,24 @@ const AdminOrders = ({ userData }) => {
 
   // Format order items with sizes
   const formatOrderItems = (orderItems) => {
-    if (!orderItems || orderItems.length === 0) return 'N/A';
+  if (!orderItems || orderItems.length === 0) return 'N/A';
+  
+  return orderItems.map(item => {
+    let itemText = `${item.itemName} (${item.quantity})`;
     
-    return orderItems.map(item => {
-      let itemText = `${item.itemName} (${item.quantity})`;
-      if (item.size) {
-        itemText = `${item.itemName} [${item.size}] (${item.quantity})`;
-      }
-      return itemText;
-    }).join(', ');
-  };
+    // Add size if present
+    if (item.size) {
+      itemText = `${item.itemName} [${item.size}] (${item.quantity})`;
+    }
+    
+    // Add custom indicator
+    if (item.isCustom) {
+      itemText += ' 🛒[CUSTOM]';
+    }
+    
+    return itemText;
+  }).join(', ');
+};
 
   // Get order type display
   const getOrderTypeDisplay = (order) => {
@@ -427,8 +435,25 @@ const AdminOrders = ({ userData }) => {
                       <td>{getOrderTypeDisplay(order)}</td>
                       <td>{order.userId === -1 ? 'Guest' : `User #${order.userId}`}</td>
                       <td title={formatOrderItems(order.orderItems)}>
-                        {formatOrderItems(order.orderItems)}
-                      </td>
+                      <div style={{ maxWidth: '300px' }}>
+                        {order.orderItems && order.orderItems.map((item, idx) => (
+                          <div key={idx} style={{ 
+                            fontSize: '12px', 
+                            marginBottom: '2px',
+                            padding: '2px 4px',
+                            backgroundColor: item.isCustom ? '#fff3e0' : 'transparent',
+                            borderRadius: '3px',
+                            display: 'inline-block',
+                            marginRight: '4px'
+                          }}>
+                            {item.itemName} 
+                            {item.size && ` [${item.size}]`} 
+                            ({item.quantity})
+                            {item.isCustom && <span style={{ color: '#ff6100', marginLeft: '4px', fontWeight: 'bold' }}>✋ CUSTOM</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
                       <td>{order.deliveryAddress || 'N/A'}</td>
                       <td>{order.phoneNumber || 'N/A'}</td>
                       <td title={order.notes || 'N/A'}>
