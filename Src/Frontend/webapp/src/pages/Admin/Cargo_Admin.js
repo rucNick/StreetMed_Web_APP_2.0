@@ -3,55 +3,32 @@ import { secureAxios } from '../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import '../../css/Admin/Cargo_Admin.css';
 
+// Predefined size options from XXS to XXXL
+const SIZE_OPTIONS = [
+  { value: 'XXS', label: 'XXS', order: 0 },
+  { value: 'XS', label: 'XS', order: 1 },
+  { value: 'S', label: 'S', order: 2 },
+  { value: 'M', label: 'M', order: 3 },
+  { value: 'L', label: 'L', order: 4 },
+  { value: 'XL', label: 'XL', order: 5 },
+  { value: 'XXL', label: 'XXL', order: 6 },
+  { value: 'XXXL', label: 'XXXL', order: 7 }
+];
 
-// 🔹 Helper: sort sizes in clothing order: XS, S, M, L, XL, XXL, 3XL, 4XL, ...
+// Helper to get sort order for a size
+const getSizeOrder = (size) => {
+  const sizeOption = SIZE_OPTIONS.find(opt => opt.value === size);
+  return sizeOption ? sizeOption.order : 999;
+};
+
+// Helper to sort size entries
 const getSortedSizeEntries = (sizeQuantities = {}) => {
   const entries = Object.entries(sizeQuantities);
   if (entries.length === 0) return [];
-
-  // normalize size strings
-  const normalize = (s) => s.replace(/\s+/g, '').toUpperCase();
-
-  // return a numeric rank for clothing sizes
-  const clothingRank = (sz) => {
-    const s = normalize(sz);
-
-    // base clothing order
-    const baseOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    const baseIdx = baseOrder.indexOf(s);
-    if (baseIdx !== -1) return baseIdx; // XS..XXL → 0..5
-
-    // extended sizes like 3XL, 4XL, 5XL, ...
-    const m = s.match(/^(\d+)XL$/); // e.g. "3XL"
-    if (m) {
-      const n = Number(m[1]);
-      if (!Number.isNaN(n) && n >= 3) {
-        // 3XL → rank 6, 4XL → 7, etc.
-        return baseOrder.length + (n - 3);
-      }
-    }
-
-    // unknown / weird labels → no clothing rank
-    return null;
-  };
-
-  const allClothingLike = entries.every(([sz]) => clothingRank(sz) !== null);
-
-  if (allClothingLike) {
-    // sort by clothing rank
-    return entries.sort(
-      ([szA], [szB]) => clothingRank(szA) - clothingRank(szB)
-    );
-  }
-
-  // If they’re numeric (like shoe sizes) → numeric sort
-  const allNumeric = entries.every(([sz]) => !isNaN(Number(sz)));
-  if (allNumeric) {
-    return entries.sort((a, b) => Number(a[0]) - Number(b[0]));
-  }
-
-  // Fallback → alphabetical
-  return entries.sort((a, b) => a[0].localeCompare(b[0]));
+  
+  return entries.sort((a, b) => {
+    return getSizeOrder(a[0]) - getSizeOrder(b[0]);
+  });
 };
 
 const Cargo_Admin = ({ userData }) => {
@@ -67,7 +44,6 @@ const Cargo_Admin = ({ userData }) => {
       setIsLoading(true);
       setAllItemsError('');
 
-      // Use secureAxios for admin operations (HTTPS required)
       const res = await secureAxios.get('/api/cargo/items', {
         headers: {
           'Admin-Username': userData.username,
@@ -94,7 +70,8 @@ const Cargo_Admin = ({ userData }) => {
 
   // === Add New Item State ===
   const [newItemData, setNewItemData] = useState({
-    name: '', description: '', category: '', quantity: 0
+    name: '', description: '', category: '', quantity: 0, minQuantity: 5,
+    isAvailable: true, needsPrescription: false
   });
   const [newSizeEntries, setNewSizeEntries] = useState([]);
   const [newItemImage, setNewItemImage] = useState(null);
@@ -102,43 +79,173 @@ const Cargo_Admin = ({ userData }) => {
   // === Update Item State ===
   const [updateItemId, setUpdateItemId] = useState('');
   const [updateItemData, setUpdateItemData] = useState({
-    name: '', description: '', category: '', quantity: 0
+    name: '', description: '', category: '', quantity: 0, minQuantity: 5,
+    isAvailable: true, needsPrescription: false
   });
+  const [updateSizeEntries, setUpdateSizeEntries] = useState([]);
   const [updateItemImage, setUpdateItemImage] = useState(null);
 
-  // === Drawer toggles ===
+  // === Modal/Drawer toggles ===
   const [showAdd, setShowAdd] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
 
-  // === Helpers ===
-  const handleAddSizeEntry = () =>
-    setNewSizeEntries([...newSizeEntries, { size: '', quantity: 0 }]);
+  // === Delete Confirmation Modal ===
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
+
+  // === Helper Functions ===
+  
+  // Get available sizes that haven't been added yet
+  const getAvailableSizesForAdd = () => {
+    const usedSizes = new Set(newSizeEntries.map(e => e.size));
+    return SIZE_OPTIONS.filter(size => !usedSizes.has(size.value));
+  };
+
+  const getAvailableSizesForUpdate = () => {
+    const usedSizes = new Set(updateSizeEntries.map(e => e.size));
+    return SIZE_OPTIONS.filter(size => !usedSizes.has(size.value));
+  };
+
+  const handleAddSizeEntry = () => {
+    const availableSizes = getAvailableSizesForAdd();
+    if (availableSizes.length === 0) {
+      alert('All sizes have been added');
+      return;
+    }
+    setNewSizeEntries([...newSizeEntries, { size: availableSizes[0].value, quantity: 0 }]);
+  };
 
   const handleSizeEntryChange = (idx, field, val) => {
     const tmp = [...newSizeEntries];
-    tmp[idx] = { ...tmp[idx], [field]: field === 'quantity' ? +val : val };
+    if (field === 'quantity') {
+      tmp[idx] = { ...tmp[idx], quantity: Math.max(0, parseInt(val) || 0) };
+    } else {
+      tmp[idx] = { ...tmp[idx], [field]: val };
+    }
+    // Sort entries after change
+    tmp.sort((a, b) => getSizeOrder(a.size) - getSizeOrder(b.size));
     setNewSizeEntries(tmp);
   };
 
   const handleRemoveSizeEntry = idx =>
     setNewSizeEntries(newSizeEntries.filter((_, i) => i !== idx));
 
+  // Update size entries handlers
+  const handleUpdateSizeEntryChange = (idx, field, val) => {
+    const tmp = [...updateSizeEntries];
+    if (field === 'quantity') {
+      tmp[idx] = { ...tmp[idx], quantity: Math.max(0, parseInt(val) || 0) };
+    } else {
+      tmp[idx] = { ...tmp[idx], [field]: val };
+    }
+    // Sort entries after change
+    tmp.sort((a, b) => getSizeOrder(a.size) - getSizeOrder(b.size));
+    setUpdateSizeEntries(tmp);
+  };
+
+  const handleAddUpdateSizeEntry = () => {
+    const availableSizes = getAvailableSizesForUpdate();
+    if (availableSizes.length === 0) {
+      alert('All sizes have been added');
+      return;
+    }
+    const newEntry = { size: availableSizes[0].value, quantity: 0 };
+    const updatedEntries = [...updateSizeEntries, newEntry];
+    // Sort entries
+    updatedEntries.sort((a, b) => getSizeOrder(a.size) - getSizeOrder(b.size));
+    setUpdateSizeEntries(updatedEntries);
+  };
+
+  const handleRemoveUpdateSizeEntry = idx => {
+    setUpdateSizeEntries(updateSizeEntries.filter((_, i) => i !== idx));
+  };
+
   const renderStatus = qty => {
-    if (qty === 0) return <span className="status out">Out</span>;
-    if (qty < 5) return <span className="status low">Low</span>;
-    return <span className="status fine">Fine</span>;
+    if (qty === 0) return <span className="status out">Out of Stock</span>;
+    if (qty < 5) return <span className="status low">Low Stock</span>;
+    return <span className="status fine">In Stock</span>;
+  };
+
+  // === Click row to update ===
+  const handleRowClick = (item) => {
+    setUpdateItemId(item.id.toString());
+    setUpdateItemData({
+      name: item.name || '',
+      description: item.description || '',
+      category: item.category || '',
+      quantity: item.quantity || 0,
+      minQuantity: item.minQuantity || 5,
+      isAvailable: item.isAvailable !== false,
+      needsPrescription: item.needsPrescription || false
+    });
+    
+    // Convert size quantities to editable array format and sort
+    if (item.sizeQuantities && Object.keys(item.sizeQuantities).length > 0) {
+      const sizes = Object.entries(item.sizeQuantities)
+        .map(([size, qty]) => ({ size, quantity: qty }))
+        .sort((a, b) => getSizeOrder(a.size) - getSizeOrder(b.size));
+      setUpdateSizeEntries(sizes);
+    } else {
+      setUpdateSizeEntries([]);
+    }
+    
+    setUpdateItemImage(null);
+    setShowUpdate(true);
+    setShowAdd(false);
+  };
+
+  // Validation function
+  const validateItemData = (itemData, sizeEntries) => {
+    const errors = [];
+    
+    if (!itemData.name || itemData.name.trim() === '') {
+      errors.push('Item name is required');
+    }
+    
+    if (sizeEntries.length === 0 && itemData.quantity < 0) {
+      errors.push('Quantity cannot be negative');
+    }
+    
+    const sizeNames = new Set();
+    for (const entry of sizeEntries) {
+      if (!entry.size) {
+        errors.push('Size selection is required');
+      } else {
+        if (sizeNames.has(entry.size)) {
+          errors.push(`Duplicate size: ${entry.size}`);
+        }
+        sizeNames.add(entry.size);
+      }
+      
+      if (entry.quantity < 0) {
+        errors.push(`Size '${entry.size}' cannot have negative quantity`);
+      }
+    }
+    
+    if (itemData.minQuantity < 0) {
+      errors.push('Minimum quantity cannot be negative');
+    }
+    
+    return errors;
   };
 
   const handleAddNewItem = async () => {
+    const errors = validateItemData(newItemData, newSizeEntries);
+    
+    if (errors.length > 0) {
+      alert('Validation errors:\n' + errors.join('\n'));
+      return;
+    }
+    
     try {
       const sizeQuantities = {};
       newSizeEntries.forEach(e => {
-        if (e.size) {
-          sizeQuantities[e.size] = e.quantity;
+        if (e.size && e.quantity >= 0) {
+          sizeQuantities[e.size] = Math.max(0, e.quantity);
         }
       });
 
-      let finalQuantity = newItemData.quantity;
+      let finalQuantity = Math.max(0, newItemData.quantity);
       if (Object.keys(sizeQuantities).length > 0) {
         finalQuantity = Object.values(sizeQuantities).reduce((a, b) => a + b, 0);
       }
@@ -146,7 +253,10 @@ const Cargo_Admin = ({ userData }) => {
       const dataToSend = {
         ...newItemData,
         quantity: finalQuantity,
-        sizeQuantities
+        sizeQuantities,
+        minQuantity: Math.max(0, newItemData.minQuantity || 0),
+        isAvailable: newItemData.isAvailable !== false,
+        needsPrescription: newItemData.needsPrescription || false
       };
 
       const fd = new FormData();
@@ -155,7 +265,6 @@ const Cargo_Admin = ({ userData }) => {
         fd.append('image', newItemImage);
       }
 
-      // Use secureAxios for admin operations
       const resp = await secureAxios.post('/api/cargo/items', fd, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -165,7 +274,10 @@ const Cargo_Admin = ({ userData }) => {
       });
 
       alert(resp.data.message || 'Item added successfully');
-      setNewItemData({ name: '', description: '', category: '', quantity: 0 });
+      setNewItemData({ 
+        name: '', description: '', category: '', quantity: 0, 
+        minQuantity: 5, isAvailable: true, needsPrescription: false 
+      });
       setNewSizeEntries([]);
       setNewItemImage(null);
       setShowAdd(false);
@@ -178,43 +290,64 @@ const Cargo_Admin = ({ userData }) => {
 
   const handleUpdateItem = async () => {
     if (!updateItemId) {
-      alert('Enter Item ID to update');
+      alert('No item selected for update');
+      return;
+    }
+
+    const errors = validateItemData(updateItemData, updateSizeEntries);
+    
+    if (errors.length > 0) {
+      alert('Validation errors:\n' + errors.join('\n'));
       return;
     }
 
     try {
-      // Update item data
-      const resp1 = await secureAxios.put(
+      const sizeQuantities = {};
+      updateSizeEntries.forEach(e => {
+        if (e.size && e.quantity >= 0) {
+          sizeQuantities[e.size] = Math.max(0, e.quantity);
+        }
+      });
+
+      let finalQuantity = Math.max(0, updateItemData.quantity);
+      if (Object.keys(sizeQuantities).length > 0) {
+        finalQuantity = Object.values(sizeQuantities).reduce((a, b) => a + b, 0);
+      }
+
+      const dataToSend = {
+        ...updateItemData,
+        quantity: finalQuantity,
+        sizeQuantities,
+        minQuantity: Math.max(0, updateItemData.minQuantity || 0),
+        isAvailable: updateItemData.isAvailable !== false,
+        needsPrescription: updateItemData.needsPrescription || false
+      };
+
+      const fd = new FormData();
+      fd.append('data', new Blob([JSON.stringify(dataToSend)], { type: 'application/json' }));
+      if (updateItemImage) {
+        fd.append('image', updateItemImage);
+      }
+
+      const resp = await secureAxios.put(
         `/api/cargo/items/${updateItemId}`,
-        updateItemData,
+        fd,
         {
           headers: {
+            'Content-Type': 'multipart/form-data',
             'Admin-Username': userData.username,
             'Authentication-Status': 'true'
           }
         }
       );
 
-      // Update image if provided
-      if (updateItemImage) {
-        const fd = new FormData();
-        fd.append('image', updateItemImage);
-        await secureAxios.put(
-          `/api/cargo/items/${updateItemId}?image`,
-          fd,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Admin-Username': userData.username,
-              'Authentication-Status': 'true'
-            }
-          }
-        );
-      }
-
-      alert(resp1.data.message || 'Item updated successfully');
+      alert(resp.data.message || 'Item updated successfully');
       setUpdateItemId('');
-      setUpdateItemData({ name: '', description: '', category: '', quantity: 0 });
+      setUpdateItemData({ 
+        name: '', description: '', category: '', quantity: 0,
+        minQuantity: 5, isAvailable: true, needsPrescription: false 
+      });
+      setUpdateSizeEntries([]);
       setUpdateItemImage(null);
       setShowUpdate(false);
       fetchAllItems();
@@ -224,13 +357,16 @@ const Cargo_Admin = ({ userData }) => {
     }
   };
 
-  const handleDeleteItem = async (itemId) => {
-    if (!window.confirm(`Are you sure you want to delete item with ID ${itemId}?`)) {
-      return;
-    }
+  const confirmDelete = (itemId) => {
+    setDeleteItemId(itemId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteItem = async () => {
+    if (!deleteItemId) return;
 
     try {
-      const resp = await secureAxios.delete(`/api/cargo/items/${itemId}`, {
+      const resp = await secureAxios.delete(`/api/cargo/items/${deleteItemId}`, {
         headers: {
           'Admin-Username': userData.username,
           'Authentication-Status': 'true'
@@ -238,6 +374,8 @@ const Cargo_Admin = ({ userData }) => {
       });
 
       alert(resp.data.message || 'Item deleted successfully');
+      setShowDeleteConfirm(false);
+      setDeleteItemId(null);
       fetchAllItems();
     } catch (err) {
       console.error("Error deleting item:", err);
@@ -252,7 +390,7 @@ const Cargo_Admin = ({ userData }) => {
         <div className="header-content">
           <div className="logo-container">
             <img src="/Untitled.png" alt="Logo" className="logo" />
-            <span className="site-title" style={{ color: '#fff' }} >Inventory Management System</span>
+            <span className="site-title" style={{ color: '#fff' }}>Inventory Management System</span>
           </div>
           <div className="header-right">
             <button className="manage-btn" onClick={() => navigate(-1)}>
@@ -266,13 +404,21 @@ const Cargo_Admin = ({ userData }) => {
         <div className="cargo-container">
           <div className="cargo-header">
             <h2 className="cargo-title">Inventory Status</h2>
-            <button
-              className="manage-btn"
-              onClick={fetchAllItems}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className="manage-btn"
+                onClick={() => { setShowAdd(true); setShowUpdate(false); }}
+              >
+                Add New Item
+              </button>
+              <button
+                className="manage-btn"
+                onClick={fetchAllItems}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
           </div>
 
           {/* Error Message */}
@@ -289,7 +435,12 @@ const Cargo_Admin = ({ userData }) => {
           )}
 
           <div className="cargo-card">
-            <div className="table-title">Inventory Overview</div>
+            <div className="table-title">
+              Inventory Overview 
+              <span style={{ fontSize: '14px', marginLeft: '10px', color: '#888' }}>
+                (Click any row to update)
+              </span>
+            </div>
             <div className="table-scroll">
               {isLoading ? (
                 <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -303,8 +454,8 @@ const Cargo_Admin = ({ userData }) => {
                       <th>Name</th>
                       <th>Description</th>
                       <th>Category</th>
-                      <th>Total-Quantity</th>
-                      <th>Size / Quantity</th>
+                      <th>Total Qty</th>
+                      <th>Size Details</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -313,29 +464,39 @@ const Cargo_Admin = ({ userData }) => {
                     {allItems.map(item => {
                       const sizes = item.sizeQuantities || {};
                       const sortedSizeEntries = getSortedSizeEntries(sizes);
-
                       const sizeQtyDisplay = sortedSizeEntries
                         .map(([sz, qty]) => `${sz}: ${qty}`)
-                        .join(', '); // → "S: 5, M: 6, L: 8"
+                        .join(', ');
 
                       return (
-                        <tr key={item.id}>
+                        <tr 
+                          key={item.id} 
+                          onClick={() => handleRowClick(item)}
+                          style={{ cursor: 'pointer' }}
+                          className="cargo-row"
+                        >
                           <td>{item.id}</td>
                           <td>{item.name}</td>
                           <td>{item.description}</td>
                           <td>{item.category}</td>
                           <td>{item.quantity}</td>
-                          <td>{sizeQtyDisplay}</td>
+                          <td>{sizeQtyDisplay || '-'}</td>
                           <td>{renderStatus(item.quantity)}</td>
                           <td>
                             <button
-                              className="manage-btn"
-                              onClick={() => handleDeleteItem(item.id)}
+                              className="delete-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                confirmDelete(item.id);
+                              }}
                               style={{
-                                backgroundColor: '#0f1c38',
+                                backgroundColor: '#d32f2f',
                                 color: 'white',
                                 fontSize: '12px',
-                                padding: '4px 8px'
+                                padding: '4px 8px',
+                                border: 'none',
+                                borderRadius: '3px',
+                                cursor: 'pointer'
                               }}
                             >
                               Delete
@@ -345,38 +506,23 @@ const Cargo_Admin = ({ userData }) => {
                       );
                     })}
                   </tbody>
-
-
                 </table>
               )}
             </div>
           </div>
 
-          {/* Drawer buttons */}
-          <div className="drawer-container">
-            <div className="drawer-section">
-              <button
-                className="drawer-toggle"
-                onClick={() => setShowAdd(!showAdd)}
-              >
-                {showAdd ? 'Hide Add Form' : 'Add New Item'}
-              </button>
-            </div>
-            <div className="drawer-section">
-              <button
-                className="drawer-toggle"
-                onClick={() => setShowUpdate(!showUpdate)}
-              >
-                {showUpdate ? 'Hide Update Form' : 'Update Item'}
-              </button>
-            </div>
-          </div>
-
-          {/* Add Form Drawer */}
-          <div className={`drawer-panel ${showAdd ? 'open' : ''}`}>
-            <div className="content-block blue-block">
-              <div className="block-content">
-                <h3 className="block-title">Add New Item</h3>
+          {/* Add Form Modal */}
+          {showAdd && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <button 
+                  className="modal-close"
+                  onClick={() => setShowAdd(false)}
+                >
+                  ×
+                </button>
+                <h3 className="modal-title">Add New Item</h3>
+                
                 <input
                   className="cargo-input"
                   placeholder="Name"
@@ -395,44 +541,70 @@ const Cargo_Admin = ({ userData }) => {
                   value={newItemData.category}
                   onChange={e => setNewItemData({ ...newItemData, category: e.target.value })}
                 />
-                <input
-                  className="cargo-input"
-                  type="number"
-                  placeholder="Quantity"
-                  value={newItemData.quantity}
-                  onChange={e => setNewItemData({ ...newItemData, quantity: +e.target.value })}
-                />
+                
+                {newSizeEntries.length === 0 && (
+                  <input
+                    className="cargo-input"
+                    type="number"
+                    min="0"
+                    placeholder="Quantity (if no sizes)"
+                    value={newItemData.quantity}
+                    onChange={e => setNewItemData({ 
+                      ...newItemData, 
+                      quantity: Math.max(0, parseInt(e.target.value) || 0) 
+                    })}
+                  />
+                )}
 
                 <div className="cargo-sizes">
-                  {newSizeEntries.map((ent, i) => (
-                    <div key={i} className="cargo-size-entry">
-                      <input
-                        className="cargo-input"
-                        placeholder="Size"
-                        value={ent.size}
-                        onChange={e => handleSizeEntryChange(i, 'size', e.target.value)}
-                      />
-                      <input
-                        className="cargo-input"
-                        type="number"
-                        placeholder="Qty"
-                        value={ent.quantity}
-                        onChange={e => handleSizeEntryChange(i, 'quantity', e.target.value)}
-                      />
-                      <button
-                        className="cargo-small-btn"
-                        onClick={() => handleRemoveSizeEntry(i)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  <button className="cargo-button" onClick={handleAddSizeEntry}>
-                    + Add Size Option
-                  </button>
+                  <h4>Size Options:</h4>
+                  {newSizeEntries.map((ent, i) => {
+                    const availableSizes = getAvailableSizesForAdd();
+                    // Include current size in dropdown
+                    const sizesForDropdown = [
+                      ...SIZE_OPTIONS.filter(s => s.value === ent.size),
+                      ...availableSizes
+                    ];
+                    
+                    return (
+                      <div key={i} className="cargo-size-entry">
+                        <select
+                          className="cargo-input size-select"
+                          value={ent.size}
+                          onChange={e => handleSizeEntryChange(i, 'size', e.target.value)}
+                        >
+                          {sizesForDropdown.map(size => (
+                            <option key={size.value} value={size.value}>
+                              {size.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          className="cargo-input qty-input"
+                          type="number"
+                          min="0"
+                          placeholder="Qty"
+                          value={ent.quantity}
+                          onChange={e => handleSizeEntryChange(i, 'quantity', e.target.value)}
+                        />
+                        <button
+                          className="remove-size-btn"
+                          onClick={() => handleRemoveSizeEntry(i)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {getAvailableSizesForAdd().length > 0 && (
+                    <button className="add-size-btn" onClick={handleAddSizeEntry}>
+                      + Add Size Option
+                    </button>
+                  )}
                 </div>
 
-                <div style={{ margin: '12px 0' }}>
+                <div className="image-upload">
+                  <label>Item Image (optional):</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -440,24 +612,30 @@ const Cargo_Admin = ({ userData }) => {
                   />
                 </div>
 
-                <button className="cargo-button" onClick={handleAddNewItem}>
-                  Add Item
-                </button>
+                <div className="modal-actions">
+                  <button className="cargo-button primary" onClick={handleAddNewItem}>
+                    Add Item
+                  </button>
+                  <button className="cargo-button secondary" onClick={() => setShowAdd(false)}>
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Update Form Drawer */}
-          <div className={`drawer-panel ${showUpdate ? 'open' : ''}`}>
-            <div className="content-block beige-block">
-              <div className="block-content">
-                <h3 className="block-title">Update Item</h3>
-                <input
-                  className="cargo-input"
-                  placeholder="Item ID"
-                  value={updateItemId}
-                  onChange={e => setUpdateItemId(e.target.value)}
-                />
+          {/* Update Form Modal */}
+          {showUpdate && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <button 
+                  className="modal-close"
+                  onClick={() => setShowUpdate(false)}
+                >
+                  ×
+                </button>
+                <h3 className="modal-title">Update Item #{updateItemId}</h3>
+                
                 <input
                   className="cargo-input"
                   placeholder="Name"
@@ -476,15 +654,70 @@ const Cargo_Admin = ({ userData }) => {
                   value={updateItemData.category}
                   onChange={e => setUpdateItemData({ ...updateItemData, category: e.target.value })}
                 />
-                <input
-                  className="cargo-input"
-                  type="number"
-                  placeholder="Quantity"
-                  value={updateItemData.quantity}
-                  onChange={e => setUpdateItemData({ ...updateItemData, quantity: +e.target.value })}
-                />
+                
+                {updateSizeEntries.length === 0 && (
+                  <input
+                    className="cargo-input"
+                    type="number"
+                    min="0"
+                    placeholder="Total Quantity"
+                    value={updateItemData.quantity}
+                    onChange={e => setUpdateItemData({ 
+                      ...updateItemData, 
+                      quantity: Math.max(0, parseInt(e.target.value) || 0) 
+                    })}
+                  />
+                )}
 
-                <div style={{ margin: '12px 0' }}>
+                <div className="cargo-sizes">
+                  <h4>Size Options:</h4>
+                  {updateSizeEntries.map((ent, i) => {
+                    const availableSizes = getAvailableSizesForUpdate();
+                    // Include current size in dropdown
+                    const sizesForDropdown = [
+                      ...SIZE_OPTIONS.filter(s => s.value === ent.size),
+                      ...availableSizes
+                    ];
+                    
+                    return (
+                      <div key={i} className="cargo-size-entry">
+                        <select
+                          className="cargo-input size-select"
+                          value={ent.size}
+                          onChange={e => handleUpdateSizeEntryChange(i, 'size', e.target.value)}
+                        >
+                          {sizesForDropdown.map(size => (
+                            <option key={size.value} value={size.value}>
+                              {size.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          className="cargo-input qty-input"
+                          type="number"
+                          min="0"
+                          placeholder="Qty"
+                          value={ent.quantity}
+                          onChange={e => handleUpdateSizeEntryChange(i, 'quantity', e.target.value)}
+                        />
+                        <button
+                          className="remove-size-btn"
+                          onClick={() => handleRemoveUpdateSizeEntry(i)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {getAvailableSizesForUpdate().length > 0 && (
+                    <button className="add-size-btn" onClick={handleAddUpdateSizeEntry}>
+                      + Add Size Option
+                    </button>
+                  )}
+                </div>
+
+                <div className="image-upload">
+                  <label>Update Image (optional):</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -492,13 +725,44 @@ const Cargo_Admin = ({ userData }) => {
                   />
                 </div>
 
-                <button className="cargo-button" onClick={handleUpdateItem}>
-                  Update Item
-                </button>
+                <div className="modal-actions">
+                  <button className="cargo-button primary" onClick={handleUpdateItem}>
+                    Update Item
+                  </button>
+                  <button className="cargo-button secondary" onClick={() => setShowUpdate(false)}>
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirm && (
+            <div className="modal-overlay">
+              <div className="modal-content small">
+                <h3>Confirm Delete</h3>
+                <p>Are you sure you want to delete item #{deleteItemId}?</p>
+                <div className="modal-actions">
+                  <button 
+                    className="cargo-button danger"
+                    onClick={handleDeleteItem}
+                  >
+                    Yes, Delete
+                  </button>
+                  <button 
+                    className="cargo-button secondary"
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteItemId(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
