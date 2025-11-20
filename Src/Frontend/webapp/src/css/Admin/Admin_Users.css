@@ -22,3 +22,13 @@
 .cargo-button {
   flex-shrink: 0;
 }
+
+.manage-btn {
+  background-color: #f6b801;
+  border-radius: 8px;
+  margin-right: 6px;
+  font-size: 12px;
+  padding: 3px 8px;
+  display: inline-block;
+  margin-bottom: 5px;
+}

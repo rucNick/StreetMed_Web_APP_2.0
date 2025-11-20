@@ -3,6 +3,57 @@ import { secureAxios } from '../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import '../../css/Admin/Cargo_Admin.css';
 
+
+// 🔹 Helper: sort sizes in clothing order: XS, S, M, L, XL, XXL, 3XL, 4XL, ...
+const getSortedSizeEntries = (sizeQuantities = {}) => {
+  const entries = Object.entries(sizeQuantities);
+  if (entries.length === 0) return [];
+
+  // normalize size strings
+  const normalize = (s) => s.replace(/\s+/g, '').toUpperCase();
+
+  // return a numeric rank for clothing sizes
+  const clothingRank = (sz) => {
+    const s = normalize(sz);
+
+    // base clothing order
+    const baseOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    const baseIdx = baseOrder.indexOf(s);
+    if (baseIdx !== -1) return baseIdx; // XS..XXL → 0..5
+
+    // extended sizes like 3XL, 4XL, 5XL, ...
+    const m = s.match(/^(\d+)XL$/); // e.g. "3XL"
+    if (m) {
+      const n = Number(m[1]);
+      if (!Number.isNaN(n) && n >= 3) {
+        // 3XL → rank 6, 4XL → 7, etc.
+        return baseOrder.length + (n - 3);
+      }
+    }
+
+    // unknown / weird labels → no clothing rank
+    return null;
+  };
+
+  const allClothingLike = entries.every(([sz]) => clothingRank(sz) !== null);
+
+  if (allClothingLike) {
+    // sort by clothing rank
+    return entries.sort(
+      ([szA], [szB]) => clothingRank(szA) - clothingRank(szB)
+    );
+  }
+
+  // If they’re numeric (like shoe sizes) → numeric sort
+  const allNumeric = entries.every(([sz]) => !isNaN(Number(sz)));
+  if (allNumeric) {
+    return entries.sort((a, b) => Number(a[0]) - Number(b[0]));
+  }
+
+  // Fallback → alphabetical
+  return entries.sort((a, b) => a[0].localeCompare(b[0]));
+};
+
 const Cargo_Admin = ({ userData }) => {
   const navigate = useNavigate();
 
@@ -15,7 +66,7 @@ const Cargo_Admin = ({ userData }) => {
     try {
       setIsLoading(true);
       setAllItemsError('');
-      
+
       // Use secureAxios for admin operations (HTTPS required)
       const res = await secureAxios.get('/api/cargo/items', {
         headers: {
@@ -23,7 +74,7 @@ const Cargo_Admin = ({ userData }) => {
           'Authentication-Status': 'true'
         }
       });
-      
+
       setAllItems(res.data || []);
     } catch (err) {
       console.error("Error fetching items:", err);
@@ -86,24 +137,24 @@ const Cargo_Admin = ({ userData }) => {
           sizeQuantities[e.size] = e.quantity;
         }
       });
-      
+
       let finalQuantity = newItemData.quantity;
       if (Object.keys(sizeQuantities).length > 0) {
         finalQuantity = Object.values(sizeQuantities).reduce((a, b) => a + b, 0);
       }
-      
-      const dataToSend = { 
-        ...newItemData, 
-        quantity: finalQuantity, 
-        sizeQuantities 
+
+      const dataToSend = {
+        ...newItemData,
+        quantity: finalQuantity,
+        sizeQuantities
       };
-      
+
       const fd = new FormData();
       fd.append('data', new Blob([JSON.stringify(dataToSend)], { type: 'application/json' }));
       if (newItemImage) {
         fd.append('image', newItemImage);
       }
-      
+
       // Use secureAxios for admin operations
       const resp = await secureAxios.post('/api/cargo/items', fd, {
         headers: {
@@ -112,7 +163,7 @@ const Cargo_Admin = ({ userData }) => {
           'Authentication-Status': 'true'
         }
       });
-      
+
       alert(resp.data.message || 'Item added successfully');
       setNewItemData({ name: '', description: '', category: '', quantity: 0 });
       setNewSizeEntries([]);
@@ -130,20 +181,20 @@ const Cargo_Admin = ({ userData }) => {
       alert('Enter Item ID to update');
       return;
     }
-    
+
     try {
       // Update item data
       const resp1 = await secureAxios.put(
         `/api/cargo/items/${updateItemId}`,
         updateItemData,
-        { 
+        {
           headers: {
             'Admin-Username': userData.username,
             'Authentication-Status': 'true'
           }
         }
       );
-      
+
       // Update image if provided
       if (updateItemImage) {
         const fd = new FormData();
@@ -151,7 +202,7 @@ const Cargo_Admin = ({ userData }) => {
         await secureAxios.put(
           `/api/cargo/items/${updateItemId}?image`,
           fd,
-          { 
+          {
             headers: {
               'Content-Type': 'multipart/form-data',
               'Admin-Username': userData.username,
@@ -160,7 +211,7 @@ const Cargo_Admin = ({ userData }) => {
           }
         );
       }
-      
+
       alert(resp1.data.message || 'Item updated successfully');
       setUpdateItemId('');
       setUpdateItemData({ name: '', description: '', category: '', quantity: 0 });
@@ -177,7 +228,7 @@ const Cargo_Admin = ({ userData }) => {
     if (!window.confirm(`Are you sure you want to delete item with ID ${itemId}?`)) {
       return;
     }
-    
+
     try {
       const resp = await secureAxios.delete(`/api/cargo/items/${itemId}`, {
         headers: {
@@ -185,7 +236,7 @@ const Cargo_Admin = ({ userData }) => {
           'Authentication-Status': 'true'
         }
       });
-      
+
       alert(resp.data.message || 'Item deleted successfully');
       fetchAllItems();
     } catch (err) {
@@ -201,7 +252,7 @@ const Cargo_Admin = ({ userData }) => {
         <div className="header-content">
           <div className="logo-container">
             <img src="/Untitled.png" alt="Logo" className="logo" />
-            <span className="site-title" style={{ color: '#fff' }} >Cargo Management System</span>
+            <span className="site-title" style={{ color: '#fff' }} >Inventory Management System</span>
           </div>
           <div className="header-right">
             <button className="manage-btn" onClick={() => navigate(-1)}>
@@ -212,16 +263,11 @@ const Cargo_Admin = ({ userData }) => {
       </header>
 
       <main className="main-content">
-        <div className="cargo-container"style={{
-      maxWidth: '1100px',  
-      width: '100%',
-      margin: '0 auto',
-      padding: '24px', 
-    }}>
+        <div className="cargo-container">
           <div className="cargo-header">
-            <h2 className="cargo-title">Cargo Status</h2>
-            <button 
-              className="manage-btn" 
+            <h2 className="cargo-title">Inventory Status</h2>
+            <button
+              className="manage-btn"
               onClick={fetchAllItems}
               disabled={isLoading}
             >
@@ -231,12 +277,12 @@ const Cargo_Admin = ({ userData }) => {
 
           {/* Error Message */}
           {allItemsError && (
-            <div style={{ 
-              padding: '10px', 
-              margin: '10px 0', 
-              backgroundColor: '#0f1c38', 
-              color: '#c62828', 
-              borderRadius: '4px' 
+            <div style={{
+              padding: '10px',
+              margin: '10px 0',
+              backgroundColor: '#0f1c38',
+              color: '#c62828',
+              borderRadius: '4px'
             }}>
               Error: {allItemsError}
             </div>
@@ -258,8 +304,7 @@ const Cargo_Admin = ({ userData }) => {
                       <th>Description</th>
                       <th>Category</th>
                       <th>Total-Quantity</th>
-                      <th>Size</th>
-                      <th>Size-Quantity</th>
+                      <th>Size / Quantity</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -267,50 +312,41 @@ const Cargo_Admin = ({ userData }) => {
                   <tbody>
                     {allItems.map(item => {
                       const sizes = item.sizeQuantities || {};
-                      const hasSizes = Object.keys(sizes).length > 0;
+                      const sortedSizeEntries = getSortedSizeEntries(sizes);
+
+                      const sizeQtyDisplay = sortedSizeEntries
+                        .map(([sz, qty]) => `${sz}: ${qty}`)
+                        .join(', '); // → "S: 5, M: 6, L: 8"
+
                       return (
-                        <React.Fragment key={item.id}>
-                          <tr>
-                            <td>{item.id}</td>
-                            <td>{item.name}</td>
-                            <td>{item.description}</td>
-                            <td>{item.category}</td>
-                            <td>{item.quantity}</td>
-                            <td></td>
-                            <td></td>
-                            <td>{renderStatus(item.quantity)}</td>
-                            <td>
-                              <button
-                                className="manage-btn"
-                                onClick={() => handleDeleteItem(item.id)}
-                                style={{ 
-                                  backgroundColor: '#0f1c38', 
-                                  color: 'white',
-                                  fontSize: '12px',
-                                  padding: '4px 8px'
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                          {hasSizes && Object.entries(sizes).map(([sz, qty]) => (
-                            <tr key={`${item.id}-${sz}`}>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td>{sz}</td>
-                              <td>{qty}</td>
-                              <td>{renderStatus(qty)}</td>
-                              <td></td>
-                            </tr>
-                          ))}
-                        </React.Fragment>
+                        <tr key={item.id}>
+                          <td>{item.id}</td>
+                          <td>{item.name}</td>
+                          <td>{item.description}</td>
+                          <td>{item.category}</td>
+                          <td>{item.quantity}</td>
+                          <td>{sizeQtyDisplay}</td>
+                          <td>{renderStatus(item.quantity)}</td>
+                          <td>
+                            <button
+                              className="manage-btn"
+                              onClick={() => handleDeleteItem(item.id)}
+                              style={{
+                                backgroundColor: '#0f1c38',
+                                color: 'white',
+                                fontSize: '12px',
+                                padding: '4px 8px'
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
                       );
                     })}
                   </tbody>
+
+
                 </table>
               )}
             </div>
@@ -383,8 +419,8 @@ const Cargo_Admin = ({ userData }) => {
                         value={ent.quantity}
                         onChange={e => handleSizeEntryChange(i, 'quantity', e.target.value)}
                       />
-                      <button 
-                        className="cargo-small-btn" 
+                      <button
+                        className="cargo-small-btn"
                         onClick={() => handleRemoveSizeEntry(i)}
                       >
                         ×
@@ -397,10 +433,10 @@ const Cargo_Admin = ({ userData }) => {
                 </div>
 
                 <div style={{ margin: '12px 0' }}>
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     accept="image/*"
-                    onChange={e => setNewItemImage(e.target.files[0])} 
+                    onChange={e => setNewItemImage(e.target.files[0])}
                   />
                 </div>
 
@@ -449,10 +485,10 @@ const Cargo_Admin = ({ userData }) => {
                 />
 
                 <div style={{ margin: '12px 0' }}>
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     accept="image/*"
-                    onChange={e => setUpdateItemImage(e.target.files[0])} 
+                    onChange={e => setUpdateItemImage(e.target.files[0])}
                   />
                 </div>
 

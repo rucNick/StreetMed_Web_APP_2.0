@@ -1,6 +1,6 @@
 //=========================================== JS part ==============================================
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../../css/Guest/Guest.css";
@@ -25,6 +25,7 @@ const Guest = ({ onLogout }) => {
 
   // ========== current order box ==========
   const [showCurrentOrderModal, setShowCurrentOrderModal] = useState(false);
+
   const [currentOrder, setCurrentOrder] = useState(null);
 
   // ========== Logout ==========
@@ -33,27 +34,45 @@ const Guest = ({ onLogout }) => {
     navigate("/"); // back to login
   };
 
+
   // ========== cargo items ==========
-  const [showCargoItems, setShowCargoItems] = useState(false);
   const [cargoItems, setCargoItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showItemDetailModal, setShowItemDetailModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const itemsSectionRef = useRef(null);
+
+  // ========== search for items ==========
+  const [searchTerm, setSearchTerm] = useState("");
+  
+
+
 
   // States for custom item functionality
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [customItemName, setCustomItemName] = useState("");
   const [customItemQuantity, setCustomItemQuantity] = useState(1);
 
+
+  useEffect(() => {
+    const fetchCargoItems = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/api/cargo/items`);
+        setCargoItems(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch cargo items:", error);
+      }
+    };
+
+    fetchCargoItems();
+  }, [baseURL]);
+
+
   // When user clicks "Make a New Order", fetch cargo items and show them
-  const handleOpenNewOrder = async () => {
-    try {
-      const response = await axios.get(`${baseURL}/api/cargo/items`);
-      setCargoItems(response.data);
-      setShowCargoItems(true);
-    } catch (error) {
-      console.error("Failed to fetch cargo items:", error);
+  const handleOpenNewOrder = () => {
+    if (itemsSectionRef.current) {
+      itemsSectionRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -81,15 +100,15 @@ const Guest = ({ onLogout }) => {
       alert("Please enter a valid quantity.");
       return;
     }
-    
+
     // Create display name with size for UI, but keep original name for backend
     const displayName = selectedSize
       ? `${selectedItem.name} (${selectedSize})`
       : selectedItem.name;
-    
+
     const newCart = [...cart];
     const existingIndex = newCart.findIndex((c) => c.displayName === displayName);
-    
+
     if (existingIndex >= 0) {
       // Item already exists, just update quantity
       newCart[existingIndex].quantity += selectedQuantity;
@@ -97,11 +116,11 @@ const Guest = ({ onLogout }) => {
       newCart[existingIndex].name = selectedItem.name;
     } else {
       // Add new item to cart
-      newCart.push({ 
+      newCart.push({
         name: selectedItem.name,  // Original name for backend (e.g., "Coat")
         displayName: displayName,  // Display name with size for UI (e.g., "Coat (XL)")
         quantity: selectedQuantity,
-        imageId: selectedItem.imageId, 
+        imageId: selectedItem.imageId,
         description: selectedItem.description,
         category: selectedItem.category,
         size: selectedSize  // Store size separately
@@ -127,20 +146,20 @@ const Guest = ({ onLogout }) => {
       alert("Please enter a valid quantity (positive integer).");
       return;
     }
-    
+
     const itemName = customItemName.trim();
     const newCart = [...cart];
     const existingIndex = newCart.findIndex(
       (c) => c.name === itemName || c.displayName === itemName
     );
-    
+
     if (existingIndex >= 0) {
       newCart[existingIndex].quantity += quantity;
     } else {
       // For custom items, name and displayName are the same
       // These won't be checked against inventory
-      newCart.push({ 
-        name: itemName, 
+      newCart.push({
+        name: itemName,
         displayName: itemName,
         quantity: quantity,
         isCustom: true  // Flag to identify custom items
@@ -217,19 +236,19 @@ const Guest = ({ onLogout }) => {
 
     try {
       let combinedUserNotes = `FirstName: ${guestFirstName}; LastName: ${guestLastName}`;
-      
+
       // Add notes if provided
       if (guestNotes.trim()) {
         combinedUserNotes += `; ${guestNotes}`;
       }
-      
+
       // Add email if provided
       if (email.trim()) {
         combinedUserNotes += `; Email: ${email}`;
       }
-      
+
       // Don't add size info to notes anymore - it's in the items
-      
+
       // payload - include size in each item
       const payload = {
         deliveryAddress,
@@ -255,7 +274,7 @@ const Guest = ({ onLogout }) => {
         `${baseURL}/api/orders/create`,
         payload
       );
-      
+
       if (response.data.status === "success") {
         setCartMessage("Order placed successfully!");
         // generate currentOrder
@@ -298,7 +317,7 @@ const Guest = ({ onLogout }) => {
             <img src="/Untitled.png" alt="Logo" className="logo" />
             <span className="welcome-text">Welcome, Guest!</span>
           </div>
-  
+
           <div className="header-right">
             <button className="logoutButton" onClick={handleLogout}>
               Log&nbsp;Out
@@ -306,11 +325,11 @@ const Guest = ({ onLogout }) => {
           </div>
         </div>
       </header>
-  
+
       {/* ---------- MAIN ---------- */}
       <main className="user-dashboard">
         <h2 className="dashboard-greeting">Hello, Guest</h2>
-  
+
         <div className="dashboard-cards">
           <button
             className="dashboard-card light-yellow"
@@ -319,55 +338,55 @@ const Guest = ({ onLogout }) => {
             <span className="card-icon">&#128722;</span>
             Make a New Order
           </button>
-  
+
           <button className="dashboard-card light-blue" onClick={toggleCart}>
             <span className="card-icon">&#128179;</span>
-            Cart&nbsp;({cart.length})
+            View Cart&nbsp;({cart.length})
           </button>
         </div>
-  
-        {showCargoItems && (
-          <div style={{ marginTop: 30, width: "100%" }}>
-            <div className="items-header">
-              <h3 className="items-title">Available Items</h3>
-              <span
-                className="items-miss-link"
-                onClick={handleOpenCustomItemModal}
-              >
-                Didn't find items you want? Click here.
-              </span>
-            </div>
-  
-            <div className="itemGrid" style={{ marginTop: 12 }}>
-              {cargoItems.length === 0 ? (
-                <p>No items found in cargo.</p>
-              ) : (
-                cargoItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="itemCard"
-                    onClick={() => handleSelectItem(item)}
-                  >
-                    {item.imageId ? (
-                      <img
-                        src={`${baseURL}/api/cargo/images/${item.imageId}`}
-                        alt={item.name}
-                        className="itemImage"
-                      />
-                    ) : (
-                      <div className="itemImagePlaceholder">No Image</div>
-                    )}
-                    <h4>{item.name}</h4>
-                    <p style={{ fontSize: 14, color: "#999" }}>{item.category}</p>
-                    <p style={{ fontSize: 14 }}>Total Stock: {item.quantity}</p>
-                  </div>
-                ))
-              )}
-            </div>
+
+        <div ref={itemsSectionRef} style={{ marginTop: 30, width: "100%" }}>
+          <div className="items-header">
+            <h3 className="items-title">Available Items</h3>
+            <span
+              className="items-miss-link"
+              onClick={handleOpenCustomItemModal}
+            >
+              Didn't find items you want? Click here.
+            </span>
           </div>
-        )}
+
+          <div className="itemGrid" style={{ marginTop: 12 }}>
+            {cargoItems.length === 0 ? (
+              <p>No items found in cargo.</p>
+            ) : (
+              cargoItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="itemCard"
+                  onClick={() => handleSelectItem(item)}
+                >
+                  {item.imageId ? (
+                    <img
+                      src={`${baseURL}/api/cargo/images/${item.imageId}`}
+                      alt={item.name}
+                      className="itemImage"
+                    />
+                  ) : (
+                    <div className="itemImagePlaceholder">No Image</div>
+                  )}
+                  <h4>{item.name}</h4>
+                  <p style={{ fontSize: 14, color: "#999" }}>{item.category}</p>
+                  <p style={{ fontSize: 14 }}>Total Stock: {item.quantity}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+
       </main>
-  
+
       {showItemDetailModal && selectedItem && (
         <div className="modalOverlay">
           <div className="itemDetailContent">
@@ -390,13 +409,13 @@ const Guest = ({ onLogout }) => {
                 No Image
               </div>
             )}
-  
+
             <h3 className="detail-title">{selectedItem.name}</h3>
             <p className="detail-desc">{selectedItem.description}</p>
             <p className="detail-meta">
               Category:&nbsp;{selectedItem.category || "N/A"}
             </p>
-  
+
             {selectedItem.sizeQuantities &&
               Object.keys(selectedItem.sizeQuantities).length > 0 && (
                 <div className="detail-row">
@@ -415,7 +434,7 @@ const Guest = ({ onLogout }) => {
                   </select>
                 </div>
               )}
-  
+
             <div className="detail-row">
               <label>Quantity:</label>
               <input
@@ -426,7 +445,7 @@ const Guest = ({ onLogout }) => {
                 style={{ width: 80 }}
               />
             </div>
-  
+
             <button className="add-btn" onClick={handleAddSelectedItemToCart}>
               Add to Cart
             </button>
@@ -436,7 +455,7 @@ const Guest = ({ onLogout }) => {
           </div>
         </div>
       )}
-  
+
       {showCustomItemModal && (
         <div className="modalOverlay">
           <div className="modalContent">
@@ -444,7 +463,7 @@ const Guest = ({ onLogout }) => {
             <p style={{ fontSize: 14, color: "#666", marginBottom: 15 }}>
               Note: Custom items may not be in our current inventory
             </p>
-  
+
             <div className="formGroup">
               <label>Item Name:</label>
               <input
@@ -455,7 +474,7 @@ const Guest = ({ onLogout }) => {
                 placeholder="Enter item name"
               />
             </div>
-  
+
             <div className="formGroup">
               <label>Quantity:</label>
               <input
@@ -466,7 +485,7 @@ const Guest = ({ onLogout }) => {
                 className="input"
               />
             </div>
-  
+
             <button className="button" onClick={handleAddCustomItemToCart}>
               Add to Cart
             </button>
@@ -479,14 +498,14 @@ const Guest = ({ onLogout }) => {
           </div>
         </div>
       )}
-  
+
       {showCart && (
         <div className="modalOverlay">
           <div className="cartContent">
             <button className="cartClose" onClick={toggleCart}>
               ×
             </button>
-  
+
             <div className="cartLeft">
               <h3>Cart</h3>
               {cart.length === 0 ? (
@@ -538,7 +557,7 @@ const Guest = ({ onLogout }) => {
                 ))
               )}
             </div>
-  
+
             <div className="cartRight">
               <h3>Overview</h3>
               <ul className="overviewList">
@@ -549,7 +568,7 @@ const Guest = ({ onLogout }) => {
                   </li>
                 ))}
               </ul>
-  
+
               <div className="formGroup">
                 <label>Delivery Address:</label>
                 <input
@@ -559,7 +578,7 @@ const Guest = ({ onLogout }) => {
                   className="input"
                 />
               </div>
-  
+
               <div className="formGroup">
                 <label>First Name:</label>
                 <input
@@ -569,7 +588,7 @@ const Guest = ({ onLogout }) => {
                   className="input"
                 />
               </div>
-  
+
               <div className="formGroup">
                 <label>Last Name:</label>
                 <input
@@ -579,7 +598,7 @@ const Guest = ({ onLogout }) => {
                   className="input"
                 />
               </div>
-  
+
               <div className="formGroup">
                 <label>Email (optional):</label>
                 <input
@@ -590,7 +609,7 @@ const Guest = ({ onLogout }) => {
                   placeholder="Optional"
                 />
               </div>
-  
+
               <div className="formGroup">
                 <label>Phone:</label>
                 <input
@@ -600,7 +619,7 @@ const Guest = ({ onLogout }) => {
                   className="input"
                 />
               </div>
-  
+
               <div className="formGroup">
                 <label>Notes (optional):</label>
                 <input
@@ -611,10 +630,10 @@ const Guest = ({ onLogout }) => {
                   placeholder="Optional"
                 />
               </div>
-  
+
               {cartError && <p className="errorText">{cartError}</p>}
               {cartMessage && <p className="successText">{cartMessage}</p>}
-  
+
               <button className="placeOrderButton" onClick={handlePlaceOrder}>
                 Place Order
               </button>
@@ -622,7 +641,7 @@ const Guest = ({ onLogout }) => {
           </div>
         </div>
       )}
-  
+
       {showCurrentOrderModal && currentOrder && (
         <div className="modalOverlay">
           <div className="modalContent">
@@ -636,7 +655,7 @@ const Guest = ({ onLogout }) => {
             >
               NOTE: Please save this information!
             </p>
-  
+
             <h3>Current Order</h3>
             <p>
               <strong>Order ID:</strong>&nbsp;{currentOrder.orderId}
@@ -663,7 +682,7 @@ const Guest = ({ onLogout }) => {
                 </div>
               ))}
             </div>
-  
+
             <button
               className="button"
               onClick={() => setShowCurrentOrderModal(false)}
