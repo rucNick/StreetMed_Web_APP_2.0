@@ -43,11 +43,6 @@ const Guest = ({ onLogout }) => {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const itemsSectionRef = useRef(null);
 
-  // ========== search for items ==========
-  const [searchTerm, setSearchTerm] = useState("");
-  
-
-
 
   // States for custom item functionality
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
@@ -234,46 +229,43 @@ const Guest = ({ onLogout }) => {
     setCartError("");
     setCartMessage("");
 
-    try {
-      let combinedUserNotes = `FirstName: ${guestFirstName}; LastName: ${guestLastName}`;
+     try {
+    let combinedUserNotes = `FirstName: ${guestFirstName}; LastName: ${guestLastName}`;
 
-      // Add notes if provided
-      if (guestNotes.trim()) {
-        combinedUserNotes += `; ${guestNotes}`;
-      }
+    if (guestNotes.trim()) {
+      combinedUserNotes += `; ${guestNotes}`;
+    }
 
-      // Add email if provided
-      if (email.trim()) {
-        combinedUserNotes += `; Email: ${email}`;
-      }
+    if (email.trim()) {
+      combinedUserNotes += `; Email: ${email}`;
+    }
 
-      // Don't add size info to notes anymore - it's in the items
+    // Include isCustom flag in payload
+    const payload = {
+      deliveryAddress,
+      phoneNumber: phone,
+      notes: combinedUserNotes,
+      items: cart.map((c) => ({
+        itemName: c.name,
+        quantity: c.quantity,
+        size: c.size || null,
+        isCustom: c.isCustom || false
+      })),
+      authenticated: false,
+      userId: -1
+    };
 
-      // payload - include size in each item
-      const payload = {
-        deliveryAddress,
-        phoneNumber: phone,  // Backend expects 'phoneNumber'
-        notes: combinedUserNotes,
-        items: cart.map((c) => ({
-          itemName: c.name,  // Use original name without size
-          quantity: c.quantity,
-          size: c.size || null  // Include size field directly
-        })),
-        authenticated: false,  // Indicate guest user
-        userId: -1  // Explicitly set guest user ID
-      };
+    if (latitude !== null && longitude !== null) {
+      payload.latitude = latitude;
+      payload.longitude = longitude;
+    }
 
-      if (latitude !== null && longitude !== null) {
-        payload.latitude = latitude;
-        payload.longitude = longitude;
-      }
+    console.log("Sending order payload:", payload);
 
-      console.log("Sending order payload:", payload); // Debug log
-
-      const response = await axios.post(
-        `${baseURL}/api/orders/create`,
-        payload
-      );
+    const response = await axios.post(
+      `${baseURL}/api/orders/create`,
+      payload
+    );
 
       if (response.data.status === "success") {
         setCartMessage("Order placed successfully!");

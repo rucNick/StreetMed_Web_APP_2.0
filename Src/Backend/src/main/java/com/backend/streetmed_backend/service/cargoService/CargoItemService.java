@@ -50,21 +50,69 @@ public class CargoItemService {
         CargoItem existingItem = cargoItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        // Update basic information
-        existingItem.setName(updatedItem.getName());
-        existingItem.setDescription(updatedItem.getDescription());
-        existingItem.setCategory(updatedItem.getCategory());
-        existingItem.setQuantity(updatedItem.getQuantity());
-        existingItem.setMinQuantity(updatedItem.getMinQuantity());
-        existingItem.setIsAvailable(updatedItem.getIsAvailable());
-        existingItem.setNeedsPrescription(updatedItem.getNeedsPrescription());
+        // Validate the updated item
+        if (updatedItem.getQuantity() != null && updatedItem.getQuantity() < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
+
+        if (updatedItem.getMinQuantity() != null && updatedItem.getMinQuantity() < 0) {
+            throw new IllegalArgumentException("Minimum quantity cannot be negative");
+        }
+
+        // Validate size quantities if provided
+        if (updatedItem.getSizeQuantities() != null) {
+            for (Map.Entry<String, Integer> entry : updatedItem.getSizeQuantities().entrySet()) {
+                if (entry.getValue() < 0) {
+                    throw new IllegalArgumentException(
+                            String.format("Size '%s' cannot have negative quantity: %d",
+                                    entry.getKey(), entry.getValue())
+                    );
+                }
+            }
+        }
+
+        // Update only non-null fields
+        if (updatedItem.getName() != null && !updatedItem.getName().trim().isEmpty()) {
+            existingItem.setName(updatedItem.getName());
+        }
+        if (updatedItem.getDescription() != null) {
+            existingItem.setDescription(updatedItem.getDescription());
+        }
+        if (updatedItem.getCategory() != null) {
+            existingItem.setCategory(updatedItem.getCategory());
+        }
+        if (updatedItem.getQuantity() != null && updatedItem.getQuantity() >= 0) {
+            existingItem.setQuantity(updatedItem.getQuantity());
+        }
+        if (updatedItem.getMinQuantity() != null && updatedItem.getMinQuantity() >= 0) {
+            existingItem.setMinQuantity(updatedItem.getMinQuantity());
+        }
+        if (updatedItem.getIsAvailable() != null) {
+            existingItem.setIsAvailable(updatedItem.getIsAvailable());
+        }
+        if (updatedItem.getNeedsPrescription() != null) {
+            existingItem.setNeedsPrescription(updatedItem.getNeedsPrescription());
+        }
+
+        // Update size quantities if provided
+        if (updatedItem.getSizeQuantities() != null) {
+            existingItem.setSizeQuantities(updatedItem.getSizeQuantities());
+
+            // Recalculate total quantity from sizes
+            int totalFromSizes = updatedItem.getSizeQuantities().values().stream()
+                    .mapToInt(Integer::intValue).sum();
+            existingItem.setQuantity(totalFromSizes);
+        }
 
         // Handle image update
         if (image != null && !image.isEmpty()) {
-            // Delete old image if exists
             String oldImageId = existingItem.getImageId();
             if (oldImageId != null) {
-                cargoImageService.deleteImage(oldImageId);
+                try {
+                    cargoImageService.deleteImage(oldImageId);
+                } catch (Exception e) {
+                    logger.warn("Failed to delete old image: " + e.getMessage());
+                }
             }
             CargoImage newImage = cargoImageService.storeImage(image, id);
             existingItem.setImageId(newImage.getId());
@@ -83,7 +131,7 @@ public class CargoItemService {
      */
     @Transactional
     public CargoItem updateQuantity(Integer id, Integer quantity) {
-        if (quantity < 0) {
+        if (quantity == null || quantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative");
         }
 
@@ -93,7 +141,7 @@ public class CargoItemService {
         item.setQuantity(quantity);
         item.setUpdatedAt(LocalDateTime.now());
 
-        // Check if the item is now below the minimum quantity threshold
+        // Check low stock threshold
         if (item.getMinQuantity() != null && quantity <= item.getMinQuantity()) {
             logger.warn("Item {} has reached low stock threshold: {}", item.getName(), quantity);
         }
@@ -102,10 +150,24 @@ public class CargoItemService {
     }
 
     public void updateSizeQuantity(Integer id, String size, Integer quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException(
+                    String.format("Cannot set negative quantity for size '%s'", size)
+            );
+        }
+
         CargoItem item = cargoItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
         item.updateSizeQuantity(size, quantity);
+
+        // Recalculate total quantity
+        if (item.getSizeQuantities() != null && !item.getSizeQuantities().isEmpty()) {
+            int total = item.getSizeQuantities().values().stream()
+                    .mapToInt(Integer::intValue).sum();
+            item.setQuantity(total);
+        }
+
         cargoItemRepository.save(item);
     }
 
@@ -200,6 +262,10 @@ public class CargoItemService {
      */
     @Transactional
     public void reserveItems(Integer id, Integer quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Reserve quantity must be positive");
+        }
+
         CargoItem item = cargoItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
@@ -208,10 +274,15 @@ public class CargoItemService {
         }
 
         // Reduce the available quantity
-        item.setQuantity(item.getQuantity() - quantity);
+        int newQuantity = item.getQuantity() - quantity;
+        if (newQuantity < 0) {
+            throw new RuntimeException("Cannot reserve more items than available");
+        }
+
+        item.setQuantity(newQuantity);
         item.setUpdatedAt(LocalDateTime.now());
 
-        // If quantity reaches minimum threshold, may need to trigger alert
+        // Check low stock threshold
         if (item.getMinQuantity() != null && item.getQuantity() <= item.getMinQuantity()) {
             logger.warn("Item {} has reached low stock threshold: {}", item.getName(), item.getQuantity());
         }
@@ -221,6 +292,10 @@ public class CargoItemService {
 
     @Transactional
     public void reserveSizedItem(Integer id, String size, Integer quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Reserve quantity must be positive");
+        }
+
         CargoItem item = cargoItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
@@ -229,8 +304,20 @@ public class CargoItemService {
         }
 
         Map<String, Integer> sizes = item.getSizeQuantities();
-        sizes.put(size, sizes.get(size) - quantity);
+        int currentQty = sizes.getOrDefault(size, 0);
+        int newQty = currentQty - quantity;
+
+        if (newQty < 0) {
+            throw new RuntimeException("Cannot reserve more items than available for size: " + size);
+        }
+
+        sizes.put(size, newQty);
         item.setSizeQuantities(sizes);
+
+        // Update total quantity
+        int total = sizes.values().stream().mapToInt(Integer::intValue).sum();
+        item.setQuantity(total);
+
         cargoItemRepository.save(item);
     }
 }
