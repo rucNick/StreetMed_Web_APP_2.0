@@ -273,7 +273,7 @@ const AdminUsers = ({ userData }) => {
 
       <main className="main-content">
         <div className="cargo-container">
-          <h1 className="cargo-title">User Management</h1>
+          <h1 className="cargo-title">Add or Update Users</h1>
           
           {/* Error Message */}
           {usersError && (
