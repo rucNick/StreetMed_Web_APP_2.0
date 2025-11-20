@@ -511,14 +511,29 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                           <p style={{ marginBottom: '8px' }}><strong>📦 Items:</strong></p>
                           <ul style={{ margin: '0 0 0 20px', padding: 0 }}>
                             {order.items?.map((item, i) => (
-                              <li key={i} style={{ marginBottom: '4px' }}>
+                              <li key={i} style={{ 
+                                marginBottom: '4px',
+                                color: item.isCustom ? '#ff6100' : 'inherit' 
+                              }}>
                                 {item.itemName} × {item.quantity}
                                 {item.size && ` (Size: ${item.size})`}
+                                {item.isCustom && (
+                                  <span style={{ 
+                                    marginLeft: '8px', 
+                                    backgroundColor: '#fff3e0', 
+                                    color: '#ff6100', 
+                                    padding: '2px 6px', 
+                                    borderRadius: '10px', 
+                                    fontSize: '11px',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    CUSTOM REQUEST
+                                  </span>
+                                )}
                               </li>
                             ))}
                           </ul>
                         </div>
-                        
                         <div style={{ marginBottom: '15px' }}>
                           <p style={{ marginBottom: '5px' }}>
                             <strong>📍 Address:</strong> {order.deliveryAddress}
@@ -642,9 +657,25 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                           <p style={{ marginBottom: '8px' }}><strong>Items:</strong></p>
                           <ul style={{ margin: '0 0 0 20px', padding: 0 }}>
                             {assignment.items?.map((item, i) => (
-                              <li key={i} style={{ marginBottom: '4px' }}>
+                              <li key={i} style={{ 
+                                marginBottom: '4px',
+                                color: item.isCustom ? '#ff6100' : 'inherit'
+                              }}>
                                 {item.itemName} × {item.quantity}
                                 {item.size && ` (Size: ${item.size})`}
+                                {item.isCustom && (
+                                  <span style={{ 
+                                    marginLeft: '8px', 
+                                    backgroundColor: '#fff3e0', 
+                                    color: '#ff6100', 
+                                    padding: '2px 6px', 
+                                    borderRadius: '10px', 
+                                    fontSize: '11px',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    CUSTOM REQUEST
+                                  </span>
+                                )}
                               </li>
                             ))}
                           </ul>

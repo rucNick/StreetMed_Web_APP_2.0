@@ -22,11 +22,11 @@ public class OrderItem {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-
     @Column(name = "size")
     private String size;
 
-
+    @Column(name = "is_custom")
+    private Boolean isCustom = false;  // New field to track custom items
 
     // Default constructor
     public OrderItem() {}
@@ -72,4 +72,11 @@ public class OrderItem {
         this.size = size;
     }
 
+    public Boolean getIsCustom() {
+        return isCustom;
+    }
+
+    public void setIsCustom(Boolean isCustom) {
+        this.isCustom = isCustom;
+    }
 }

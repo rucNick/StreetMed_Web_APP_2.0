@@ -251,7 +251,8 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
             sending: { 
               itemName: item.name, 
               quantity: item.quantity,
-              size: item.size || null  // Include size in the item data
+              size: item.size || null,
+              isCustom: item.isCustom || false
             }
           });
           return {

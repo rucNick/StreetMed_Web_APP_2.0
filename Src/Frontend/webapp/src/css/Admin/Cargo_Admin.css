@@ -63,15 +63,6 @@ body {
 .main-content {
   padding: 40px 60px;
 }
-/* 
-.cargo-container {
-  max-height: calc(100vh - 65px - 48px - 16px);
-  overflow: hidden; 
-  padding: 20px;
-  margin: 0 auto;
-  background: #212c46;
-
-} */
 
 .cargo-container {
   background:#212c46 ;
@@ -318,3 +309,225 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #1a2332;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content.small {
+  max-width: 400px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #ff5252;
+}
+
+.modal-title {
+  color: #fff;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+/* Table Row Hover */
+.cargo-row:hover {
+  background-color: rgba(42, 63, 95, 0.3);
+  transition: background-color 0.2s;
+}
+
+/* Size Management Styles */
+.cargo-sizes {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #72cf6d;
+  border-radius: 5px;
+  background: rgba(91, 182, 133, 0.2);
+}
+
+.cargo-sizes h4 {
+  margin: 0 0 15px 0;
+  color: #000000;
+  font-size: 16px;
+}
+
+.cargo-size-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.size-input {
+  width: 120px !important;
+}
+
+.qty-input {
+  width: 100px !important;
+}
+
+.remove-size-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.remove-size-btn:hover {
+  background: #b71c1c;
+}
+
+.add-size-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.add-size-btn:hover {
+  background: #1976d2;
+}
+
+/* Image Upload */
+.image-upload {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px dashed #2a3f5f;
+  border-radius: 5px;
+}
+
+.image-upload label {
+  display: block;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.cargo-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.cargo-button.primary {
+  background: #4caf50;
+  color: white;
+}
+
+.cargo-button.primary:hover {
+  background: #45a049;
+}
+
+.cargo-button.secondary {
+  background: #757575;
+  color: white;
+}
+
+.cargo-button.secondary:hover {
+  background: #616161;
+}
+
+.cargo-button.danger {
+  background: #f44336;
+  color: white;
+}
+
+.cargo-button.danger:hover {
+  background: #d32f2f;
+}
+
+/* Status badges */
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status.out {
+  background: #f44336;
+  color: white;
+}
+
+.status.low {
+  background: #ff9800;
+  color: white;
+}
+
+.status.fine {
+  background: #4caf50;
+  color: white;
+}
+
+/* Input styles */
+.cargo-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 4px;
+  color: #000000;
+  font-size: 14px;
+}
+
+.cargo-input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+

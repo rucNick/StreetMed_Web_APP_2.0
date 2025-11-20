@@ -67,8 +67,8 @@ public class CargoController {
     @PutMapping("/items/{id}")
     public CompletableFuture<ResponseEntity<Map<String, Object>>> updateItem(
             @PathVariable Integer id,
-            @RequestBody CargoItem item,
-            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestPart("data") CargoItem item,  // Must match the FormData field name
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @RequestHeader("Admin-Username") String adminUsername,
             @RequestHeader("Authentication-Status") String authStatus) {
 

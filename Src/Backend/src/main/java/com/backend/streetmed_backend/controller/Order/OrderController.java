@@ -261,6 +261,11 @@ public class OrderController {
                             item.setSize((String) itemData.get("size"));
                         }
 
+                        // Handle isCustom field if present
+                        if (itemData.containsKey("isCustom")) {
+                            item.setIsCustom((Boolean) itemData.get("isCustom"));
+                        }
+
                         orderItems.add(item);
                     }
                 }

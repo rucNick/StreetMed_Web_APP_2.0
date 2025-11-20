@@ -113,80 +113,123 @@ public class OrderService {
 
         // Determine order type based on user
         if (order.getUserId() == GUEST_USER_ID) {
-            order.setOrderType(Order.OrderType.GUEST);  // Set GUEST type for guest users
+            order.setOrderType(Order.OrderType.GUEST);
         } else {
-            order.setOrderType(Order.OrderType.CLIENT);  // Set CLIENT type for registered users
+            order.setOrderType(Order.OrderType.CLIENT);
         }
-        // Group items by name and size for inventory checking
-        // Structure: Map<ItemName, Map<Size, Quantity>>
-        // null size means regular item without size
-        Map<String, Map<String, Integer>> itemInventoryMap = new HashMap<>();
+
+        // Separate custom items from inventory items
+        List<OrderItem> inventoryItems = new ArrayList<>();
+        List<OrderItem> customItems = new ArrayList<>();
 
         for (OrderItem item : items) {
-            String itemName = item.getItemName();
-            String size = item.getSize(); // Can be null for non-sized items
-            int quantity = item.getQuantity();
-
-            itemInventoryMap.computeIfAbsent(itemName, k -> new HashMap<>());
-            String sizeKey = size != null ? size : "NO_SIZE";
-            itemInventoryMap.get(itemName).put(sizeKey,
-                    itemInventoryMap.get(itemName).getOrDefault(sizeKey, 0) + quantity);
-        }
-
-        // Check inventory availability and reserve items
-        for (Map.Entry<String, Map<String, Integer>> itemEntry : itemInventoryMap.entrySet()) {
-            String itemName = itemEntry.getKey();
-            Map<String, Integer> sizeQuantities = itemEntry.getValue();
-
-            // Find the cargo item by name
-            List<CargoItem> matchingItems = cargoItemService.searchItems(itemName);
-            if (matchingItems.isEmpty()) {
-                throw new RuntimeException("Item not found: " + itemName);
-            }
-
-            // Use the first matching item (assuming item names are unique)
-            CargoItem cargoItem = matchingItems.get(0);
-
-            // Check if this item has sizes in inventory
-            boolean itemHasSizes = cargoItem.getSizeQuantities() != null && !cargoItem.getSizeQuantities().isEmpty();
-
-            for (Map.Entry<String, Integer> sizeEntry : sizeQuantities.entrySet()) {
-                String sizeKey = sizeEntry.getKey();
-                int requestedQuantity = sizeEntry.getValue();
-
-                if ("NO_SIZE".equals(sizeKey)) {
-                    // Regular item without size - use normal inventory
-                    if (!cargoItem.isAvailableInQuantity(requestedQuantity)) {
-                        throw new RuntimeException("Insufficient quantity available for: " + itemName);
-                    }
-                    // Reserve the inventory (temporarily reduce quantity)
-                    cargoItemService.reserveItems(cargoItem.getId(), requestedQuantity);
+            // Check if this is marked as a custom item or if item exists in inventory
+            if (item.getIsCustom() != null && item.getIsCustom()) {
+                // This is explicitly marked as custom
+                customItems.add(item);
+            } else {
+                // Check if item exists in inventory
+                List<CargoItem> matchingItems = cargoItemService.searchItems(item.getItemName());
+                if (matchingItems.isEmpty()) {
+                    // Item not in inventory - treat as custom
+                    item.setIsCustom(true);
+                    customItems.add(item);
                 } else {
-                    // Sized item - use size-specific inventory
-                    if (!itemHasSizes) {
-                        throw new RuntimeException("Item " + itemName + " does not have size options");
-                    }
-                    if (!cargoItemService.checkSizeAvailability(cargoItem.getId(), sizeKey, requestedQuantity)) {
-                        throw new RuntimeException("Insufficient quantity available for: " + itemName + " (Size: " + sizeKey + ")");
-                    }
-                    // Reserve from size-specific inventory
-                    cargoItemService.reserveSizedItem(cargoItem.getId(), sizeKey, requestedQuantity);
+                    // Item exists in inventory
+                    item.setIsCustom(false);
+                    inventoryItems.add(item);
                 }
             }
         }
 
+        // Process inventory items with stock checking
+        if (!inventoryItems.isEmpty()) {
+            Map<String, Map<String, Integer>> itemInventoryMap = new HashMap<>();
+
+            for (OrderItem item : inventoryItems) {
+                String itemName = item.getItemName();
+                String size = item.getSize();
+                int quantity = item.getQuantity();
+
+                itemInventoryMap.computeIfAbsent(itemName, k -> new HashMap<>());
+                String sizeKey = size != null ? size : "NO_SIZE";
+                itemInventoryMap.get(itemName).put(sizeKey,
+                        itemInventoryMap.get(itemName).getOrDefault(sizeKey, 0) + quantity);
+            }
+
+            // Check inventory availability and reserve items
+            for (Map.Entry<String, Map<String, Integer>> itemEntry : itemInventoryMap.entrySet()) {
+                String itemName = itemEntry.getKey();
+                Map<String, Integer> sizeQuantities = itemEntry.getValue();
+
+                // We know the item exists because we checked earlier
+                List<CargoItem> matchingItems = cargoItemService.searchItems(itemName);
+                CargoItem cargoItem = matchingItems.get(0);
+
+                // Check if this item has sizes in inventory
+                boolean itemHasSizes = cargoItem.getSizeQuantities() != null && !cargoItem.getSizeQuantities().isEmpty();
+
+                for (Map.Entry<String, Integer> sizeEntry : sizeQuantities.entrySet()) {
+                    String sizeKey = sizeEntry.getKey();
+                    int requestedQuantity = sizeEntry.getValue();
+
+                    if ("NO_SIZE".equals(sizeKey)) {
+                        // Regular item without size - use normal inventory
+                        if (!cargoItem.isAvailableInQuantity(requestedQuantity)) {
+                            throw new RuntimeException("Insufficient quantity available for: " + itemName);
+                        }
+                        // Reserve the inventory (temporarily reduce quantity)
+                        cargoItemService.reserveItems(cargoItem.getId(), requestedQuantity);
+                    } else {
+                        // Sized item - use size-specific inventory
+                        if (!itemHasSizes) {
+                            throw new RuntimeException("Item " + itemName + " does not have size options");
+                        }
+                        if (!cargoItemService.checkSizeAvailability(cargoItem.getId(), sizeKey, requestedQuantity)) {
+                            throw new RuntimeException("Insufficient quantity available for: " + itemName + " (Size: " + sizeKey + ")");
+                        }
+                        // Reserve from size-specific inventory
+                        cargoItemService.reserveSizedItem(cargoItem.getId(), sizeKey, requestedQuantity);
+                    }
+                }
+            }
+        }
+
+        // Add information about custom items to notes if present
+        if (!customItems.isEmpty()) {
+            StringBuilder customItemsList = new StringBuilder();
+            for (OrderItem customItem : customItems) {
+                if (customItemsList.length() > 0) {
+                    customItemsList.append(", ");
+                }
+                customItemsList.append(customItem.getItemName())
+                        .append(" x")
+                        .append(customItem.getQuantity());
+                if (customItem.getSize() != null) {
+                    customItemsList.append(" (").append(customItem.getSize()).append(")");
+                }
+            }
+
+            String existingNotes = order.getNotes() != null ? order.getNotes() : "";
+            if (!existingNotes.isEmpty()) {
+                order.setNotes(existingNotes + " | Custom Items Requested: " + customItemsList.toString());
+            } else {
+                order.setNotes("Custom Items Requested: " + customItemsList.toString());
+            }
+        }
+
         // Set summary information
-        order.setItemName(items.size() + " items"); // e.g. "3 items"
+        order.setItemName(items.size() + " items");
         order.setQuantity(items.stream()
                 .mapToInt(OrderItem::getQuantity)
-                .sum()); // Total quantity
+                .sum());
 
-        // Set up bidirectional relationship
+        // Set up bidirectional relationship for ALL items (both inventory and custom)
         for (OrderItem item : items) {
             order.addOrderItem(item);
         }
 
-        // Save the order first
+        // Save the order
         Order savedOrder = orderRepository.save(order);
 
         // Record for rate limiting
