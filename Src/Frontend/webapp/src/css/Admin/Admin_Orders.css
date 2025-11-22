@@ -212,14 +212,14 @@
 }
 
 /* Action Button Styles */
-.cancel-btn {
+/* .cancel-btn {
   background-color: #ff4d4f !important;
   color: white;
-}
+} */
 
-.cancel-btn:hover {
+/* .cancel-btn:hover {
   background-color: #d9363e !important;
-}
+} */
 
 .complete-btn {
   background-color: #52c41a !important;

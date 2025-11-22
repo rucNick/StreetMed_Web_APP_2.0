@@ -111,9 +111,18 @@ public class CargoItem {
         return sizeQuantities;
     }
 
+    // Update the setter to include validation
     public void setSizeQuantities(Map<String, Integer> sizeQuantities) {
+        if (sizeQuantities != null) {
+            for (Map.Entry<String, Integer> entry : sizeQuantities.entrySet()) {
+                if (entry.getValue() < 0) {
+                    throw new IllegalArgumentException(
+                            String.format("Size '%s' cannot have negative quantity", entry.getKey())
+                    );
+                }
+            }
+        }
         this.sizeQuantities = sizeQuantities;
-        this.updatedAt = LocalDateTime.now();
     }
 
     // Changed getter to return String instead of Integer
