@@ -265,7 +265,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           <br />
           
           {/* My Current Assignments */}
-          <div style={{ marginBottom: '30px', border: '2px solid #27ae60', padding: '15px', borderRadius: '8px' }}>
+          <div style={{ marginBottom: '30px', padding: '15px', borderRadius: '8px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <strong>📋 My Current Assignments</strong>
               <span style={{ fontSize: '14px', color: '#666' }}>
