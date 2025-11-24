@@ -187,23 +187,23 @@
 }
 
 .status.pending {
-  background-color: #fff7e6;
-  color: #fa8c16;
+  background-color: #f5bd46cf;
+  color: #000000;
 }
 
 .status.processing {
-  background-color: #e6f7ff;
-  color: #1890ff;
+  background-color: #00aeff8f;
+  color: #000000;
 }
 
 .status.completed {
-  background-color: #f6ffed;
-  color: #52c41a;
+  background-color: #61f864da;
+  color: #000000c1;
 }
 
 .status.cancelled {
-  background-color: #fff1f0;
-  color: #f5222d;
+  background-color: #f410007a;
+  color: #000000;
 }
 
 .status.accepted {
