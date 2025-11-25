@@ -1,19 +1,20 @@
 body {
-  background-color: #c8c9c7;
-  font-family: Arial, sans-serif;
-  color: #444;
+  background-color: #001f3f;
+  font-family: 'Courier New', Courier, monospace;
+  color: #fff;
   margin: 0;
   padding: 0;
 }
+
 .nav-bar {
-  background-color: #212c46;
+  background-color: #0F1C38;
   height: 80px;
   display: flex;
   align-items: center;
   box-sizing: border-box;
   padding: 0 27px;
   justify-content: space-between;
-  border-bottom: #000, 4px;
+  font-family: 'Courier New', Courier, monospace;
 }
 .top-nav {
   display: flex;
@@ -32,14 +33,15 @@ body {
   border: none;
   font-size: 16px;
   font-weight: bold;
-  color: #444;
+  color: #FFFFFF;
   cursor: pointer;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 20px;
   transition: background-color 0.3s;
+  font-family: 'Courier New', Courier, monospace;
 }
 .nav-btn:hover {
-  background-color: #f0f0f0;
+  background-color: #ffe5b0;
 }
 .volunteer-dashboard-container {
   display: flex;
@@ -48,7 +50,8 @@ body {
   box-sizing: border-box;
   padding: 30px 60px 30px 60px;
   gap: 20px;
-  background-color: #212c46
+  font-family: 'Courier New', Courier, monospace;
+  background: #0F1C38;
 }
 .volunteer-left-panel {
   flex: 1;
@@ -64,27 +67,39 @@ body {
 .volunteer-left-panel h2 {
   font-size: 20px;
   margin: 0 0 5px 0;
-  color: #333;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  background: #002a69;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  padding: 12px 24px;
+  display: inline-block;
 }
 .rounds-cards,
 .orders-cards {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  color: #ffffff;
+  background: #0F1C38;
+  border-radius: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  padding: 24px;
 }
 .round-card {
-  background-color: #fff;
+  background-color: #0F1C38;
   border-radius: 16px;
   padding: 16px;
   width: 240px;
   height: 200px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
 }
 .round-card h3 {
   margin: 0 0 8px;
   font-size: 16px;
-  color: #333;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
 }
 .open-view-btn {
   margin-top: 0;
@@ -100,19 +115,25 @@ body {
   background-color: #002d5e;
 }
 .order-card {
-  background-color: #fff;
+  background-color: #003366;
   border-radius: 16px;
   padding: 16px;
   width: 220px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
 }
 .order-card h3 {
   margin: 0 0 6px;
   font-size: 16px;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
 }
 .order-card p {
   margin: 4px 0;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
 }
 .completed-badge {
   position: absolute;
@@ -135,6 +156,13 @@ body {
   margin-top: 0;
   font-size: 18px;
   text-align: center;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  background: #0F1C38;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  padding: 12px 24px;
+  display: inline-block;
 }
 .volunteer-right-panel .react-calendar {
   width: 440px;
