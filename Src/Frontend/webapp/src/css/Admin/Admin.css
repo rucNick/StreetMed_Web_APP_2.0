@@ -1,163 +1,198 @@
+/* ===========================================
+   Admin Dashboard - Main Styles
+   Dark Theme - Street Med Branding
+   =========================================== */
+
+.page-container {
+  min-height: 100vh;
+  background-color: #0f1c38;
+}
+
 .store-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 83px;
-    padding: 0 27px;
-  }
-  
-  .store-logo {
-    width: 65px;
-    height: 65px;
-    margin-left: 30px;
-    object-fit: contain;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 83px;
+  padding: 0 27px;
+  background-color: #0f1c38;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 
-  }
-  
-  .logout-button {
-    background-color: #ffffff12;
-    color: white;
-    border: none;
-    margin-top:  15px;
-    padding: 10px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 25px;
-    font-family: 'Courier';
-  }
-  
-  .admin-dashboard {
-    display: flex;
-    height: calc(100vh - 83px);
-    background-color: #0f1c38;
-  }
-  
-  .admin-left {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    max-width: 440px;
-    padding: 40px 50px;
-  }
-  
-  .admin-greeting {
-    font-size: 36px;
-    font-weight: bold;
-    color: #ffffff;
-    font-family: 'Courier';
-  }
-  
-  .admin-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 24px;
-    padding: 28px 32px;
-    font-size: 19px;
-    font-weight: 500;
-    box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
-    font-family: 'Courier';
-  }
-  
-  .light-blue {
-    background-color: #002a69;
-  }
-  
-  .light-yellow {
-    background-color: #ffb922;
-  }
-  
+.store-logo {
+  width: 65px;
+  height: 65px;
+  margin-left: 30px;
+  object-fit: contain;
+}
 
-  
-  .card-text-blue {
-    flex: 1;
-    text-align: center;
-    font-weight: bold;
-    color: #fff;
-    font-size: 25px;
-  }
+.logout-button {
+  background-color: #f6b800;
+  color: #0f1c38;
+  border: none;
+  margin-top: 15px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 20px;
+  font-family: 'Courier', monospace;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
 
-  .card-text-yellow {
-    flex: 1;
-    text-align: center;
-    font-weight: bold;
-    color: #000000;
-    font-size: 25px;
-  }
-  
-  .card-badge {
-    border-radius: 50%;
-    padding: 7px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    min-width: 28px;
-    text-align: center;
-  
-  }
-  
-  .blue-badge {
-    background-color: #003594;
-    color: white;
-  }
-  
-  .yellow-badge {
-    background-color: #f6b800;
-    color: #333;
-  }
-  
-  .red-badge {
-    background-color: #cc0000;
-    color: white;
-  }
-  
-  .divider-vertical {
-    width: 3px;
-    background-color: #bbb;
-    margin: 0 20px;
-  }
-  
-  .admin-right {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .alerts-card {
-    background-color: #ffffff12;
-    border-radius: 20px;
-    padding: 60px 50px;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 900px;
-    font-family: 'Courier';
-  }
-  
-  .alerts-title {
-    font-size: 36px;
-    font-weight: bold;
-    color: #ffffff;
-    margin-bottom: 28px;
-  }
-  
-  .alert-entry {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px 0;
-    border-top: 1px solid #ddd;
-    font-size: 22px;
-    color: #ffffff;
-  }
-  
-  .alert-entry:first-of-type {
-    border-top: none;
-  }
-  
-  .alert-entry .card-badge {
-    min-width: 36px;
-    padding: 8px 14px;
-    font-size: 16px;
-  }
+.logout-button:hover {
+  background-color: #db9914;
+}
 
+.admin-dashboard {
+  display: flex;
+  height: calc(100vh - 83px);
+  background-color: #0f1c38;
+}
+
+.admin-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 440px;
+  padding: 40px 50px;
+}
+
+.admin-greeting {
+  font-size: 36px;
+  font-weight: bold;
+  color: #ffffff;
+  font-family: 'Courier', monospace;
+}
+
+.admin-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 24px;
+  padding: 28px 32px;
+  font-size: 19px;
+  font-weight: 500;
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  font-family: 'Courier', monospace;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+.light-blue {
+  background-color: #002a69;
+}
+
+.light-yellow {
+  background-color: #ffb922;
+}
+
+.card-text-blue {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 25px;
+}
+
+.card-text-yellow {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  color: #000000;
+  font-size: 25px;
+}
+
+.card-badge {
+  border-radius: 50%;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  min-width: 28px;
+  text-align: center;
+}
+
+.blue-badge {
+  background-color: #003594;
+  color: white;
+}
+
+.yellow-badge {
+  background-color: #f6b800;
+  color: #333;
+}
+
+.red-badge {
+  background-color: #cc0000;
+  color: white;
+}
+
+.divider-vertical {
+  width: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 0 20px;
+}
+
+.admin-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alerts-card {
+  background-color: #212c46;
+  border-radius: 20px;
+  padding: 60px 50px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 900px;
+  font-family: 'Courier', monospace;
+}
+
+.alerts-title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 28px;
+}
+
+.alerts-card hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 20px;
+}
+
+.alert-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 22px;
+  color: #ffffff;
+}
+
+.alert-entry:first-of-type {
+  border-top: none;
+}
+
+.alert-entry .card-badge {
+  min-width: 36px;
+  padding: 8px 14px;
+  font-size: 16px;
+}
+
+/* Error message styling */
+.error-message {
+  padding: 10px;
+  margin: 10px 0;
+  background-color: rgba(255, 77, 79, 0.2);
+  color: #ff6b6b;
+  border-radius: 4px;
+  border-left: 4px solid #f44336;
+}

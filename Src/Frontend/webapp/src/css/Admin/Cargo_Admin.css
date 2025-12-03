@@ -1,3 +1,8 @@
+/* ===========================================
+   Cargo Admin - Main Admin Styles
+   Dark Theme - Street Med Branding
+   =========================================== */
+
 * {
   margin: 0;
   padding: 0;
@@ -5,22 +10,30 @@
 }
 
 body {
-  font-family: Cambria;
+  font-family: Cambria, serif;
 }
 
+/* ===========================================
+   Page Container
+   =========================================== */
 .page-container {
   width: 100%;
   min-height: 100vh;
-  background: #c8c9c7;
+  background-color: #0f1c38;
+  font-family: Cambria, serif;
 }
 
+/* ===========================================
+   Site Header
+   =========================================== */
 .site-header {
   width: 100%;
   height: 65px;
-  background: #d9d9d9;
+  background-color: #0f1c38;
   display: flex;
   align-items: center;
   padding: 0 27px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .header-content {
@@ -33,7 +46,7 @@ body {
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 82px;
+  gap: 20px;
 }
 
 .logo {
@@ -42,36 +55,130 @@ body {
 }
 
 .site-title {
-  font-size: 36px;
+  font-size: 24px;
   color: #ffffff;
   font-weight: 400;
 }
 
-.header-right {}
+.header-right {
+  display: flex;
+  gap: 10px;
+}
 
+/* ===========================================
+   Buttons - Street Med Gold Theme
+   =========================================== */
 .manage-btn {
-  background: #f6b800;
-  color: #333;
+  background-color: #f6b800;
+  color: #0f1c38;
   border: none;
   border-radius: 200px;
   padding: 10px 20px;
   font-size: 16px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
+.manage-btn:hover {
+  background-color: #db9914;
+}
+
+.manage-btn:focus {
+  outline: 2px solid #fff4b3;
+  outline-offset: 2px;
+}
+
+.manage-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.drawer-toggle {
+  background-color: #f6b800;
+  color: #0f1c38;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  width: 180px;
+}
+
+.drawer-toggle:hover {
+  background-color: #db9914;
+}
+
+.cargo-button {
+  padding: 10px 20px;
+  background-color: #f6b800;
+  color: #0f1c38;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.cargo-button:hover {
+  background-color: #db9914;
+}
+
+.cargo-button.primary {
+  background: #4caf50;
+  color: white;
+}
+
+.cargo-button.primary:hover {
+  background: #45a049;
+}
+
+.cargo-button.secondary {
+  background: #757575;
+  color: white;
+}
+
+.cargo-button.secondary:hover {
+  background: #616161;
+}
+
+.cargo-button.danger {
+  background: #f44336;
+  color: white;
+}
+
+.cargo-button.danger:hover {
+  background: #d32f2f;
+}
+
+.cargo-small-btn {
+  padding: 4px 8px;
+  background-color: #f6b800;
+  color: #0f1c38;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cargo-small-btn:hover {
+  background-color: #db9914;
+}
+
+/* ===========================================
+   Main Content Area
+   =========================================== */
 .main-content {
   padding: 40px 60px;
 }
 
 .cargo-container {
-  background:#212c46 ;
-  border-radius:12px;
-  padding:30px;
-  box-shadow:0 3px 6px rgba(0,0,0,0.1);
+  background: #212c46;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
-
-
 
 .cargo-header {
   display: flex;
@@ -83,57 +190,77 @@ body {
 .cargo-title {
   font-size: 28px;
   font-weight: bold;
-  color: #333;
+  color: #ffffff;
 }
 
-/* Inventory overview*/
+/* ===========================================
+   Cards
+   =========================================== */
 .cargo-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
   height: 100%;
   padding: 20px;
-  background: #d1dae2;
+  background: #1a2332;
+  border-radius: 12px;
+}
 
+.cargo-card.blue-block,
+.cargo-card.beige-block {
+  background: #1a2332;
 }
 
 .table-title {
   font-size: 20px;
   font-weight: bold;
-  color: #333;
+  color: #ffffff;
   margin-bottom: 15px;
 }
 
+/* ===========================================
+   Tables
+   =========================================== */
 .table-scroll {
-  max-height: 100px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
 .table-scroll thead th {
   position: sticky;
   top: 0;
-  background: #edf1f5;
+  background: #212c46;
   z-index: 1;
 }
 
 .cargo-table {
   width: 100%;
   border-collapse: collapse;
-  background: #f9f9f9;
+  background: #1a2332;
 }
 
 .cargo-table th,
 .cargo-table td {
   padding: 12px 14px;
-  border: 1px solid #ccc;
+  border: 1px solid #3a5070;
   font-size: 14px;
   text-align: left;
+  color: #ffffff;
 }
 
 .cargo-table th {
-  background: #edf1f5;
+  background: #212c46;
+  color: #ffffff;
 }
 
+.cargo-row:hover {
+  background-color: rgba(42, 63, 95, 0.3);
+  transition: background-color 0.2s;
+}
+
+/* ===========================================
+   Status Badges
+   =========================================== */
 .status {
   display: inline-block;
   padding: 5px 12px;
@@ -146,45 +273,59 @@ body {
 }
 
 .status.fine {
-  background: #2ecc71
+  background: #4caf50;
+  color: white;
 }
 
 .status.low {
-  background: #f4b942;
-  color: #333
+  background: #ff9800;
+  color: white;
 }
 
 .status.out {
-  background: #c0392b
+  background: #f44336;
+  color: white;
 }
 
+/* ===========================================
+   Form Inputs
+   =========================================== */
+.cargo-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #ffffff;
+  border: 2px solid #3a5070;
+  border-radius: 4px;
+  color: #000000;
+  font-size: 14px;
+}
+
+.cargo-input:focus {
+  outline: none;
+  border-color: #f6b800;
+}
+
+/* ===========================================
+   Error Messages
+   =========================================== */
 .cargo-error {
-  color: #f5222d;
+  color: #ff6b6b;
   font-weight: bold;
   margin-bottom: 10px;
+  background-color: rgba(255, 77, 79, 0.2);
+  padding: 10px;
+  border-radius: 4px;
 }
 
+/* ===========================================
+   Drawer/Accordion
+   =========================================== */
 .drawer-container {
   display: flex;
   justify-content: center;
   gap: 20px;
   margin: 30px 0;
-}
-
-.drawer-toggle {
-  background: #decda7;
-  color: #333;
-  border: none;
-  border-radius: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  width: 180px;
-}
-
-.drawer-toggle:hover {
-  background: #c9b48f;
 }
 
 .drawer-panel {
@@ -197,6 +338,9 @@ body {
   max-height: 800px;
 }
 
+/* ===========================================
+   Content Blocks
+   =========================================== */
 .content-block {
   width: 100%;
   border-radius: 25px;
@@ -204,14 +348,12 @@ body {
   display: flex;
   padding: 20px;
   margin: 30px 0;
+  background: #1a2332;
 }
 
-.blue-block {
-  background: #d1dae2
-}
-
+.blue-block,
 .beige-block {
-  background: #d1dae2
+  background: #1a2332;
 }
 
 .block-content {
@@ -226,91 +368,13 @@ body {
   width: 100%;
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: #ffffff;
   margin-bottom: 12px;
-  /* background: #f6b800; */
-  
 }
 
-.cargo-input {
-  flex: 1 1 180px;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.cargo-button {
-  padding: 10px 20px;
-  background: #52c41a;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.cargo-button:hover {
-  background: #49a31b
-}
-
-.cargo-small-btn {
-  padding: 4px 8px;
-  background: #f5222d;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.cargo-small-btn:hover {
-  background: #cf1322
-}
-
-.page-container {
-  background-color: #0f1c38 !important;
-  font-family: Cambria;
-}
-
-.site-header {
-  background-color: #0f1c38 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Buttons: Street Med gold */
-
-.drawer-toggle,
-.cargo-button,
-.cargo-small-btn {
-  background-color: #f6b800 !important;
-  color: #0f1c38 !important;              /* dark text for contrast */
-  border: none !important;
-}
-
-.manage-btn:hover,
-.drawer-toggle:hover,
-.cargo-button:hover,
-.cargo-small-btn:hover {
-  background-color: #db9914 !important;   /* hover shade */
-}
-
-/* Optional: focus/disabled states */
-.manage-btn:focus,
-.drawer-toggle:focus,
-.cargo-button:focus,
-.cargo-small-btn:focus {
-  outline: 2px solid #fff4b3;
-  outline-offset: 2px;
-}
-
-.manage-btn:disabled,
-.drawer-toggle:disabled,
-.cargo-button:disabled,
-.cargo-small-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Modal Styles */
+/* ===========================================
+   Modals
+   =========================================== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -367,13 +431,16 @@ body {
   font-size: 24px;
 }
 
-/* Table Row Hover */
-.cargo-row:hover {
-  background-color: rgba(42, 63, 95, 0.3);
-  transition: background-color 0.2s;
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 
-/* Size Management Styles */
+/* ===========================================
+   Size Management
+   =========================================== */
 .cargo-sizes {
   margin: 20px 0;
   padding: 15px;
@@ -384,7 +451,7 @@ body {
 
 .cargo-sizes h4 {
   margin: 0 0 15px 0;
-  color: #000000;
+  color: #ffffff;
   font-size: 16px;
 }
 
@@ -432,11 +499,13 @@ body {
   background: #1976d2;
 }
 
-/* Image Upload */
+/* ===========================================
+   Image Upload
+   =========================================== */
 .image-upload {
   margin: 20px 0;
   padding: 15px;
-  border: 1px dashed #2a3f5f;
+  border: 1px dashed #3a5070;
   border-radius: 5px;
 }
 
@@ -445,89 +514,3 @@ body {
   color: #fff;
   margin-bottom: 10px;
 }
-
-/* Modal Actions */
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-.cargo-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
-}
-
-.cargo-button.primary {
-  background: #4caf50;
-  color: white;
-}
-
-.cargo-button.primary:hover {
-  background: #45a049;
-}
-
-.cargo-button.secondary {
-  background: #757575;
-  color: white;
-}
-
-.cargo-button.secondary:hover {
-  background: #616161;
-}
-
-.cargo-button.danger {
-  background: #f44336;
-  color: white;
-}
-
-.cargo-button.danger:hover {
-  background: #d32f2f;
-}
-
-/* Status badges */
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.status.out {
-  background: #f44336;
-  color: white;
-}
-
-.status.low {
-  background: #ff9800;
-  color: white;
-}
-
-.status.fine {
-  background: #4caf50;
-  color: white;
-}
-
-/* Input styles */
-.cargo-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  background: #ffffff;
-  border: 2px solid #000000;
-  border-radius: 4px;
-  color: #000000;
-  font-size: 14px;
-}
-
-.cargo-input:focus {
-  outline: none;
-  border-color: #4caf50;
-}
-
-

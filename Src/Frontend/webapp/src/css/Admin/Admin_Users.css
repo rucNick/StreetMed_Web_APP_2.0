@@ -1,24 +1,38 @@
 @import '../Admin/Cargo_Admin.css';
 
 .cargo-error {
-  color: #f5222d;
+  color: #ff6b6b;
   margin-bottom: 10px;
+  background-color: rgba(255, 77, 79, 0.2);
+  padding: 10px;
+  border-radius: 4px;
 }
 
 .table-scroll {
   max-height: 400px;
   overflow-y: auto;
 }
+
 .table-scroll thead th {
   position: sticky;
   top: 0;
-  background-color: #edf1f5;
+  background-color: #212c46;
   z-index: 1;
+  color: #ffffff;
 }
 
 .cargo-input {
   min-width: 140px;
+  background-color: #ffffff;
+  color: #000000;
+  border: 2px solid #3a5070;
 }
+
+.cargo-input:focus {
+  border-color: #f6b800;
+  outline: none;
+}
+
 .cargo-button {
   flex-shrink: 0;
 }
@@ -31,4 +45,35 @@
   padding: 3px 8px;
   display: inline-block;
   margin-bottom: 5px;
+  color: #0f1c38;
+  border: none;
+  cursor: pointer;
+}
+
+.manage-btn:hover {
+  background-color: #db9914;
+}
+
+/* Table styles for users */
+.cargo-table tbody tr:hover {
+  background-color: #2a3f5f;
+}
+
+/* Form blocks */
+.content-block {
+  background: #1a2332;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.content-block h3 {
+  color: #ffffff;
+}
+
+/* Select dropdown styling */
+.cargo-input[type="select"],
+select.cargo-input {
+  background-color: #ffffff;
+  color: #000000;
 }

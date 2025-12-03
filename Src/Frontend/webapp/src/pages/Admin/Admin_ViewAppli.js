@@ -314,7 +314,7 @@ const AdminViewAppli = ({ userData }) => {
             <div style={{ 
               marginTop: '20px', 
               padding: '15px', 
-              backgroundColor: '#f5f5f5', 
+              backgroundColor: '#212c46', 
               borderRadius: '4px' 
             }}>
               <h3>Application Summary</h3>

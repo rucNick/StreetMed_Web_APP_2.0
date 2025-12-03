@@ -267,7 +267,7 @@ const Cargo_Admin = ({ userData }) => {
 
       const resp = await secureAxios.post('/api/cargo/items', fd, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': undefined,
           'Admin-Username': userData.username,
           'Authentication-Status': 'true'
         }
@@ -334,7 +334,7 @@ const Cargo_Admin = ({ userData }) => {
         fd,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': undefined,
             'Admin-Username': userData.username,
             'Authentication-Status': 'true'
           }
