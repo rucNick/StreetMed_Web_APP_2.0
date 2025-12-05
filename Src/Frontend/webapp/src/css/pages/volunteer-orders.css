@@ -1,0 +1,229 @@
+/* ===========================================
+   Volunteer Orders Page - Dark Theme
+   Street Medicine Go
+   =========================================== */
+
+/* ===========================================
+   PAGE CONTAINER
+   =========================================== */
+.page-container {
+  background-color: #0f1c38;
+  min-height: 100vh;
+}
+
+/* ===========================================
+   SITE HEADER - ORDER MANAGEMENT CENTER
+   =========================================== */
+.page-container .site-header {
+  background-color: #0f1c38;
+  height: 80px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-container .site-header .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+}
+
+.page-container .site-header .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.page-container .site-header .logo {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+}
+
+.page-container .site-header .site-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.page-container .site-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* ===========================================
+   MAIN CONTENT
+   =========================================== */
+.page-container .main-content {
+  padding: 30px;
+  background-color: #0f1c38;
+  min-height: calc(100vh - 80px);
+}
+
+/* ===========================================
+   ORDERS CARD
+   =========================================== */
+.orders-card {
+  background-color: #1a2332;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.orders-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* ===========================================
+   FILTER GROUP / TAB BUTTONS
+   =========================================== */
+.orders-filterGroup {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.orders-filterGroup .filter-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+/* Inactive tab buttons */
+.orders-filterGroup .filter-btn:not(.active) {
+  background-color: #2a3f5f;
+  color: #ffffff;
+  border: 1px solid #3a5070;
+}
+
+.orders-filterGroup .filter-btn:not(.active):hover {
+  background-color: #3a5070;
+}
+
+/* ===========================================
+   TABLE SCROLL / CONTENT AREA
+   =========================================== */
+.table-scroll {
+  background-color: transparent;
+}
+
+/* ===========================================
+   LOADING SPINNER
+   =========================================== */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #f6b800;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===========================================
+   RESPONSIVE - TABLET
+   =========================================== */
+@media (max-width: 900px) {
+  .page-container .site-header .header-content {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .page-container .site-header {
+    height: auto;
+    padding: 15px 20px;
+  }
+
+  .page-container .site-header .header-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .page-container .site-header .site-title {
+    font-size: 18px;
+  }
+
+  .orders-card {
+    padding: 20px;
+  }
+
+  .orders-title {
+    font-size: 22px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - MOBILE
+   =========================================== */
+@media (max-width: 600px) {
+  .page-container .site-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-container .site-header {
+    height: auto;
+    padding: 15px;
+  }
+
+  .page-container .site-header .header-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .page-container .main-content {
+    padding: 15px;
+  }
+
+  .orders-card {
+    padding: 15px;
+  }
+
+  .orders-title {
+    font-size: 20px;
+  }
+
+  .orders-filterGroup {
+    flex-direction: column;
+  }
+
+  .orders-filterGroup .filter-btn {
+    width: 100%;
+  }
+
+  .orders-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

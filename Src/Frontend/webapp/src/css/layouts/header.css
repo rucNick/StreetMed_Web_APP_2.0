@@ -1,6 +1,6 @@
 /* ===========================================
    Header / Navbar - All Header Styles
-   Street Medicine Go
+   Street Medicine Go - UPDATED
    =========================================== */
 
 /* ===========================================
@@ -8,7 +8,7 @@
    =========================================== */
 .site-header {
   width: 100%;
-  height: var(--header-height);
+  height: 66px;
   background: #d9d9d9;
   display: flex;
   align-items: center;
@@ -46,38 +46,59 @@
 
 /* Site title */
 .site-title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
+  font-size: 24px;
+  font-weight: 600;
+  color: #444444;
 }
 
-/* Welcome text - FIXED: Dark text on light header */
+/* Welcome text - Dark text on light header */
 .welcome-text {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary); /* #444 - readable on light bg */
+  font-size: 18px;
+  font-weight: 600;
+  color: #444444;
 }
 
 /* ===========================================
-   DARK THEME HEADER (Admin/Volunteer)
+   DARK THEME HEADER (Admin/Volunteer/Orders)
    =========================================== */
 .site-header-dark,
-.store-header {
+.store-header,
+.page-container .site-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: var(--header-height-lg);
+  height: 83px;
   padding: 0 27px;
-  background-color: var(--bg-dark-primary);
+  background-color: #0f1c38;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.site-header-dark .site-title {
-  color: var(--text-on-dark);
+.site-header-dark .site-title,
+.page-container .site-header .site-title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .site-header-dark .logo {
   margin-left: 30px;
+}
+
+/* Logo container in dark header */
+.page-container .site-header .logo-container,
+.site-header-dark .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Header right in dark theme */
+.page-container .site-header .header-right,
+.site-header-dark .header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 /* ===========================================
@@ -85,7 +106,7 @@
    =========================================== */
 .login-site-header {
   width: 100%;
-  height: var(--header-height-lg);
+  height: 83px;
   background-color: rgba(217, 217, 217, 0.105);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -104,24 +125,25 @@
 }
 
 .login-site-title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-on-dark);
-  font-family: var(--font-family-mono);
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* ===========================================
    VOLUNTEER NAVBAR
    =========================================== */
 .nav-bar {
-  background-color: var(--bg-dark-primary);
+  background-color: #0f1c38;
   height: 80px;
   display: flex;
   align-items: center;
   box-sizing: border-box;
   padding: 0 27px;
   justify-content: space-between;
-  font-family: var(--font-family-mono);
+  font-family: 'Courier New', Courier, monospace;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .top-nav {
@@ -135,17 +157,64 @@
 }
 
 /* ===========================================
+   NAV BUTTONS - BASE STYLES
+   =========================================== */
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 10px 18px;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.nav-btn:hover {
+  background-color: #ffe5b0;
+  color: #333333;
+}
+
+.nav-btn.active {
+  background-color: #003295;
+  color: #ffffff;
+}
+
+/* ===========================================
+   PROFILE BUTTON - ORANGE DEFAULT
+   =========================================== */
+.nav-btn.profile-btn,
+.nav-bar .nav-btn:nth-child(1),
+button.nav-btn[style*="margin-left"] {
+  background-color: #ff6b00;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.nav-btn.profile-btn:hover,
+.nav-bar .nav-btn:nth-child(1):hover,
+button.nav-btn[style*="margin-left"]:hover {
+  background-color: #e55a00;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* ===========================================
    SMG NAVBAR (Rounds)
    =========================================== */
 .smg-navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--header-height-lg);
-  background-color: var(--primary-orange);
+  height: 83px;
+  background-color: #ffb916;
   padding: 0 27px;
   margin-bottom: 25px;
-  border-radius: var(--border-radius-lg);
+  border-radius: 16px;
 }
 
 .navbar-left,
@@ -182,17 +251,17 @@
   display: inline-block;
   background: none;
   border: none;
-  color: var(--text-on-dark);
+  color: #ffffff;
   text-decoration: none;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  transition: color var(--transition-normal);
+  font-size: 24px;
+  font-weight: 500;
+  transition: color 0.3s ease;
   padding: 5px 0;
   cursor: pointer;
 }
 
 .nav-link:hover {
-  color: var(--text-on-dark-muted);
+  color: #cccccc;
 }
 
 /* Underline animation on hover */
@@ -203,8 +272,8 @@
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: var(--text-on-dark);
-  transition: width var(--transition-normal);
+  background-color: #ffffff;
+  transition: width 0.3s ease;
 }
 
 .nav-link:hover:after {
@@ -239,8 +308,8 @@
   display: block;
   width: 25px;
   height: 3px;
-  background-color: var(--text-on-dark);
-  transition: all var(--transition-normal);
+  background-color: #ffffff;
+  transition: all 0.3s ease;
 }
 
 /* ===========================================
@@ -253,15 +322,15 @@
   gap: 20px;
   padding: 14px 20px;
   margin-bottom: 25px;
-  border-radius: var(--border-radius-lg);
-  background: var(--primary-orange);
-  box-shadow: var(--shadow-sm);
+  border-radius: 16px;
+  background: #ffb916;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .section-header h2 {
-  font-size: var(--font-size-xl);
+  font-size: 20px;
   margin: 0;
-  color: var(--primary-blue-alt);
+  color: #003295;
 }
 
 /* ===========================================
@@ -273,18 +342,83 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .cargo-title,
 .orders-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-on-dark);
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ===========================================
+   GO BACK BUTTON
+   =========================================== */
+.go-back-btn,
+.login-go-back-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+  cursor: pointer;
+  padding: 4px 12px;
+  transition: background 0.3s ease;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.go-back-btn:hover,
+.login-go-back-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.login-go-back-btn {
+  margin-left: auto;
+}
+
+/* ===========================================
+   HEADER BUTTONS (profile, cart, etc.)
+   =========================================== */
+.profileButton,
+.cartButton,
+.feedbackButton,
+.logoutButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #444444;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background-color 0.1s ease;
+}
+
+.profileButton:hover,
+.cartButton:hover,
+.feedbackButton:hover,
+.logoutButton:hover {
+  background: rgba(0, 0, 0, 0.08);
 }
 
 /* ===========================================
    RESPONSIVE NAVIGATION
    =========================================== */
+@media (max-width: 900px) {
+  .page-container .site-header .header-content {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .page-container .site-header .header-right {
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 768px) {
   .mobile-menu-toggle {
     display: flex;
@@ -293,19 +427,19 @@
 
   .nav-list {
     position: absolute;
-    top: var(--header-height-lg);
+    top: 83px;
     left: 0;
     right: 0;
     background-color: rgba(217, 217, 217, 0.105);
     backdrop-filter: blur(10px);
     flex-direction: column;
-    padding: var(--spacing-lg);
+    padding: 16px;
     transform: scaleY(0);
     transform-origin: top;
-    transition: transform var(--transition-normal);
+    transition: transform 0.3s ease;
     z-index: 101;
     opacity: 0;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   }
 
   .nav-active {
@@ -314,7 +448,7 @@
   }
 
   .nav-item {
-    margin: var(--spacing-sm) 0;
+    margin: 8px 0;
     width: 100%;
   }
 
@@ -322,7 +456,7 @@
     display: block;
     width: 100%;
     text-align: left;
-    padding: var(--spacing-sm) 0;
+    padding: 8px 0;
   }
 
   .nav-link:after {
@@ -335,6 +469,45 @@
 
   .nav-btn {
     flex: 1 1 140px;
+  }
+
+  .nav-bar {
+    flex-direction: column;
+    height: auto;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .nav-right-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-container .site-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-container .site-header {
+    height: auto;
+    padding: 15px 20px;
+  }
+
+  .page-container .site-header .site-title {
+    font-size: 18px;
+  }
+
+  .page-container .site-header .header-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .page-container .site-header .header-right > div {
+    justify-content: center;
   }
 }
 
@@ -350,6 +523,6 @@
   }
 
   .site-title {
-    font-size: var(--font-size-lg);
+    font-size: 18px;
   }
 }

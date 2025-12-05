@@ -1,9 +1,13 @@
 /* ===========================================
-   Volunteer Pages - Specific Overrides
+   Volunteer Pages - Complete Redesign
    Street Medicine Go
    
-   NOTE: This file contains ONLY volunteer-specific
-   overrides. Base styles are in components/
+   FIXES:
+   - Improved text visibility on dark backgrounds
+   - Better card contrast and readability
+   - Consistent color scheme throughout
+   - Enhanced visual hierarchy
+   - Mobile responsiveness
    =========================================== */
 
 /* ===========================================
@@ -15,6 +19,7 @@
   color: var(--text-on-dark);
   margin: 0;
   padding: 0;
+  min-height: 100vh;
 }
 
 .volunteer-page body {
@@ -24,257 +29,579 @@
 /* ===========================================
    VOLUNTEER NAVBAR
    =========================================== */
-.volunteer-page .nav-bar {
+.volunteer-page .nav-bar,
+.nav-bar {
   background-color: var(--bg-dark-primary);
   height: 80px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 27px;
+  justify-content: space-between;
+  font-family: var(--font-family-mono);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.volunteer-page .nav-btn {
+.volunteer-page .nav-logo,
+.nav-logo {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+}
+
+.volunteer-page .nav-welcome h2,
+.nav-welcome h2 {
+  color: var(--primary-gold);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.volunteer-page .nav-btn,
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
   color: var(--text-on-dark);
+  cursor: pointer;
+  padding: 10px 18px;
+  border-radius: var(--border-radius-lg);
+  transition: all var(--transition-normal);
   font-family: var(--font-family-mono);
 }
 
-.volunteer-page .nav-btn:hover {
-  background-color: #ffe5b0;
-  color: var(--text-primary);
+.volunteer-page .nav-btn:hover,
+.nav-btn:hover {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+}
+
+.nav-right-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* ===========================================
    VOLUNTEER DASHBOARD CONTAINER
    =========================================== */
-.volunteer-page .volunteer-dashboard-container {
+.volunteer-page .volunteer-dashboard-container,
+.volunteer-dashboard-container {
   display: flex;
   flex-direction: row;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 80px);
   padding: 30px 60px;
-  gap: 20px;
+  gap: 30px;
   background: var(--bg-dark-primary);
+  font-family: var(--font-family-mono);
 }
 
 /* ===========================================
    VOLUNTEER LEFT PANEL
    =========================================== */
-.volunteer-page .volunteer-left-panel {
+.volunteer-page .volunteer-left-panel,
+.volunteer-left-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 25px;
+  max-width: 700px;
 }
 
-.volunteer-page .volunteer-left-panel h2 {
-  font-size: var(--font-size-xl);
-  margin: 0 0 5px 0;
-  color: var(--text-on-dark);
-  font-family: var(--font-family-mono);
-  background: #002a69;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: 12px 24px;
-  display: inline-block;
-}
-
-/* ===========================================
-   VOLUNTEER RIGHT PANEL
-   =========================================== */
-.volunteer-page .volunteer-right-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
-}
-
-.volunteer-page .volunteer-right-panel h2 {
-  margin-top: 0;
+/* Section Headers - Blue rounded boxes */
+.volunteer-page .volunteer-left-panel h2,
+.volunteer-left-panel h2 {
   font-size: var(--font-size-lg);
-  text-align: center;
+  margin: 0;
   color: var(--text-on-dark);
   font-family: var(--font-family-mono);
-  background: var(--bg-dark-primary);
+  background: var(--primary-blue-dark);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
-  padding: 12px 24px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+.volunteer-page .volunteer-left-panel h2:hover,
+.volunteer-left-panel h2:hover {
+  background: var(--primary-blue);
+}
+
+.volunteer-left-panel h2 strong {
+  color: var(--text-on-dark);
+}
+
+.volunteer-left-panel h2 span {
+  color: var(--text-on-dark-muted);
+  font-size: var(--font-size-sm);
 }
 
 /* ===========================================
-   VOLUNTEER VERTICAL DIVIDER
+   ASSIGNMENTS SECTION - FIXED STYLING
    =========================================== */
-.volunteer-page .vertical-line {
-  width: 2px;
-  background-color: #888;
-  margin: 0 20px;
+.volunteer-left-panel > div[style*="marginBottom"] {
+  background: var(--bg-dark-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Refresh button in assignments header */
+.volunteer-left-panel h2 button {
+  margin-left: auto;
+  padding: 6px 14px;
+  font-size: var(--font-size-xs);
+  background-color: var(--success);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: var(--font-weight-bold);
+  transition: background-color var(--transition-normal);
+}
+
+.volunteer-left-panel h2 button:hover {
+  background-color: #229954;
 }
 
 /* ===========================================
-   VOLUNTEER CARDS CONTAINERS
+   EMPTY STATE CARDS - IMPROVED VISIBILITY
+   =========================================== */
+.volunteer-page .orders-cards > div[style*="textAlign: 'center'"],
+.orders-cards > div[style*="backgroundColor: '#f9f9f9'"] {
+  background-color: var(--bg-dark-tertiary) !important;
+  color: var(--text-on-dark) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.volunteer-page .orders-cards p,
+.orders-cards p {
+  color: var(--text-on-dark) !important;
+}
+
+/* "No active assignments" text */
+.orders-cards > div p:first-child {
+  color: var(--text-on-dark) !important;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Secondary text in empty state */
+.orders-cards > div p[style*="color: '#666'"],
+.orders-cards > div p[style*="marginTop: '10px'"] {
+  color: var(--text-on-dark-muted) !important;
+}
+
+/* ===========================================
+   ROUNDS & ORDERS CARDS CONTAINERS
    =========================================== */
 .volunteer-page .rounds-cards,
-.volunteer-page .orders-cards {
+.volunteer-page .orders-cards,
+.rounds-cards,
+.orders-cards {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  background: var(--bg-dark-primary);
-  border-radius: var(--border-radius-xxl);
+  gap: 16px;
+  background: var(--bg-dark-secondary);
+  border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
-  padding: 24px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Empty state text in cards containers */
+.rounds-cards > p,
+.orders-cards > p {
+  color: var(--text-on-dark-muted) !important;
+  font-size: var(--font-size-md);
+  padding: 20px;
+  text-align: center;
+  width: 100%;
 }
 
 /* ===========================================
    VOLUNTEER ROUND CARDS
    =========================================== */
-.volunteer-page .round-card {
-  background-color: var(--bg-dark-primary);
+.volunteer-page .round-card,
+.round-card {
+  background-color: var(--bg-dark-tertiary);
   border-radius: var(--border-radius-lg);
-  padding: 16px;
+  padding: 18px;
   width: 240px;
-  height: 200px;
+  min-height: 200px;
   box-shadow: var(--shadow-sm);
   color: var(--text-on-dark);
   font-family: var(--font-family-mono);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.volunteer-page .round-card h3 {
-  margin: 0 0 8px;
+.round-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.volunteer-page .round-card h3,
+.round-card h3 {
+  margin: 0 0 10px;
   font-size: var(--font-size-md);
-  color: var(--text-on-dark);
+  color: var(--primary-gold);
+  font-weight: var(--font-weight-bold);
 }
 
-.volunteer-page .open-view-btn {
-  margin-top: 0;
+.volunteer-page .round-card p,
+.round-card p {
+  color: var(--text-on-dark);
+  font-size: var(--font-size-sm);
+  margin: 6px 0;
+  line-height: 1.4;
+}
+
+.round-card p strong {
+  color: var(--text-on-dark-muted);
+}
+
+/* View Details button */
+.volunteer-page .open-view-btn,
+.open-view-btn {
+  margin-top: 12px;
   background-color: var(--primary-blue);
   color: var(--text-on-dark);
   border: none;
-  border-radius: 4px;
-  padding: 8px;
+  border-radius: 6px;
+  padding: 10px 16px;
   cursor: pointer;
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  width: 100%;
+  transition: background-color var(--transition-normal);
 }
 
-.volunteer-page .open-view-btn:hover {
+.volunteer-page .open-view-btn:hover,
+.open-view-btn:hover {
   background-color: var(--primary-blue-hover);
 }
 
 /* ===========================================
    VOLUNTEER ORDER CARDS
    =========================================== */
-.volunteer-page .order-card {
-  background-color: #003366;
+.volunteer-page .order-card,
+.order-card {
+  background-color: var(--bg-dark-tertiary);
   border-radius: var(--border-radius-lg);
-  padding: 16px;
-  width: 220px;
+  padding: 18px;
+  width: 260px;
   box-shadow: var(--shadow-sm);
   position: relative;
   color: var(--text-on-dark);
   font-family: var(--font-family-mono);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.order-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .volunteer-page .order-card h3,
-.volunteer-page .order-card p {
-  color: var(--text-on-dark);
+.order-card h3 {
+  color: var(--primary-gold);
+  font-size: var(--font-size-md);
+  margin: 0 0 8px;
 }
 
-.volunteer-page .completed-badge {
+.volunteer-page .order-card p,
+.order-card p {
+  color: var(--text-on-dark);
+  font-size: var(--font-size-sm);
+  margin: 5px 0;
+  line-height: 1.4;
+}
+
+.order-card p strong {
+  color: var(--text-on-dark-muted);
+}
+
+/* Status badges in order cards */
+.order-card span[style*="borderRadius"] {
+  font-size: 11px !important;
+}
+
+/* Completed badge */
+.volunteer-page .completed-badge,
+.completed-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   background-color: var(--success);
   color: var(--text-on-dark);
   font-size: var(--font-size-xs);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: var(--font-weight-bold);
 }
 
 /* ===========================================
-   VOLUNTEER CALENDAR
+   VERTICAL DIVIDER
    =========================================== */
-.volunteer-page .react-calendar {
-  width: 440px;
-  height: 440px;
+.volunteer-page .vertical-line,
+.vertical-line {
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.2) 80%,
+    transparent
+  );
+  margin: 0 20px;
+  min-height: 400px;
+}
+
+/* ===========================================
+   VOLUNTEER RIGHT PANEL
+   =========================================== */
+.volunteer-page .volunteer-right-panel,
+.volunteer-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 460px;
+}
+
+.volunteer-page .volunteer-right-panel h2,
+.volunteer-right-panel h2 {
+  margin-top: 0;
+  font-size: var(--font-size-lg);
+  text-align: center;
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+  background: var(--bg-dark-secondary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 14px 28px;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===========================================
+   VOLUNTEER CALENDAR - ENHANCED
+   =========================================== */
+.volunteer-page .react-calendar,
+.volunteer-right-panel .react-calendar {
+  width: 420px;
   background-color: var(--bg-white);
   border: none;
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  font-family: var(--font-family-primary);
 }
 
-.volunteer-page .highlight-day {
-  background-color: #f78702 !important;
+/* Calendar navigation */
+.react-calendar__navigation {
+  margin-bottom: 15px;
+}
+
+.react-calendar__navigation button {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
+  background: none;
+  border-radius: var(--border-radius-md);
+  padding: 8px;
+}
+
+.react-calendar__navigation button:hover {
+  background-color: var(--bg-light);
+}
+
+/* Calendar weekday labels */
+.react-calendar__month-view__weekdays {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  padding: 10px 0;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}
+
+/* Calendar day tiles */
+.react-calendar__tile {
+  padding: 12px 8px;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  border-radius: var(--border-radius-md);
+}
+
+.react-calendar__tile:hover {
+  background-color: var(--bg-light-blue);
+}
+
+.react-calendar__tile--now {
+  background-color: var(--primary-gold) !important;
+  color: var(--bg-dark-primary) !important;
+  font-weight: var(--font-weight-bold);
+}
+
+.react-calendar__tile--active {
+  background-color: var(--primary-blue) !important;
+  color: var(--text-on-dark) !important;
+}
+
+/* Weekend days */
+.react-calendar__month-view__days__day--weekend {
+  color: var(--error);
+}
+
+/* Highlight days with rounds */
+.volunteer-page .highlight-day,
+.highlight-day {
+  background-color: var(--primary-orange) !important;
   color: var(--text-on-dark) !important;
   border-radius: 50%;
+  font-weight: var(--font-weight-bold);
 }
 
 /* ===========================================
    VOLUNTEER MODALS
    =========================================== */
 .volunteer-page .rounds-modal,
-.volunteer-page .fullview-modal {
+.volunteer-page .fullview-modal,
+.rounds-modal,
+.fullview-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: var(--z-modal);
+  backdrop-filter: blur(4px);
 }
 
 .volunteer-page .rounds-modal-content,
-.volunteer-page .fullview-modal-content {
+.volunteer-page .fullview-modal-content,
+.rounds-modal-content,
+.fullview-modal-content {
   background-color: var(--bg-white);
   border-radius: var(--border-radius-lg);
   width: 90%;
   max-width: 600px;
   max-height: 80vh;
   overflow-y: auto;
-  padding: 20px 30px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  padding: 30px 35px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
-.volunteer-page .round-detail {
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.volunteer-page .round-detail h4 {
-  margin: 0 0 6px;
+.rounds-modal-content h3,
+.fullview-modal-content h2 {
   color: var(--text-primary);
+  font-size: var(--font-size-2xl);
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--bg-light);
 }
 
+.volunteer-page .round-detail,
+.round-detail {
+  border-bottom: 1px solid #eee;
+  padding: 20px 0;
+  margin-bottom: 15px;
+}
+
+.volunteer-page .round-detail h4,
+.round-detail h4 {
+  margin: 0 0 10px;
+  color: var(--primary-blue);
+  font-size: var(--font-size-lg);
+}
+
+.round-detail p {
+  color: var(--text-secondary);
+  margin: 6px 0;
+  font-size: var(--font-size-sm);
+}
+
+/* Modal buttons */
 .volunteer-page .close-modal-btn,
-.volunteer-page .cancel-signup-btn {
+.volunteer-page .cancel-signup-btn,
+.close-modal-btn,
+.cancel-signup-btn {
   margin-top: 20px;
-  background-color: #ccc;
+  background-color: var(--bg-light-gray);
   color: var(--text-primary);
   border: none;
-  padding: 10px 16px;
+  padding: 12px 24px;
   border-radius: var(--border-radius-lg);
   font-weight: var(--font-weight-bold);
   cursor: pointer;
+  font-size: var(--font-size-md);
+  transition: background-color var(--transition-normal);
 }
 
-.volunteer-page .close-modal-btn:hover,
-.volunteer-page .cancel-signup-btn:hover {
-  background-color: #999;
+.close-modal-btn:hover,
+.cancel-signup-btn:hover {
+  background-color: #b0b0b0;
+}
+
+/* Sign up button in modal */
+.round-detail button {
+  background-color: var(--primary-blue);
+  color: var(--text-on-dark);
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color var(--transition-normal);
+}
+
+.round-detail button:hover {
+  background-color: var(--primary-blue-hover);
 }
 
 /* ===========================================
    VOLUNTEER ERROR TEXT
    =========================================== */
-.volunteer-page .error-text {
-  color: var(--error);
+.volunteer-page .error-text,
+.error-text {
+  color: #ff6b6b;
   font-size: var(--font-size-sm);
+  padding: 10px 15px;
+  background-color: rgba(255, 107, 107, 0.15);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--error);
+  margin: 10px 0;
 }
 
 /* ===========================================
-   VOLUNTEER CARGO (Light Theme Variant)
+   VOLUNTEER CARGO PAGE (Light Theme Variant)
    =========================================== */
 .volunteer-cargo-page .page-body {
   margin: 0;
   padding: 0;
   font-family: var(--font-family-primary);
-  background-color: var(--bg-light-gray);
+  background-color: var(--bg-dark-primary);
   min-height: 100vh;
 }
 
@@ -283,8 +610,9 @@
   align-items: center;
   justify-content: space-between;
   height: var(--header-height-lg);
-  background-color: #d9d9d9;
+  background-color: var(--bg-dark-primary);
   padding: 0 27px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .volunteer-cargo-page .cargo-header {
@@ -294,50 +622,63 @@
 }
 
 .volunteer-cargo-page .cargo-title {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--text-on-dark);
 }
 
 .volunteer-cargo-page .cargo-container {
   padding: 40px 60px;
-  background-color: var(--bg-light-gray);
+  background-color: var(--bg-dark-primary);
   min-height: calc(100vh - var(--header-height-lg));
 }
 
 .volunteer-cargo-page .cargo-card {
-  background-color: var(--bg-light-blue);
+  background-color: var(--bg-dark-secondary);
   padding: 30px;
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
   overflow-x: auto;
-  /* CRITICAL: Dark text on light card */
-  color: var(--text-on-card);
+  color: var(--text-on-dark);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .volunteer-cargo-page .table-title {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: 15px;
-  color: var(--text-on-card);
+  margin-bottom: 20px;
+  color: var(--text-on-dark);
 }
 
 .volunteer-cargo-page .cargo-table {
-  background-color: #f9f9f9;
+  background-color: var(--bg-dark-tertiary);
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .volunteer-cargo-page .cargo-table th {
-  background-color: #edf1f5;
-  color: var(--text-primary);
+  background-color: var(--bg-dark-tertiary);
+  color: var(--text-on-dark);
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  border-bottom: 2px solid var(--border-dark);
 }
 
 .volunteer-cargo-page .cargo-table td {
-  color: var(--text-primary);
+  color: var(--text-on-dark);
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.volunteer-cargo-page .cargo-table tr:hover {
+  background-color: var(--bg-dark-hover);
 }
 
 .volunteer-cargo-page .manage-btn {
-  background-color: var(--bg-light-yellow);
-  color: var(--text-primary);
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+  font-weight: var(--font-weight-bold);
 }
 
 /* ===========================================
@@ -345,13 +686,14 @@
    =========================================== */
 .volunteer-orders-page .orders-container {
   padding: 20px;
+  background-color: var(--bg-dark-primary);
 }
 
 .volunteer-orders-page .tabs-container {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 10px;
 }
 
@@ -359,21 +701,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
   border-radius: 8px 8px 0 0;
   cursor: pointer;
   transition: all var(--transition-normal);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--bg-dark-secondary);
+  color: var(--text-on-dark);
+}
+
+.volunteer-orders-page .tab-btn:hover {
+  background-color: var(--bg-dark-tertiary);
 }
 
 .volunteer-orders-page .tab-btn.active {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .volunteer-orders-page .tab-count {
-  padding: 2px 8px;
-  background: rgba(255, 255, 255, 0.3);
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
@@ -383,43 +733,59 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: #ffebee;
-  color: #c62828;
+  padding: 12px 16px;
+  background: rgba(255, 77, 79, 0.15);
+  color: #ff6b6b;
   border-radius: var(--border-radius-md);
   margin-bottom: 20px;
+  border-left: 4px solid var(--error);
 }
 
 .volunteer-orders-page .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--primary-gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
 }
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .volunteer-orders-page .priority-legend {
   display: flex;
   gap: 20px;
-  padding: 10px;
-  background: #f8f9fa;
+  padding: 12px 16px;
+  background: var(--bg-dark-secondary);
   border-radius: var(--border-radius-md);
   margin-bottom: 20px;
   align-items: center;
+  color: var(--text-on-dark);
 }
 
 .volunteer-orders-page .empty-state {
   text-align: center;
   padding: 60px;
-  background: #f9f9f9;
+  background: var(--bg-dark-secondary);
   border-radius: var(--border-radius-md);
+  color: var(--text-on-dark);
+}
+
+.volunteer-orders-page .empty-state h3 {
+  color: var(--text-on-dark);
+}
+
+.volunteer-orders-page .empty-state p {
+  color: var(--text-on-dark-muted);
 }
 
 .volunteer-orders-page .status-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 12px;
   font-size: 11px;
   font-weight: var(--font-weight-bold);
@@ -427,21 +793,97 @@
 }
 
 /* ===========================================
-   VOLUNTEER RESPONSIVE
+   INLINE STYLE OVERRIDES FOR VOLUNTEER PAGE
+   (Override React inline styles)
    =========================================== */
-@media (max-width: 768px) {
-  .volunteer-page .volunteer-dashboard-container {
-    flex-direction: column;
-    padding: 20px;
+
+/* Fix: Empty state cards with inline styles */
+.volunteer-dashboard-container div[style*="backgroundColor: '#f9f9f9'"] {
+  background-color: var(--bg-dark-tertiary) !important;
+}
+
+.volunteer-dashboard-container div[style*="backgroundColor: '#f9f9f9'"] p {
+  color: var(--text-on-dark) !important;
+}
+
+.volunteer-dashboard-container div[style*="color: '#666'"] {
+  color: var(--text-on-dark-muted) !important;
+}
+
+/* Fix: "Go to Order Queue" button */
+.volunteer-dashboard-container button[style*="backgroundColor: '#ff6b00'"] {
+  background-color: var(--primary-orange) !important;
+}
+
+/* ===========================================
+   RESPONSIVE - TABLET
+   =========================================== */
+@media (max-width: 1024px) {
+  .volunteer-dashboard-container {
+    padding: 20px 30px;
+    gap: 20px;
   }
 
-  .volunteer-page .vertical-line {
+  .volunteer-right-panel {
+    min-width: 380px;
+  }
+
+  .react-calendar {
+    width: 360px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - MOBILE
+   =========================================== */
+@media (max-width: 768px) {
+  .volunteer-page .volunteer-dashboard-container,
+  .volunteer-dashboard-container {
+    flex-direction: column;
+    padding: 15px;
+  }
+
+  .volunteer-page .vertical-line,
+  .vertical-line {
     display: none;
   }
 
-  .volunteer-page .react-calendar {
+  .volunteer-left-panel {
+    max-width: 100%;
+  }
+
+  .volunteer-right-panel {
+    min-width: 100%;
     width: 100%;
+  }
+
+  .volunteer-page .react-calendar,
+  .volunteer-right-panel .react-calendar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .volunteer-page .round-card,
+  .round-card {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .volunteer-page .order-card,
+  .order-card {
+    width: 100%;
+  }
+
+  .nav-bar {
+    flex-direction: column;
     height: auto;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .nav-right-group {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .volunteer-cargo-page .cargo-container {
@@ -449,10 +891,46 @@
   }
 
   .volunteer-cargo-page .cargo-card {
-    padding: 20px;
+    padding: 15px;
   }
 
   .volunteer-cargo-page .cargo-table {
     font-size: var(--font-size-sm);
+  }
+
+  .rounds-modal-content,
+  .fullview-modal-content {
+    padding: 20px;
+    margin: 10px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - SMALL MOBILE
+   =========================================== */
+@media (max-width: 480px) {
+  .volunteer-left-panel h2 {
+    font-size: var(--font-size-md);
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .nav-welcome h2 {
+    font-size: var(--font-size-lg);
+  }
+
+  .nav-btn {
+    padding: 8px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  .volunteer-right-panel h2 {
+    font-size: var(--font-size-md);
+    padding: 12px 20px;
+  }
+
+  .react-calendar__tile {
+    padding: 8px 4px;
+    font-size: var(--font-size-xs);
   }
 }

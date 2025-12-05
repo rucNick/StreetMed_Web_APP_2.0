@@ -206,11 +206,11 @@ const VolunteerOrders = ({ userData }) => {
   };
 
   const activeAssignments = myAssignments.filter(
-  a => a.status === 'ACCEPTED' || a.status === 'IN_PROGRESS'
+    a => a.status === 'ACCEPTED' || a.status === 'IN_PROGRESS'
   );
 
-const activeCount = activeAssignments.length; // Use filtered count
-const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').length;
+  const activeCount = activeAssignments.length;
+  const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').length;
 
   const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
@@ -250,44 +250,320 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
     }
   }, [activeTab, loadPendingOrders, loadMyAssignments]);
 
+  // ============================================
+  // DARK THEME STYLES
+  // ============================================
+  const styles = {
+    // Page container
+    pageContainer: {
+      backgroundColor: '#0f1c38',
+      minHeight: '100vh'
+    },
+    // Header
+    header: {
+      backgroundColor: '#0f1c38',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+      padding: '0 30px',
+      height: '80px'
+    },
+    headerContent: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      height: '100%',
+      width: '100%'
+    },
+    logoContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '15px'
+    },
+    siteTitle: {
+      fontSize: '22px',
+      fontWeight: '700',
+      color: '#ffffff',
+      fontFamily: "'Courier New', Courier, monospace"
+    },
+    headerRight: {
+      display: 'flex',
+      gap: '15px',
+      alignItems: 'center'
+    },
+    badgeContainer: {
+      display: 'flex',
+      gap: '10px',
+      alignItems: 'center',
+      marginRight: '20px'
+    },
+    badge: {
+      padding: '5px 10px',
+      color: 'white',
+      borderRadius: '15px',
+      fontSize: '12px',
+      fontWeight: 'bold'
+    },
+    // Main content
+    mainContent: {
+      padding: '30px',
+      backgroundColor: '#0f1c38'
+    },
+    // Card
+    ordersCard: {
+      backgroundColor: '#1a2332',
+      borderRadius: '16px',
+      padding: '30px',
+      border: '1px solid rgba(255, 255, 255, 0.08)'
+    },
+    cardHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '20px'
+    },
+    cardTitle: {
+      fontSize: '28px',
+      fontWeight: '700',
+      color: '#ffffff',
+      margin: 0
+    },
+    // Round info banner
+    roundBannerSuccess: {
+      padding: '10px 15px',
+      backgroundColor: 'rgba(39, 174, 96, 0.2)',
+      color: '#4ade80',
+      borderRadius: '4px',
+      margin: '10px 0',
+      fontSize: '14px',
+      fontWeight: '500',
+      border: '1px solid rgba(39, 174, 96, 0.3)'
+    },
+    roundBannerWarning: {
+      padding: '10px 15px',
+      backgroundColor: 'rgba(255, 107, 0, 0.2)',
+      color: '#ffb366',
+      borderRadius: '4px',
+      margin: '10px 0',
+      fontSize: '14px',
+      fontWeight: '500',
+      border: '1px solid rgba(255, 107, 0, 0.3)'
+    },
+    // Tab buttons container
+    tabContainer: {
+      display: 'flex',
+      gap: '15px',
+      margin: '20px 0',
+      justifyContent: 'center'
+    },
+    tabButtonActive: {
+      padding: '12px 24px',
+      borderRadius: '8px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      border: 'none',
+      color: 'white'
+    },
+    tabButtonInactive: {
+      padding: '12px 24px',
+      borderRadius: '8px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      backgroundColor: '#2a3f5f',
+      color: '#ffffff',
+      border: '1px solid #3a5070'
+    },
+    // Error message
+    errorMessage: {
+      padding: '10px',
+      margin: '10px 0',
+      backgroundColor: 'rgba(231, 76, 60, 0.2)',
+      color: '#ff6b6b',
+      borderRadius: '4px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderLeft: '4px solid #e74c3c'
+    },
+    // Loading
+    loadingContainer: {
+      padding: '40px',
+      textAlign: 'center',
+      color: '#cccccc'
+    },
+    // Empty state
+    emptyState: {
+      padding: '60px',
+      textAlign: 'center',
+      backgroundColor: '#212c46',
+      borderRadius: '8px',
+      border: '1px dashed rgba(255, 255, 255, 0.2)'
+    },
+    emptyStateTitle: {
+      color: '#ffffff',
+      fontSize: '24px',
+      margin: 0
+    },
+    emptyStateText: {
+      color: '#aaaaaa',
+      marginTop: '10px'
+    },
+    emptyStateButton: {
+      marginTop: '20px',
+      padding: '10px 30px',
+      backgroundColor: '#3498db',
+      color: 'white',
+      border: 'none',
+      borderRadius: '5px',
+      fontSize: '16px',
+      cursor: 'pointer'
+    },
+    // Priority legend
+    priorityLegend: {
+      marginBottom: '20px',
+      padding: '10px',
+      backgroundColor: '#212c46',
+      borderRadius: '8px',
+      display: 'flex',
+      gap: '20px',
+      alignItems: 'center',
+      border: '1px solid rgba(255, 255, 255, 0.1)'
+    },
+    priorityLegendText: {
+      fontWeight: 'bold',
+      color: '#ffffff'
+    },
+    // Order cards
+    orderCard: {
+      borderRadius: '8px',
+      padding: '20px',
+      backgroundColor: '#1a2332',
+      position: 'relative',
+      transition: 'all 0.3s',
+      cursor: 'pointer',
+      border: '1px solid #3a5070'
+    },
+    orderCardUrgent: {
+      borderRadius: '8px',
+      padding: '20px',
+      backgroundColor: '#2a2a1a',
+      position: 'relative',
+      transition: 'all 0.3s',
+      cursor: 'pointer',
+      border: '2px solid #ff6b00'
+    },
+    urgentBadge: {
+      position: 'absolute',
+      top: '-10px',
+      right: '20px',
+      backgroundColor: '#ff6b00',
+      color: 'white',
+      padding: '5px 15px',
+      borderRadius: '15px',
+      fontSize: '12px',
+      fontWeight: 'bold'
+    },
+    orderHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: '15px'
+    },
+    orderTitle: {
+      margin: 0,
+      color: '#ffffff'
+    },
+    orderTitleUrgent: {
+      margin: 0,
+      color: '#ff6b00'
+    },
+    // Round info in order
+    roundInfo: {
+      marginBottom: '10px',
+      padding: '8px',
+      backgroundColor: 'rgba(52, 152, 219, 0.2)',
+      borderRadius: '4px',
+      fontSize: '14px',
+      color: '#5dade2'
+    },
+    roundInfoStrong: {
+      color: '#5dade2'
+    },
+    // Order details
+    orderDetails: {
+      marginBottom: '15px'
+    },
+    orderText: {
+      marginBottom: '8px',
+      color: '#cccccc'
+    },
+    orderStrong: {
+      color: '#ffffff'
+    },
+    orderList: {
+      margin: '0 0 0 20px',
+      padding: 0
+    },
+    orderListItem: {
+      marginBottom: '4px',
+      color: '#cccccc'
+    },
+    customBadge: {
+      marginLeft: '8px',
+      backgroundColor: 'rgba(255, 97, 0, 0.2)',
+      color: '#ff6100',
+      padding: '2px 6px',
+      borderRadius: '10px',
+      fontSize: '11px',
+      fontWeight: 'bold'
+    },
+    // Assignment card
+    assignmentCard: {
+      border: '1px solid #3a5070',
+      borderRadius: '8px',
+      padding: '20px',
+      backgroundColor: '#1a2332'
+    },
+    assignmentRoundInfo: {
+      marginBottom: '10px',
+      padding: '6px 10px',
+      backgroundColor: 'rgba(39, 174, 96, 0.2)',
+      borderRadius: '4px',
+      fontSize: '14px',
+      display: 'inline-block',
+      color: '#4ade80'
+    },
+    // Buttons container
+    buttonContainer: {
+      display: 'flex',
+      gap: '10px'
+    },
+    // Completed message
+    completedMessage: {
+      width: '100%',
+      textAlign: 'center',
+      color: '#27ae60',
+      fontWeight: 'bold',
+      padding: '10px'
+    }
+  };
+
   return (
-    <div className="page-container">
-      <header className="site-header">
-        <div className="header-content">
-          <div className="logo-container">
+    <div className="page-container" style={styles.pageContainer}>
+      <header className="site-header" style={styles.header}>
+        <div className="header-content" style={styles.headerContent}>
+          <div className="logo-container" style={styles.logoContainer}>
             <img src="/Untitled.png" alt="Logo" className="logo" />
-            <span className="site-title">Order Management Center</span>
+            <span className="site-title" style={styles.siteTitle}>Order Management Center</span>
           </div>
-          <div className="header-right">
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginRight: '20px' }}>
-              <span style={{ 
-                padding: '5px 10px', 
-                backgroundColor: '#27ae60', 
-                color: 'white', 
-                borderRadius: '15px',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}>
+          <div className="header-right" style={styles.headerRight}>
+            <div style={styles.badgeContainer}>
+              <span style={{ ...styles.badge, backgroundColor: '#27ae60' }}>
                 {activeCount} Active
               </span>
-              <span style={{ 
-                padding: '5px 10px', 
-                backgroundColor: '#3498db', 
-                color: 'white', 
-                borderRadius: '15px',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}>
+              <span style={{ ...styles.badge, backgroundColor: '#3498db' }}>
                 {completedCount} Completed
               </span>
-              <span style={{ 
-                padding: '5px 10px', 
-                backgroundColor: '#ff6b00', 
-                color: 'white', 
-                borderRadius: '15px',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}>
+              <span style={{ ...styles.badge, backgroundColor: '#ff6b00' }}>
                 {pendingOrders.length} Available
               </span>
             </div>
@@ -302,10 +578,10 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
         </div>
       </header>
   
-      <main className="main-content">
-        <div className="cargo-card orders-card">
-          <div className="cargo-header orders-header">
-            <h2 className="cargo-title orders-title">
+      <main className="main-content" style={styles.mainContent}>
+        <div className="cargo-card orders-card" style={styles.ordersCard}>
+          <div className="cargo-header orders-header" style={styles.cardHeader}>
+            <h2 className="cargo-title orders-title" style={styles.cardTitle}>
               {activeTab === "PENDING" ? "📦 Available Orders Queue" : "✅ My Assignments"}
             </h2>
             <button
@@ -320,29 +596,21 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
 
           {/* Round Info Banner */}
           {roundInfo.message && activeTab === "PENDING" && (
-            <div style={{
-              padding: '10px 15px',
-              backgroundColor: roundInfo.roundIds.length > 0 ? '#e8f5e9' : '#fff3e0',
-              color: roundInfo.roundIds.length > 0 ? '#2e7d32' : '#e65100',
-              borderRadius: '4px',
-              margin: '10px 0',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}>
+            <div style={roundInfo.roundIds.length > 0 ? styles.roundBannerSuccess : styles.roundBannerWarning}>
               {roundInfo.message}
             </div>
           )}
 
           {/* Tab Buttons */}
-          <div className="drawer-container orders-filterGroup">
+          <div className="drawer-container orders-filterGroup" style={styles.tabContainer}>
             <button
               className={`manage-btn filter-btn ${activeTab === "PENDING" ? "active" : ""}`}
               onClick={() => setActiveTab("PENDING")}
               disabled={isLoading}
-              style={{ 
-                backgroundColor: activeTab === "PENDING" ? '#ff6b00' : '#f0f0f0',
-                color: activeTab === "PENDING" ? 'white' : 'black'
-              }}
+              style={activeTab === "PENDING" 
+                ? { ...styles.tabButtonActive, backgroundColor: '#ff6b00' }
+                : styles.tabButtonInactive
+              }
             >
               🔥 Available Orders ({pendingOrders.length})
             </button>
@@ -350,10 +618,10 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
               className={`manage-btn filter-btn ${activeTab === "ASSIGNED" ? "active" : ""}`}
               onClick={() => setActiveTab("ASSIGNED")}
               disabled={isLoading}
-              style={{ 
-                backgroundColor: activeTab === "ASSIGNED" ? '#009E2C' : '#f0f0f0',
-                color: activeTab === "ASSIGNED" ? 'white' : 'black'
-              }}
+              style={activeTab === "ASSIGNED"
+                ? { ...styles.tabButtonActive, backgroundColor: '#009E2C' }
+                : styles.tabButtonInactive
+              }
             >
               📋 My Assignments ({activeAssignments.length})
             </button>
@@ -361,23 +629,14 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
 
           {/* Error Message */}
           {ordersError && (
-            <div style={{ 
-              padding: '10px', 
-              margin: '10px 0', 
-              backgroundColor: '#ffebee', 
-              color: '#c62828', 
-              borderRadius: '4px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+            <div style={styles.errorMessage}>
               <span>⚠️ {ordersError}</span>
               <button 
                 onClick={() => setOrdersError('')}
                 style={{ 
                   background: 'none', 
                   border: 'none', 
-                  color: '#c62828',
+                  color: '#ff6b6b',
                   fontSize: '20px',
                   cursor: 'pointer'
                 }}
@@ -390,25 +649,20 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
           {/* Content Area */}
           <div className="table-scroll">
             {isLoading ? (
-              <div style={{ padding: '40px', textAlign: 'center' }}>
+              <div style={styles.loadingContainer}>
                 <div className="loading-spinner"></div>
                 <p>Loading orders...</p>
               </div>
             ) : activeTab === "PENDING" ? (
               // Pending Orders View
               pendingOrders.length === 0 ? (
-                <div style={{ 
-                  padding: '60px', 
-                  textAlign: 'center',
-                  backgroundColor: '#f9f9f9',
-                  borderRadius: '8px'
-                }}>
-                  <h3 style={{ color: '#666', fontSize: '24px' }}>
+                <div style={styles.emptyState}>
+                  <h3 style={styles.emptyStateTitle}>
                     {roundInfo.roundIds && roundInfo.roundIds.length > 0 
                       ? '🎉 All Clear!' 
                       : '📅 No Orders Available'}
                   </h3>
-                  <p style={{ color: '#999', marginTop: '10px' }}>
+                  <p style={styles.emptyStateText}>
                     {roundInfo.roundIds && roundInfo.roundIds.length > 0 
                       ? "All orders in your rounds have been assigned. Check back later!"
                       : "You need to sign up for a round first to see available orders."}
@@ -416,16 +670,7 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                   {(!roundInfo.roundIds || roundInfo.roundIds.length === 0) && (
                     <button 
                       onClick={() => navigate('/')}
-                      style={{
-                        marginTop: '20px',
-                        padding: '10px 30px',
-                        backgroundColor: '#3498db',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        fontSize: '16px',
-                        cursor: 'pointer'
-                      }}
+                      style={styles.emptyStateButton}
                     >
                       Go to Dashboard → Sign up for Rounds
                     </button>
@@ -433,16 +678,8 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                 </div>
               ) : (
                 <div style={{ padding: '20px' }}>
-                  <div style={{ 
-                    marginBottom: '20px',
-                    padding: '10px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    gap: '20px',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ fontWeight: 'bold' }}>Priority Legend:</span>
+                  <div style={styles.priorityLegend}>
+                    <span style={styles.priorityLegendText}>Priority Legend:</span>
                     <span style={{ color: '#ff6b00' }}>⚡ Urgent (Oldest)</span>
                     <span style={{ color: '#f39c12' }}>🔥 High</span>
                     <span style={{ color: '#27ae60' }}>📦 Normal</span>
@@ -453,36 +690,20 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                       <div 
                         key={order.orderId} 
                         style={{
-                          border: idx === 0 ? '2px solid #ff6b00' : '1px solid #ddd',
-                          borderLeft: `5px solid ${getPriorityColor(idx)}`,
-                          borderRadius: '8px',
-                          padding: '20px',
-                          backgroundColor: idx === 0 ? '#fffaf0' : 'white',
-                          position: 'relative',
-                          transition: 'all 0.3s',
-                          cursor: 'pointer'
+                          ...(idx === 0 ? styles.orderCardUrgent : styles.orderCard),
+                          borderLeft: `5px solid ${getPriorityColor(idx)}`
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)'}
+                        onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'}
                         onMouseOut={(e) => e.currentTarget.style.boxShadow = 'none'}
                       >
                         {idx === 0 && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '-10px',
-                            right: '20px',
-                            backgroundColor: '#ff6b00',
-                            color: 'white',
-                            padding: '5px 15px',
-                            borderRadius: '15px',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                          }}>
+                          <div style={styles.urgentBadge}>
                             ⚡ URGENT - ACCEPT NOW
                           </div>
                         )}
                         
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                          <h3 style={{ margin: 0, color: idx === 0 ? '#ff6b00' : '#333' }}>
+                        <div style={styles.orderHeader}>
+                          <h3 style={idx === 0 ? styles.orderTitleUrgent : styles.orderTitle}>
                             Order #{order.orderId}
                           </h3>
                           <span style={{ 
@@ -495,38 +716,24 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                         </div>
                         
                         {order.roundId && (
-                          <div style={{
-                            marginBottom: '10px',
-                            padding: '8px',
-                            backgroundColor: '#e3f2fd',
-                            borderRadius: '4px',
-                            fontSize: '14px'
-                          }}>
-                            <strong>🔄 Round #{order.roundId}</strong>
+                          <div style={styles.roundInfo}>
+                            <strong style={styles.roundInfoStrong}>🔄 Round #{order.roundId}</strong>
                             {order.roundTitle && ` - ${order.roundTitle}`}
                           </div>
                         )}
                         
-                        <div style={{ marginBottom: '15px' }}>
-                          <p style={{ marginBottom: '8px' }}><strong>📦 Items:</strong></p>
-                          <ul style={{ margin: '0 0 0 20px', padding: 0 }}>
+                        <div style={styles.orderDetails}>
+                          <p style={styles.orderText}><strong style={styles.orderStrong}>📦 Items:</strong></p>
+                          <ul style={styles.orderList}>
                             {order.items?.map((item, i) => (
                               <li key={i} style={{ 
-                                marginBottom: '4px',
-                                color: item.isCustom ? '#ff6100' : 'inherit' 
+                                ...styles.orderListItem,
+                                color: item.isCustom ? '#ff6100' : '#cccccc' 
                               }}>
                                 {item.itemName} × {item.quantity}
                                 {item.size && ` (Size: ${item.size})`}
                                 {item.isCustom && (
-                                  <span style={{ 
-                                    marginLeft: '8px', 
-                                    backgroundColor: '#fff3e0', 
-                                    color: '#ff6100', 
-                                    padding: '2px 6px', 
-                                    borderRadius: '10px', 
-                                    fontSize: '11px',
-                                    fontWeight: 'bold'
-                                  }}>
+                                  <span style={styles.customBadge}>
                                     CUSTOM REQUEST
                                   </span>
                                 )}
@@ -534,16 +741,16 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                             ))}
                           </ul>
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                          <p style={{ marginBottom: '5px' }}>
-                            <strong>📍 Address:</strong> {order.deliveryAddress}
+                        <div style={styles.orderDetails}>
+                          <p style={styles.orderText}>
+                            <strong style={styles.orderStrong}>📍 Address:</strong> {order.deliveryAddress}
                           </p>
-                          <p style={{ marginBottom: '5px' }}>
-                            <strong>📞 Phone:</strong> {order.phoneNumber}
+                          <p style={styles.orderText}>
+                            <strong style={styles.orderStrong}>📞 Phone:</strong> {order.phoneNumber}
                           </p>
                           {order.notes && (
-                            <p style={{ marginBottom: '5px' }}>
-                              <strong>📝 Notes:</strong> {order.notes}
+                            <p style={styles.orderText}>
+                              <strong style={styles.orderStrong}>📝 Notes:</strong> {order.notes}
                             </p>
                           )}
                         </div>
@@ -575,14 +782,9 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
             ) : (
               // Assignments View
               activeAssignments.length === 0 ? (
-                <div style={{ 
-                  padding: '60px', 
-                  textAlign: 'center',
-                  backgroundColor: '#f9f9f9',
-                  borderRadius: '8px'
-                }}>
-                  <h3 style={{ color: '#666', fontSize: '24px' }}>No Active Assignments</h3>
-                  <p style={{ color: '#999', marginTop: '10px' }}>
+                <div style={styles.emptyState}>
+                  <h3 style={styles.emptyStateTitle}>No Active Assignments</h3>
+                  <p style={styles.emptyStateText}>
                     Accept orders from the Available Orders tab to get started!
                   </p>
                   <button 
@@ -609,93 +811,75 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                       <div 
                         key={assignment.assignmentId} 
                         style={{
-                          border: '1px solid #ddd',
+                          ...styles.assignmentCard,
                           borderLeft: `5px solid ${
                             assignment.status === 'COMPLETED' ? '#27ae60' :
                             assignment.status === 'IN_PROGRESS' ? '#3498db' : '#f39c12'
-                          }`,
-                          borderRadius: '8px',
-                          padding: '20px',
-                          backgroundColor: 'white'
+                          }`
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                          <h3 style={{ margin: 0 }}>Assignment #{assignment.assignmentId}</h3>
+                        <div style={styles.orderHeader}>
+                          <h3 style={styles.orderTitle}>Assignment #{assignment.assignmentId}</h3>
                           <span style={{
                             padding: '5px 12px',
                             borderRadius: '15px',
                             fontSize: '12px',
                             fontWeight: 'bold',
                             backgroundColor: 
-                              assignment.status === 'COMPLETED' ? '#d4edda' :
-                              assignment.status === 'IN_PROGRESS' ? '#cce5ff' : '#fff3cd',
+                              assignment.status === 'COMPLETED' ? 'rgba(39, 174, 96, 0.2)' :
+                              assignment.status === 'IN_PROGRESS' ? 'rgba(52, 152, 219, 0.2)' : 'rgba(243, 156, 18, 0.2)',
                             color: 
-                              assignment.status === 'COMPLETED' ? '#155724' :
-                              assignment.status === 'IN_PROGRESS' ? '#004085' : '#856404'
+                              assignment.status === 'COMPLETED' ? '#4ade80' :
+                              assignment.status === 'IN_PROGRESS' ? '#5dade2' : '#f6b800'
                           }}>
                             {assignment.status.replace('_', ' ')}
                           </span>
                         </div>
                         
                         {assignment.roundId && (
-                          <div style={{
-                            marginBottom: '10px',
-                            padding: '6px 10px',
-                            backgroundColor: '#e8f5e9',
-                            borderRadius: '4px',
-                            fontSize: '14px',
-                            display: 'inline-block'
-                          }}>
+                          <div style={styles.assignmentRoundInfo}>
                             <strong>Round #{assignment.roundId}</strong>
                           </div>
                         )}
                         
-                        <div style={{ marginBottom: '15px' }}>
-                          <p style={{ marginBottom: '8px' }}>
-                            <strong>Order ID:</strong> #{assignment.orderId}
+                        <div style={styles.orderDetails}>
+                          <p style={styles.orderText}>
+                            <strong style={styles.orderStrong}>Order ID:</strong> #{assignment.orderId}
                           </p>
-                          <p style={{ marginBottom: '8px' }}><strong>Items:</strong></p>
-                          <ul style={{ margin: '0 0 0 20px', padding: 0 }}>
+                          <p style={styles.orderText}><strong style={styles.orderStrong}>Items:</strong></p>
+                          <ul style={styles.orderList}>
                             {assignment.items?.map((item, i) => (
                               <li key={i} style={{ 
-                                marginBottom: '4px',
-                                color: item.isCustom ? '#ff6100' : 'inherit'
+                                ...styles.orderListItem,
+                                color: item.isCustom ? '#ff6100' : '#cccccc'
                               }}>
                                 {item.itemName} × {item.quantity}
                                 {item.size && ` (Size: ${item.size})`}
                                 {item.isCustom && (
-                                  <span style={{ 
-                                    marginLeft: '8px', 
-                                    backgroundColor: '#fff3e0', 
-                                    color: '#ff6100', 
-                                    padding: '2px 6px', 
-                                    borderRadius: '10px', 
-                                    fontSize: '11px',
-                                    fontWeight: 'bold'
-                                  }}>
+                                  <span style={styles.customBadge}>
                                     CUSTOM REQUEST
                                   </span>
                                 )}
                               </li>
                             ))}
                           </ul>
-                          <p style={{ marginTop: '8px', marginBottom: '5px' }}>
-                            <strong>📍 Address:</strong> {assignment.deliveryAddress}
+                          <p style={{ ...styles.orderText, marginTop: '8px' }}>
+                            <strong style={styles.orderStrong}>📍 Address:</strong> {assignment.deliveryAddress}
                           </p>
-                          <p style={{ marginBottom: '5px' }}>
-                            <strong>📞 Phone:</strong> {assignment.phoneNumber}
+                          <p style={styles.orderText}>
+                            <strong style={styles.orderStrong}>📞 Phone:</strong> {assignment.phoneNumber}
                           </p>
                           {assignment.notes && (
-                            <p style={{ marginBottom: '5px' }}>
-                              <strong>📝 Notes:</strong> {assignment.notes}
+                            <p style={styles.orderText}>
+                              <strong style={styles.orderStrong}>📝 Notes:</strong> {assignment.notes}
                             </p>
                           )}
-                          <p style={{ marginBottom: '5px' }}>
-                            <strong>⏰ Accepted:</strong> {formatDateTime(assignment.acceptedAt)}
+                          <p style={styles.orderText}>
+                            <strong style={styles.orderStrong}>⏰ Accepted:</strong> {formatDateTime(assignment.acceptedAt)}
                           </p>
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div style={styles.buttonContainer}>
                           {assignment.status === 'ACCEPTED' && (
                             <>
                               <button
@@ -765,13 +949,7 @@ const completedCount = myAssignments.filter(a => a.status === 'COMPLETED').lengt
                             </>
                           )}
                           {assignment.status === 'COMPLETED' && (
-                            <div style={{ 
-                              width: '100%', 
-                              textAlign: 'center', 
-                              color: '#27ae60', 
-                              fontWeight: 'bold',
-                              padding: '10px'
-                            }}>
+                            <div style={styles.completedMessage}>
                               ✅ Delivered Successfully
                             </div>
                           )}
