@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { secureAxios, publicAxios } from "../../config/axiosConfig";
-import "../../css/Home/Home.css";
+import '../../index.css'; 
 
 const Home = ({ username, email, phone, userId, onLogout }) => {
 

@@ -1,0 +1,355 @@
+/* ===========================================
+   Header / Navbar - All Header Styles
+   Street Medicine Go
+   =========================================== */
+
+/* ===========================================
+   LIGHT THEME HEADER (Guest/Home)
+   =========================================== */
+.site-header {
+  width: 100%;
+  height: var(--header-height);
+  background: #d9d9d9;
+  display: flex;
+  align-items: center;
+  padding: 0 27px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Logo */
+.logo,
+.store-logo,
+.navbar-logo,
+.nav-logo {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+}
+
+/* Site title */
+.site-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+/* Welcome text - FIXED: Dark text on light header */
+.welcome-text {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary); /* #444 - readable on light bg */
+}
+
+/* ===========================================
+   DARK THEME HEADER (Admin/Volunteer)
+   =========================================== */
+.site-header-dark,
+.store-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--header-height-lg);
+  padding: 0 27px;
+  background-color: var(--bg-dark-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.site-header-dark .site-title {
+  color: var(--text-on-dark);
+}
+
+.site-header-dark .logo {
+  margin-left: 30px;
+}
+
+/* ===========================================
+   GLASS HEADER (Login pages)
+   =========================================== */
+.login-site-header {
+  width: 100%;
+  height: var(--header-height-lg);
+  background-color: rgba(217, 217, 217, 0.105);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 27px;
+  position: relative;
+  z-index: 10;
+}
+
+.login-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-site-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+/* ===========================================
+   VOLUNTEER NAVBAR
+   =========================================== */
+.nav-bar {
+  background-color: var(--bg-dark-primary);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 27px;
+  justify-content: space-between;
+  font-family: var(--font-family-mono);
+}
+
+.top-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-right-group {
+  display: flex;
+  gap: 20px;
+}
+
+/* ===========================================
+   SMG NAVBAR (Rounds)
+   =========================================== */
+.smg-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height-lg);
+  background-color: var(--primary-orange);
+  padding: 0 27px;
+  margin-bottom: 25px;
+  border-radius: var(--border-radius-lg);
+}
+
+.navbar-left,
+.navbar-right {
+  flex-shrink: 0;
+}
+
+.navbar-center {
+  display: flex;
+  gap: 25px;
+  flex: 1;
+  justify-content: center;
+}
+
+/* ===========================================
+   MAIN NAVIGATION
+   =========================================== */
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: inline-block;
+  background: none;
+  border: none;
+  color: var(--text-on-dark);
+  text-decoration: none;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-normal);
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  color: var(--text-on-dark-muted);
+}
+
+/* Underline animation on hover */
+.nav-link:after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--text-on-dark);
+  transition: width var(--transition-normal);
+}
+
+.nav-link:hover:after {
+  width: 100%;
+}
+
+/* ===========================================
+   ROUNDS NAVIGATION
+   =========================================== */
+.rounds-nav {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+/* ===========================================
+   MOBILE MENU TOGGLE
+   =========================================== */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  padding: 5px;
+}
+
+.menu-bar {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: var(--text-on-dark);
+  transition: all var(--transition-normal);
+}
+
+/* ===========================================
+   SECTION HEADER (Admin pages)
+   =========================================== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 20px;
+  margin-bottom: 25px;
+  border-radius: var(--border-radius-lg);
+  background: var(--primary-orange);
+  box-shadow: var(--shadow-sm);
+}
+
+.section-header h2 {
+  font-size: var(--font-size-xl);
+  margin: 0;
+  color: var(--primary-blue-alt);
+}
+
+/* ===========================================
+   CARGO HEADER
+   =========================================== */
+.cargo-header,
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cargo-title,
+.orders-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   RESPONSIVE NAVIGATION
+   =========================================== */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+    z-index: 102;
+  }
+
+  .nav-list {
+    position: absolute;
+    top: var(--header-height-lg);
+    left: 0;
+    right: 0;
+    background-color: rgba(217, 217, 217, 0.105);
+    backdrop-filter: blur(10px);
+    flex-direction: column;
+    padding: var(--spacing-lg);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform var(--transition-normal);
+    z-index: 101;
+    opacity: 0;
+    box-shadow: var(--shadow-md);
+  }
+
+  .nav-active {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  .nav-item {
+    margin: var(--spacing-sm) 0;
+    width: 100%;
+  }
+
+  .nav-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-sm) 0;
+  }
+
+  .nav-link:after {
+    display: none;
+  }
+
+  .rounds-nav {
+    gap: 10px;
+  }
+
+  .nav-btn {
+    flex: 1 1 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header {
+    height: auto;
+    padding: 15px;
+  }
+
+  .logo {
+    width: 45px;
+    height: 45px;
+  }
+
+  .site-title {
+    font-size: var(--font-size-lg);
+  }
+}

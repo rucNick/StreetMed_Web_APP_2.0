@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { secureAxios } from '../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
-import '../../css/Admin/Cargo_Admin.css';
+import '../../index.css'; 
 
 // Predefined size options from XXS to XXXL
 const SIZE_OPTIONS = [

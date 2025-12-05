@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { secureAxios } from '../../config/axiosConfig';
 
-import '../../css/Admin/Admin.css';
+import '../../index.css'; 
 
 const Admin = ({ onLogout, userData }) => {
   const navigate = useNavigate();

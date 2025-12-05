@@ -4,7 +4,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { publicAxios, secureAxios } from "../../config/axiosConfig";
 import { useNavigate } from "react-router-dom";
-import "../../css/Volunteer/Volunteer_Dashboard.css";
+import '../../index.css'; 
 
 const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const navigate = useNavigate();

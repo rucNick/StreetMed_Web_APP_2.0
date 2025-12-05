@@ -1,0 +1,408 @@
+/* ===========================================
+   BASE TABLE STYLES
+   =========================================== */
+.table,
+.cargo-table,
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-white);
+}
+
+/* ===========================================
+   TABLE HEADERS
+   =========================================== */
+.table th,
+.cargo-table th,
+.orders-table th,
+.table-header-cell {
+  padding: 12px 14px;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  background: #edf1f5;
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+}
+
+/* Dark theme table headers */
+.dark-theme .table th,
+.cargo-table th,
+.orders-table th {
+  background: var(--bg-dark-tertiary);
+  color: var(--text-on-dark);
+  border-color: var(--border-dark);
+}
+
+/* Sticky header */
+.table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ===========================================
+   TABLE CELLS
+   =========================================== */
+.table td,
+.cargo-table td,
+.orders-table td,
+.table-cell {
+  padding: 12px 14px;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  background: var(--bg-white);
+}
+
+/* Dark theme table cells */
+.dark-theme .table td,
+.cargo-table td,
+.orders-table td {
+  background: var(--bg-dark-secondary);
+  color: var(--text-on-dark);
+  border-color: var(--bg-dark-hover);
+}
+
+/* ===========================================
+   TABLE ROWS
+   =========================================== */
+.table tr:hover,
+.cargo-table tr:hover,
+.orders-table tr:hover,
+.cargo-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Dark theme row hover */
+.dark-theme .table tr:hover,
+.cargo-table tr:hover,
+.orders-table tr:hover {
+  background-color: var(--bg-dark-hover);
+}
+
+/* Alternating rows */
+.table-striped tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.dark-theme .table-striped tbody tr:nth-child(even) {
+  background-color: var(--bg-dark-tertiary);
+}
+
+/* ===========================================
+   TABLE WRAPPER / SCROLL
+   =========================================== */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-dark);
+  border-radius: var(--border-radius-md);
+}
+
+/* Custom scrollbar for dark theme */
+.table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: var(--bg-dark-secondary);
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: var(--bg-dark-border);
+  border-radius: 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #4a6080;
+}
+
+/* ===========================================
+   TABLE TITLES
+   =========================================== */
+.table-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 15px;
+  color: var(--text-primary);
+}
+
+.dark-theme .table-title {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   CELL UTILITIES
+   =========================================== */
+.cell-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Text alignment */
+.text-center td,
+td.text-center {
+  text-align: center;
+}
+
+.text-right td,
+td.text-right {
+  text-align: right;
+}
+
+/* ===========================================
+   STATUS BADGES IN TABLES
+   =========================================== */
+.status {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: var(--border-radius-pill);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  min-width: 55px;
+}
+
+/* Status variants */
+.status.fine {
+  background: var(--success);
+  color: white;
+}
+
+.status.low {
+  background: var(--warning);
+  color: var(--text-primary);
+}
+
+.status.out {
+  background: var(--error);
+  color: white;
+}
+
+/* Order status badges */
+.status.pending {
+  background-color: rgba(245, 189, 70, 0.8);
+  color: var(--text-primary);
+}
+
+.status.processing {
+  background-color: rgba(0, 174, 255, 0.56);
+  color: var(--text-primary);
+}
+
+.status.completed {
+  background-color: rgba(97, 248, 100, 0.85);
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.status.cancelled {
+  background-color: rgba(244, 16, 0, 0.48);
+  color: var(--text-primary);
+}
+
+.status.accepted {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+/* Generic status badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+/* ===========================================
+   ACTION BUTTONS IN TABLES
+   =========================================== */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.action-buttons .manage-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+/* Specific action buttons */
+.assign-btn {
+  background-color: #2196f3 !important;
+}
+
+.process-btn {
+  background-color: #00bcd4 !important;
+}
+
+.cancel-btn {
+  background-color: #ff5722 !important;
+  color: white !important;
+}
+
+.delete-btn {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.complete-btn {
+  background-color: #52c41a !important;
+  color: white;
+}
+
+.complete-btn:hover {
+  background-color: #73d13d !important;
+}
+
+/* ===========================================
+   STATISTICS BAR
+   =========================================== */
+.stats-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: var(--bg-dark-tertiary);
+  border-radius: var(--border-radius-md);
+}
+
+/* ===========================================
+   SUMMARY FOOTER
+   =========================================== */
+.summary-footer {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--bg-dark-tertiary);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border-dark);
+}
+
+.summary-footer strong {
+  color: var(--text-on-dark);
+}
+
+.summary-footer .timestamp {
+  font-size: var(--font-size-xs);
+  color: var(--text-on-dark-muted);
+}
+
+/* ===========================================
+   USER & ROUND INFO IN TABLES
+   =========================================== */
+.user-info {
+  color: var(--text-on-dark);
+}
+
+.round-info {
+  color: var(--text-on-dark);
+}
+
+.round-capacity {
+  font-size: 11px;
+  color: var(--text-on-dark-muted);
+}
+
+.unassigned-label {
+  color: var(--warning);
+  font-style: italic;
+}
+
+/* ===========================================
+   EMPTY & LOADING STATES
+   =========================================== */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+  background: #f9f9f9;
+  border-radius: var(--border-radius-md);
+}
+
+.loading-container {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-on-dark-muted);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===========================================
+   ITEMS LIST
+   =========================================== */
+.items-list {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.orderItemsList {
+  list-style: none;
+  margin-top: 8px;
+  padding-left: 0;
+}
+
+.orderItemsList li {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+
+/* ===========================================
+   LIGHT THEME TABLES (Guest/Home)
+   =========================================== */
+.table-light {
+  background-color: #f9f9f9;
+}
+
+.table-light th {
+  background-color: #edf1f5;
+  color: var(--text-primary);
+}
+
+.table-light td {
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   RESPONSIVE ADJUSTMENTS
+   =========================================== */
+@media (max-width: 768px) {
+  .cargo-table {
+    font-size: var(--font-size-sm);
+  }
+
+  .table th,
+  .table td,
+  .cargo-table th,
+  .cargo-table td {
+    padding: 8px 10px;
+  }
+}

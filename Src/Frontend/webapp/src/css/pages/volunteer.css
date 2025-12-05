@@ -1,0 +1,458 @@
+/* ===========================================
+   Volunteer Pages - Specific Overrides
+   Street Medicine Go
+   
+   NOTE: This file contains ONLY volunteer-specific
+   overrides. Base styles are in components/
+   =========================================== */
+
+/* ===========================================
+   VOLUNTEER PAGE CONTAINER
+   =========================================== */
+.volunteer-page {
+  background-color: var(--bg-dark-primary);
+  font-family: var(--font-family-mono);
+  color: var(--text-on-dark);
+  margin: 0;
+  padding: 0;
+}
+
+.volunteer-page body {
+  background-color: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   VOLUNTEER NAVBAR
+   =========================================== */
+.volunteer-page .nav-bar {
+  background-color: var(--bg-dark-primary);
+  height: 80px;
+}
+
+.volunteer-page .nav-btn {
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+.volunteer-page .nav-btn:hover {
+  background-color: #ffe5b0;
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   VOLUNTEER DASHBOARD CONTAINER
+   =========================================== */
+.volunteer-page .volunteer-dashboard-container {
+  display: flex;
+  flex-direction: row;
+  min-height: calc(100vh - 60px);
+  padding: 30px 60px;
+  gap: 20px;
+  background: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   VOLUNTEER LEFT PANEL
+   =========================================== */
+.volunteer-page .volunteer-left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.volunteer-page .volunteer-left-panel h2 {
+  font-size: var(--font-size-xl);
+  margin: 0 0 5px 0;
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+  background: #002a69;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 12px 24px;
+  display: inline-block;
+}
+
+/* ===========================================
+   VOLUNTEER RIGHT PANEL
+   =========================================== */
+.volunteer-page .volunteer-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.volunteer-page .volunteer-right-panel h2 {
+  margin-top: 0;
+  font-size: var(--font-size-lg);
+  text-align: center;
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+  background: var(--bg-dark-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 12px 24px;
+}
+
+/* ===========================================
+   VOLUNTEER VERTICAL DIVIDER
+   =========================================== */
+.volunteer-page .vertical-line {
+  width: 2px;
+  background-color: #888;
+  margin: 0 20px;
+}
+
+/* ===========================================
+   VOLUNTEER CARDS CONTAINERS
+   =========================================== */
+.volunteer-page .rounds-cards,
+.volunteer-page .orders-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: var(--bg-dark-primary);
+  border-radius: var(--border-radius-xxl);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+}
+
+/* ===========================================
+   VOLUNTEER ROUND CARDS
+   =========================================== */
+.volunteer-page .round-card {
+  background-color: var(--bg-dark-primary);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  width: 240px;
+  height: 200px;
+  box-shadow: var(--shadow-sm);
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+.volunteer-page .round-card h3 {
+  margin: 0 0 8px;
+  font-size: var(--font-size-md);
+  color: var(--text-on-dark);
+}
+
+.volunteer-page .open-view-btn {
+  margin-top: 0;
+  background-color: var(--primary-blue);
+  color: var(--text-on-dark);
+  border: none;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.volunteer-page .open-view-btn:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+/* ===========================================
+   VOLUNTEER ORDER CARDS
+   =========================================== */
+.volunteer-page .order-card {
+  background-color: #003366;
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  width: 220px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+.volunteer-page .order-card h3,
+.volunteer-page .order-card p {
+  color: var(--text-on-dark);
+}
+
+.volunteer-page .completed-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--success);
+  color: var(--text-on-dark);
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ===========================================
+   VOLUNTEER CALENDAR
+   =========================================== */
+.volunteer-page .react-calendar {
+  width: 440px;
+  height: 440px;
+  background-color: var(--bg-white);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+
+.volunteer-page .highlight-day {
+  background-color: #f78702 !important;
+  color: var(--text-on-dark) !important;
+  border-radius: 50%;
+}
+
+/* ===========================================
+   VOLUNTEER MODALS
+   =========================================== */
+.volunteer-page .rounds-modal,
+.volunteer-page .fullview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-modal);
+}
+
+.volunteer-page .rounds-modal-content,
+.volunteer-page .fullview-modal-content {
+  background-color: var(--bg-white);
+  border-radius: var(--border-radius-lg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px 30px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.volunteer-page .round-detail {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.volunteer-page .round-detail h4 {
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+
+.volunteer-page .close-modal-btn,
+.volunteer-page .cancel-signup-btn {
+  margin-top: 20px;
+  background-color: #ccc;
+  color: var(--text-primary);
+  border: none;
+  padding: 10px 16px;
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.volunteer-page .close-modal-btn:hover,
+.volunteer-page .cancel-signup-btn:hover {
+  background-color: #999;
+}
+
+/* ===========================================
+   VOLUNTEER ERROR TEXT
+   =========================================== */
+.volunteer-page .error-text {
+  color: var(--error);
+  font-size: var(--font-size-sm);
+}
+
+/* ===========================================
+   VOLUNTEER CARGO (Light Theme Variant)
+   =========================================== */
+.volunteer-cargo-page .page-body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-primary);
+  background-color: var(--bg-light-gray);
+  min-height: 100vh;
+}
+
+.volunteer-cargo-page .store-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height-lg);
+  background-color: #d9d9d9;
+  padding: 0 27px;
+}
+
+.volunteer-cargo-page .cargo-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.volunteer-cargo-page .cargo-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.volunteer-cargo-page .cargo-container {
+  padding: 40px 60px;
+  background-color: var(--bg-light-gray);
+  min-height: calc(100vh - var(--header-height-lg));
+}
+
+.volunteer-cargo-page .cargo-card {
+  background-color: var(--bg-light-blue);
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  overflow-x: auto;
+  /* CRITICAL: Dark text on light card */
+  color: var(--text-on-card);
+}
+
+.volunteer-cargo-page .table-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 15px;
+  color: var(--text-on-card);
+}
+
+.volunteer-cargo-page .cargo-table {
+  background-color: #f9f9f9;
+}
+
+.volunteer-cargo-page .cargo-table th {
+  background-color: #edf1f5;
+  color: var(--text-primary);
+}
+
+.volunteer-cargo-page .cargo-table td {
+  color: var(--text-primary);
+}
+
+.volunteer-cargo-page .manage-btn {
+  background-color: var(--bg-light-yellow);
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   VOLUNTEER ORDERS PAGE
+   =========================================== */
+.volunteer-orders-page .orders-container {
+  padding: 20px;
+}
+
+.volunteer-orders-page .tabs-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.volunteer-orders-page .tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-weight: var(--font-weight-medium);
+}
+
+.volunteer-orders-page .tab-btn.active {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.volunteer-orders-page .tab-count {
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.volunteer-orders-page .error-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 20px;
+}
+
+.volunteer-orders-page .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+.volunteer-orders-page .priority-legend {
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.volunteer-orders-page .empty-state {
+  text-align: center;
+  padding: 60px;
+  background: #f9f9f9;
+  border-radius: var(--border-radius-md);
+}
+
+.volunteer-orders-page .status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+/* ===========================================
+   VOLUNTEER RESPONSIVE
+   =========================================== */
+@media (max-width: 768px) {
+  .volunteer-page .volunteer-dashboard-container {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .volunteer-page .vertical-line {
+    display: none;
+  }
+
+  .volunteer-page .react-calendar {
+    width: 100%;
+    height: auto;
+  }
+
+  .volunteer-cargo-page .cargo-container {
+    padding: 20px;
+  }
+
+  .volunteer-cargo-page .cargo-card {
+    padding: 20px;
+  }
+
+  .volunteer-cargo-page .cargo-table {
+    font-size: var(--font-size-sm);
+  }
+}

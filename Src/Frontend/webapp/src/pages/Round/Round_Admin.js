@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { secureAxios } from '../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
-import '../../css/Round/Round_Admin.css';
+import '../../index.css'; 
 
 function Round_Admin() {
 

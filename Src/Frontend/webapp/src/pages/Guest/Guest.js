@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../../css/Guest/Guest.css";
+import '../../index.css'; 
 
 const Guest = ({ onLogout }) => {
   const baseURL = process.env.REACT_APP_BASE_URL;

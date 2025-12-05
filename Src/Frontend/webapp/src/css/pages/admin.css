@@ -1,0 +1,371 @@
+/* ===========================================
+   Admin Pages - Specific Overrides
+   Street Medicine Go
+   
+   NOTE: This file contains ONLY admin-specific
+   overrides. Base styles are in components/
+   =========================================== */
+
+/* ===========================================
+   ADMIN PAGE CONTAINER
+   =========================================== */
+.admin-page {
+  min-height: 100vh;
+  background-color: var(--bg-dark-primary);
+  font-family: var(--font-family-serif);
+}
+
+.admin-page .page-container {
+  background-color: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   ADMIN HEADER
+   - Uses dark theme styling
+   =========================================== */
+.admin-page .site-header,
+.admin-page .store-header {
+  background-color: var(--bg-dark-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-page .site-title {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN DASHBOARD LAYOUT
+   =========================================== */
+.admin-page .admin-dashboard {
+  display: flex;
+  height: calc(100vh - var(--header-height-lg));
+  background-color: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   ADMIN LEFT PANEL
+   =========================================== */
+.admin-page .admin-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 440px;
+  padding: 40px 50px;
+}
+
+.admin-page .admin-greeting {
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+/* ===========================================
+   ADMIN CARDS
+   =========================================== */
+.admin-page .admin-card {
+  font-family: var(--font-family-mono);
+}
+
+/* Blue admin card */
+.admin-page .admin-card.light-blue {
+  background-color: #002a69;
+}
+
+.admin-page .card-text-blue {
+  color: var(--text-on-dark);
+}
+
+/* Yellow admin card */
+.admin-page .admin-card.light-yellow {
+  background-color: var(--primary-orange);
+}
+
+.admin-page .card-text-yellow {
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   ADMIN RIGHT PANEL / ALERTS
+   =========================================== */
+.admin-page .admin-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-page .alerts-card {
+  background-color: var(--bg-dark-tertiary);
+  font-family: var(--font-family-mono);
+}
+
+.admin-page .alerts-title {
+  color: var(--text-on-dark);
+}
+
+.admin-page .alert-entry {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN CONTENT CONTAINERS
+   =========================================== */
+.admin-page .main-content {
+  padding: 40px 60px;
+}
+
+.admin-page .cargo-container {
+  background: var(--bg-dark-tertiary);
+}
+
+.admin-page .cargo-card {
+  background: var(--bg-dark-secondary);
+}
+
+/* ===========================================
+   ADMIN TITLES
+   =========================================== */
+.admin-page .cargo-title,
+.admin-page .orders-title {
+  color: var(--text-on-dark);
+}
+
+.admin-page .table-title {
+  color: var(--text-on-dark);
+}
+
+.admin-page .block-title {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN TABLES
+   =========================================== */
+.admin-page .cargo-table,
+.admin-page .orders-table {
+  background: var(--bg-dark-secondary);
+}
+
+.admin-page .cargo-table th,
+.admin-page .orders-table th {
+  background: var(--bg-dark-tertiary);
+  color: var(--text-on-dark);
+  border-color: var(--border-dark);
+}
+
+.admin-page .cargo-table td,
+.admin-page .orders-table td {
+  color: var(--text-on-dark);
+  border-color: var(--border-dark);
+}
+
+.admin-page .cargo-table tr:hover,
+.admin-page .orders-table tr:hover {
+  background-color: var(--bg-dark-hover);
+}
+
+/* Sticky header for scrollable tables */
+.admin-page .table-scroll thead th {
+  background-color: var(--bg-dark-tertiary);
+}
+
+/* ===========================================
+   ADMIN FORMS
+   =========================================== */
+.admin-page .cargo-input {
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  border: 2px solid var(--border-dark);
+}
+
+.admin-page .cargo-input:focus {
+  border-color: var(--primary-gold);
+}
+
+/* Form labels in dark theme */
+.admin-page label {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN BUTTONS
+   =========================================== */
+.admin-page .manage-btn {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+}
+
+.admin-page .manage-btn:hover {
+  background-color: var(--primary-gold-hover);
+}
+
+.admin-page .drawer-toggle {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   ADMIN FILTER BUTTONS
+   =========================================== */
+.admin-page .filter-btn {
+  background-color: var(--bg-dark-hover);
+  color: var(--text-on-dark);
+  border: 1px solid var(--border-dark);
+}
+
+.admin-page .filter-btn:hover {
+  background-color: var(--bg-dark-border);
+}
+
+.admin-page .filter-btn.active {
+  background-color: var(--primary-gold);
+  color: var(--text-primary);
+  border-color: var(--primary-gold);
+}
+
+/* ===========================================
+   ADMIN MODALS
+   =========================================== */
+.admin-page .modal-content {
+  background-color: var(--bg-dark-secondary);
+}
+
+.admin-page .modal-content h2 {
+  color: var(--text-on-dark);
+}
+
+.admin-page .modal-field {
+  color: var(--text-on-dark);
+}
+
+.admin-page .modal-content select {
+  background-color: var(--bg-dark-tertiary);
+  color: var(--text-on-dark);
+  border: 1px solid var(--border-dark);
+}
+
+/* ===========================================
+   ADMIN STATS
+   =========================================== */
+.admin-page .stats-bar {
+  background-color: var(--bg-dark-tertiary);
+}
+
+.admin-page .stat-value {
+  color: var(--text-on-dark);
+}
+
+.admin-page .stat-label {
+  color: var(--text-on-dark-muted);
+}
+
+/* ===========================================
+   ADMIN ERROR MESSAGES
+   =========================================== */
+.admin-page .error-message,
+.admin-page .cargo-error {
+  padding: 10px;
+  margin: 10px 0;
+  background-color: rgba(255, 77, 79, 0.2);
+  color: #ff6b6b;
+  border-radius: 4px;
+  border-left: 4px solid #f44336;
+}
+
+/* ===========================================
+   ADMIN LOADING & EMPTY STATES
+   =========================================== */
+.admin-page .loading-container {
+  color: var(--text-on-dark-muted);
+}
+
+.admin-page .empty-state {
+  color: var(--text-muted);
+}
+
+/* ===========================================
+   ADMIN SUMMARY FOOTER
+   =========================================== */
+.admin-page .summary-footer {
+  background-color: var(--bg-dark-tertiary);
+  border: 1px solid var(--border-dark);
+}
+
+.admin-page .summary-footer strong {
+  color: var(--text-on-dark);
+}
+
+.admin-page .summary-footer .timestamp {
+  color: var(--text-on-dark-muted);
+}
+
+/* ===========================================
+   ADMIN USER INFO
+   =========================================== */
+.admin-page .user-info,
+.admin-page .round-info {
+  color: var(--text-on-dark);
+}
+
+.admin-page .round-capacity {
+  color: var(--text-on-dark-muted);
+}
+
+.admin-page .unassigned-label {
+  color: var(--warning);
+}
+
+/* ===========================================
+   ADMIN FEEDBACK MODAL
+   =========================================== */
+.admin-page .feedback-modal {
+  background-color: var(--bg-dark-secondary);
+  color: var(--text-on-dark);
+}
+
+.admin-page .feedback-modal h2 {
+  color: var(--text-on-dark);
+}
+
+.admin-page .feedback-modal strong {
+  color: var(--primary-gold);
+}
+
+.admin-page .feedback-content {
+  background-color: var(--bg-dark-tertiary);
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN SIZE MANAGEMENT
+   =========================================== */
+.admin-page .cargo-sizes h4 {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN IMAGE UPLOAD
+   =========================================== */
+.admin-page .image-upload label {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   ADMIN RESPONSIVE
+   =========================================== */
+@media (max-width: 768px) {
+  .admin-page .admin-left {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .admin-page .main-content {
+    padding: 20px;
+  }
+
+  .admin-page .cargo-container {
+    padding: 20px;
+  }
+}

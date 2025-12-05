@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { secureAxios } from '../../config/axiosConfig';
-import '../../css/Admin/Admin_ViewAppli.css';
+import '../../index.css'; 
 
 const AdminViewAppli = ({ userData }) => {
   const navigate = useNavigate();

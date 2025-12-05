@@ -1,13 +1,171 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ===========================================
+   Street Medicine Go - Main CSS Entry Point
+   
+   Import this file in your main App.js/index.js:
+   import './index.css';
+   
+   Or in your HTML:
+   <link rel="stylesheet" href="./index.css">
+   =========================================== */
+
+/* ===========================================
+   LAYER 1: BASE STYLES
+   Foundation - must load first
+   =========================================== */
+@import './css/base/reset.css';
+@import './css/base/variables.css';
+@import './css/base/typography.css';
+
+/* ===========================================
+   LAYER 2: COMPONENT STYLES
+   Reusable UI components
+   =========================================== */
+@import './css/components/buttons.css';
+@import './css/components/cards.css';
+@import './css/components/forms.css';
+@import './css/components/modals.css';
+@import './css/components/tables.css';
+@import './css/components/status.css';
+
+/* ===========================================
+   LAYER 3: LAYOUT STYLES
+   Page structure and navigation
+   =========================================== */
+@import './css/layouts/header.css';
+@import './css/layouts/sidebar.css';
+@import './css/layouts/grid.css';
+
+/* ===========================================
+   LAYER 4: PAGE-SPECIFIC OVERRIDES
+   Load last to override defaults
+   =========================================== */
+@import './css/pages/login.css';
+@import './css/pages/guest.css';
+@import './css/pages/home.css';
+@import './css/pages/admin.css';
+@import './css/pages/volunteer.css';
+@import './css/pages/rounds.css';
+
+/* ===========================================
+   UTILITY CLASSES
+   Quick helper classes
+   =========================================== */
+
+/* Display utilities */
+.hidden { display: none !important; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+
+/* Flex utilities */
+.flex-row { flex-direction: row; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+
+/* Gap utilities */
+.gap-1 { gap: var(--spacing-xs); }
+.gap-2 { gap: var(--spacing-sm); }
+.gap-3 { gap: var(--spacing-md); }
+.gap-4 { gap: var(--spacing-lg); }
+.gap-5 { gap: var(--spacing-xl); }
+
+/* Margin utilities */
+.m-0 { margin: 0; }
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+
+/* Padding utilities */
+.p-0 { padding: 0; }
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.p-5 { padding: var(--spacing-xl); }
+
+/* Width utilities */
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.max-w-sm { max-width: var(--card-max-width-sm); }
+.max-w-md { max-width: var(--card-max-width-md); }
+.max-w-lg { max-width: var(--card-max-width-lg); }
+
+/* Height utilities */
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+/* Border radius utilities */
+.rounded { border-radius: var(--border-radius-md); }
+.rounded-lg { border-radius: var(--border-radius-lg); }
+.rounded-xl { border-radius: var(--border-radius-xl); }
+.rounded-full { border-radius: var(--border-radius-pill); }
+
+/* Shadow utilities */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Overflow utilities */
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-y-auto { overflow-y: auto; }
+.overflow-x-auto { overflow-x: auto; }
+
+/* Cursor utilities */
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+/* Opacity utilities */
+.opacity-0 { opacity: 0; }
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+.opacity-100 { opacity: 1; }
+
+/* ===========================================
+   CRITICAL TEXT CONTRAST OVERRIDES
+   Ensures readability across all themes
+   =========================================== */
+
+/* Force dark text on ALL light backgrounds */
+.bg-light-blue,
+.bg-light-yellow,
+.bg-light-gray,
+.bg-white,
+[class*="light-blue"],
+[class*="light-yellow"] {
+  color: var(--text-on-card) !important;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Force light text on ALL dark backgrounds */
+.bg-dark,
+.bg-dark-primary,
+.bg-dark-secondary,
+.bg-dark-tertiary,
+[class*="dark-theme"] {
+  color: var(--text-on-dark);
+}
+
+/* Ensure nested elements inherit proper colors */
+.bg-light-blue h1, .bg-light-blue h2, .bg-light-blue h3,
+.bg-light-blue h4, .bg-light-blue h5, .bg-light-blue h6,
+.bg-light-blue p, .bg-light-blue span, .bg-light-blue label,
+.bg-light-yellow h1, .bg-light-yellow h2, .bg-light-yellow h3,
+.bg-light-yellow h4, .bg-light-yellow h5, .bg-light-yellow h6,
+.bg-light-yellow p, .bg-light-yellow span, .bg-light-yellow label {
+  color: var(--text-on-card) !important;
 }

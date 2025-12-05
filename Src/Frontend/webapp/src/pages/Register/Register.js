@@ -8,7 +8,7 @@ import {
   isInitialized
 } from '../../security/ecdhClient';
 import { secureAxios } from '../../config/axiosConfig';
-import '../../css/Login/Register.css'; // Note: This should be a new file
+import '../../index.css'; 
 import SessionErrorModal from '../../components/SessionErrorModal';
 
 const Register = () => {

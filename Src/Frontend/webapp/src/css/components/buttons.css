@@ -1,0 +1,447 @@
+/* ===========================================
+   BASE BUTTON STYLES
+   =========================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: none;
+  border-radius: var(--border-radius-xl);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn:focus {
+  outline: 2px solid var(--primary-gold);
+  outline-offset: 2px;
+}
+
+/* ===========================================
+   PRIMARY BUTTONS - Blue Theme
+   =========================================== */
+.btn-primary {
+  background-color: var(--primary-blue);
+  color: var(--text-on-dark);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+/* ===========================================
+   SECONDARY BUTTONS - Gold/Orange Theme
+   =========================================== */
+.btn-secondary,
+.manage-btn {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+  border: none;
+  border-radius: var(--border-radius-pill);
+  padding: 10px 20px;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+.btn-secondary:hover,
+.manage-btn:hover {
+  background-color: var(--primary-gold-hover);
+}
+
+/* ===========================================
+   GHOST/OUTLINE BUTTONS
+   =========================================== */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-on-dark);
+  border: 2px solid var(--primary-blue-alt);
+}
+
+.btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ===========================================
+   DANGER BUTTONS
+   =========================================== */
+.btn-danger {
+  background-color: var(--error);
+  color: var(--text-on-dark);
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+/* ===========================================
+   SUCCESS BUTTONS
+   =========================================== */
+.btn-success {
+  background-color: var(--success);
+  color: var(--text-on-dark);
+}
+
+.btn-success:hover {
+  background-color: #229954;
+}
+
+/* ===========================================
+   CANCEL/NEUTRAL BUTTONS
+   =========================================== */
+.btn-cancel,
+.cancelButton {
+  background-color: #d9d9d9;
+  color: var(--text-primary);
+}
+
+.btn-cancel:hover,
+.cancelButton:hover {
+  background-color: #c8c8c8;
+}
+
+/* ===========================================
+   BUTTON SIZES
+   =========================================== */
+.btn-sm {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  border-radius: var(--border-radius-md);
+}
+
+.btn-lg {
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  font-size: var(--font-size-xl);
+}
+
+.btn-xl {
+  padding: var(--spacing-xl) var(--spacing-3xl);
+  font-size: var(--font-size-2xl);
+}
+
+/* Full width button */
+.btn-block {
+  width: 100%;
+}
+
+/* ===========================================
+   SPECIFIC BUTTON STYLES (from existing CSS)
+   =========================================== */
+
+/* Logout button */
+.logout-button {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+  border: none;
+  margin-top: 15px;
+  padding: 10px 20px;
+  border-radius: var(--border-radius-xl);
+  cursor: pointer;
+  font-size: var(--font-size-xl);
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-bold);
+  transition: background-color var(--transition-normal);
+}
+
+.logout-button:hover {
+  background-color: var(--primary-gold-hover);
+}
+
+/* Drawer toggle button */
+.drawer-toggle {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  padding: 10px 20px;
+  font-size: var(--font-size-md);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  width: 180px;
+}
+
+.drawer-toggle:hover {
+  background-color: var(--primary-gold-hover);
+}
+
+/* Cargo button variants */
+.cargo-button {
+  padding: 10px 20px;
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-md);
+  transition: all var(--transition-normal);
+}
+
+.cargo-button:hover {
+  background-color: var(--primary-gold-hover);
+}
+
+.cargo-button.primary {
+  background: #4caf50;
+  color: white;
+}
+
+.cargo-button.primary:hover {
+  background: #45a049;
+}
+
+.cargo-button.secondary {
+  background: #757575;
+  color: white;
+}
+
+.cargo-button.secondary:hover {
+  background: #616161;
+}
+
+.cargo-button.danger {
+  background: #f44336;
+  color: white;
+}
+
+.cargo-button.danger:hover {
+  background: #d32f2f;
+}
+
+.cargo-small-btn {
+  padding: 4px 8px;
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cargo-small-btn:hover {
+  background-color: var(--primary-gold-hover);
+}
+
+/* Navigation buttons */
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-lg);
+  transition: background-color var(--transition-normal);
+  font-family: var(--font-family-mono);
+}
+
+.nav-btn:hover {
+  background-color: #ffe5b0;
+  color: var(--text-primary);
+}
+
+.nav-btn.active {
+  background-color: var(--primary-blue-alt);
+  color: var(--text-on-dark);
+}
+
+/* Back button */
+.back-btn {
+  background-color: var(--primary-blue-alt);
+  color: var(--text-on-dark);
+}
+
+.back-btn:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+/* Go back button (transparent) */
+.go-back-btn,
+.login-go-back-btn {
+  background: none;
+  border: none;
+  color: var(--text-on-dark);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-mono);
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-md);
+  transition: background var(--transition-normal);
+  text-decoration: none;
+}
+
+.go-back-btn:hover,
+.login-go-back-btn:hover {
+  background-color: rgba(0, 62, 126, 0.1);
+}
+
+/* Header buttons (profile, cart, etc.) */
+.profileButton,
+.cartButton,
+.feedbackButton,
+.logoutButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-md);
+  transition: background-color var(--transition-fast);
+}
+
+.profileButton:hover,
+.cartButton:hover,
+.feedbackButton:hover,
+.logoutButton:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Action button (tables) */
+.action-button {
+  background: var(--primary-orange);
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background var(--transition-fast);
+}
+
+.action-button:hover {
+  background: #ccb987;
+}
+
+/* Filter buttons */
+.filter-btn {
+  padding: 8px 16px;
+  background-color: var(--bg-dark-hover);
+  color: var(--text-on-dark);
+  border: 1px solid var(--border-dark);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.filter-btn:hover {
+  background-color: var(--bg-dark-border);
+}
+
+.filter-btn.active {
+  background-color: var(--primary-gold);
+  color: var(--text-primary);
+  border-color: var(--primary-gold);
+}
+
+/* Chip buttons */
+.chip,
+.modal-chip {
+  padding: 8px 18px;
+  border-radius: var(--border-radius-xl);
+  background: #f4f4f4;
+  border: 1px solid #aaa;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chip.selected,
+.modal-chip.selected {
+  background: var(--primary-blue-alt);
+  color: var(--text-on-dark);
+  border-color: var(--primary-blue-alt);
+}
+
+/* Remove button */
+.removeButton {
+  background-color: var(--error-light);
+  color: var(--text-on-dark);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  align-self: center;
+}
+
+.removeButton:hover {
+  background-color: var(--error);
+}
+
+/* Size management buttons */
+.remove-size-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.remove-size-btn:hover {
+  background: #b71c1c;
+}
+
+.add-size-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  margin-top: 10px;
+}
+
+.add-size-btn:hover {
+  background: #1976d2;
+}
+
+/* Tab buttons */
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-weight: var(--font-weight-medium);
+}
+
+.tab-btn.active {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-count {
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}

@@ -1,5 +1,5 @@
 // App.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "../Login/Login";
 import Home from "../Home/Home";
@@ -23,6 +23,7 @@ import AdminViewAppli from "../Admin/Admin_ViewAppli";
 import AdminFeedback from "../Admin/Admin_Feedback";
 import CertificateHelper from "../../components/CertificateHelper";
 import { checkTLSConnection } from "../../config/axiosConfig";
+import '../../index.css'; 
 
 function App({ securityInitialized = false }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

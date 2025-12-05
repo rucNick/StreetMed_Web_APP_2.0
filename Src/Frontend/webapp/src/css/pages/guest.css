@@ -1,0 +1,157 @@
+/* ===========================================
+   Guest Pages - Specific Overrides
+   Street Medicine Go
+   
+   NOTE: This file contains ONLY guest-specific
+   overrides. Base styles are in components/
+   =========================================== */
+
+/* ===========================================
+   GUEST PAGE CONTAINER
+   =========================================== */
+.guest-page {
+  background-color: var(--bg-dark-tertiary);
+}
+
+/* ===========================================
+   GUEST HEADER
+   - Uses dark theme styling
+   =========================================== */
+.guest-page .site-header {
+  background: #d9d9d9;
+}
+
+.guest-page .welcome-text {
+  /* FIXED: Was white on light gray - now readable */
+  color: var(--text-secondary);
+}
+
+/* ===========================================
+   GUEST DASHBOARD
+   - Uses dark blue background
+   =========================================== */
+.guest-page .user-dashboard {
+  background: var(--bg-dark-tertiary);
+}
+
+.guest-page .dashboard-greeting {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   GUEST CARD STYLES
+   CRITICAL: Light cards need dark text
+   =========================================== */
+
+/* Light blue cards */
+.guest-page .light-blue {
+  background: var(--bg-light-blue);
+  color: var(--text-on-card); /* FIXED: #333 instead of white */
+}
+
+.guest-page .light-blue .card-text,
+.guest-page .light-blue h3,
+.guest-page .light-blue h4,
+.guest-page .light-blue p,
+.guest-page .light-blue span {
+  color: var(--text-on-card);
+}
+
+/* Light yellow cards */
+.guest-page .light-yellow {
+  background: var(--bg-light-yellow);
+  color: var(--text-on-card);
+}
+
+/* ===========================================
+   GUEST ITEM CARDS
+   =========================================== */
+.guest-page .itemCard {
+  background: var(--bg-light-blue);
+  color: var(--text-on-card);
+}
+
+.guest-page .itemCard h3,
+.guest-page .itemCard h4,
+.guest-page .itemCard p {
+  color: var(--text-on-card);
+}
+
+/* ===========================================
+   GUEST HEADER BUTTONS
+   - Dark text on light header
+   =========================================== */
+.guest-page .profileButton,
+.guest-page .cartButton,
+.guest-page .feedbackButton,
+.guest-page .logoutButton {
+  color: var(--text-secondary);
+}
+
+/* ===========================================
+   GUEST CATEGORY TITLES
+   =========================================== */
+.guest-page .category-title {
+  color: var(--text-on-dark);
+}
+
+.guest-page .items-title {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   GUEST MODAL CONTENT
+   =========================================== */
+.guest-page .itemDetailContent {
+  background: var(--bg-white);
+}
+
+.guest-page .detail-title {
+  color: var(--text-primary);
+}
+
+.guest-page .detail-desc {
+  color: var(--text-secondary);
+}
+
+/* ===========================================
+   GUEST CART
+   =========================================== */
+.guest-page .cartLeft {
+  background-color: #f5f5f5;
+}
+
+.guest-page .cartLeft h3 {
+  color: var(--text-secondary);
+}
+
+.guest-page .cartRight {
+  background-color: var(--bg-white);
+}
+
+.guest-page .cartRight h3 {
+  color: var(--text-secondary);
+}
+
+.guest-page .cartItemInfo h4 {
+  color: var(--text-secondary);
+}
+
+.guest-page .cartItemInfo p {
+  color: var(--text-muted);
+}
+
+/* ===========================================
+   GUEST RESPONSIVE OVERRIDES
+   =========================================== */
+@media (max-width: 600px) {
+  .guest-page .dashboard-greeting {
+    font-size: var(--font-size-2xl);
+    margin-bottom: 30px;
+  }
+
+  .guest-page .dashboard-card {
+    padding: 18px 24px;
+    font-size: var(--font-size-md);
+  }
+}

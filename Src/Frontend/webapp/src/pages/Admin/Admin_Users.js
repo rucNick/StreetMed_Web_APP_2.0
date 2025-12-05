@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { secureAxios } from '../../config/axiosConfig';
-import '../../css/Admin/Admin_Users.css';
+import '../../index.css'; 
 
 const AdminUsers = ({ userData }) => {
   const navigate = useNavigate();

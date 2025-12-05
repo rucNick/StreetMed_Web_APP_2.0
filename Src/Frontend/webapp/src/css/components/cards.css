@@ -1,0 +1,573 @@
+
+/* ===========================================
+   BASE CARD STYLES
+   =========================================== */
+.card {
+  background: var(--bg-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* ===========================================
+   LIGHT BACKGROUND CARDS
+   CRITICAL: Dark text for readability
+   =========================================== */
+
+/* Light Blue Card - FIXED: was white text on light blue */
+.card-light-blue,
+.light-blue {
+  background-color: var(--bg-light-blue);
+  color: var(--text-on-card); /* #333333 - CRITICAL FIX */
+}
+
+.card-light-blue h1,
+.card-light-blue h2,
+.card-light-blue h3,
+.card-light-blue h4,
+.card-light-blue p,
+.card-light-blue span,
+.light-blue h1,
+.light-blue h2,
+.light-blue h3,
+.light-blue h4,
+.light-blue p,
+.light-blue span {
+  color: var(--text-on-card);
+}
+
+/* Light Yellow Card */
+.card-light-yellow,
+.light-yellow {
+  background-color: var(--bg-light-yellow);
+  color: var(--text-on-card); /* #333333 */
+}
+
+.card-light-yellow h1,
+.card-light-yellow h2,
+.card-light-yellow h3,
+.card-light-yellow h4,
+.card-light-yellow p,
+.card-light-yellow span,
+.light-yellow h1,
+.light-yellow h2,
+.light-yellow h3,
+.light-yellow h4,
+.light-yellow p,
+.light-yellow span {
+  color: var(--text-on-card);
+}
+
+/* White Card */
+.card-white {
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   DARK BACKGROUND CARDS
+   Uses white/light text
+   =========================================== */
+
+/* Dark Blue Card - for admin/volunteer dashboards */
+.card-dark,
+.card-dark-blue {
+  background-color: var(--bg-dark-secondary);
+  color: var(--text-on-dark);
+}
+
+.card-dark h1,
+.card-dark h2,
+.card-dark h3,
+.card-dark h4,
+.card-dark p,
+.card-dark-blue h1,
+.card-dark-blue h2,
+.card-dark-blue h3,
+.card-dark-blue h4,
+.card-dark-blue p {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   GLASSMORPHISM CARDS
+   =========================================== */
+.glass-card {
+  background-color: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-glass);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: center;
+}
+
+/* Login/Signup Card */
+.login-card {
+  background-color: var(--bg-glass);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-glass);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: var(--card-max-width-sm);
+  padding: var(--spacing-3xl);
+  text-align: center;
+  font-family: var(--font-family-mono);
+}
+
+.signup-card {
+  background-color: var(--bg-glass);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-glass);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: var(--card-max-width-lg);
+  padding: var(--spacing-3xl);
+  text-align: center;
+}
+
+/* ===========================================
+   DASHBOARD CARDS
+   =========================================== */
+
+/* Dashboard card - clickable */
+.dashboard-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 30px;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.15);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+.card-icon {
+  font-size: var(--font-size-xl);
+}
+
+/* ===========================================
+   ADMIN CARDS
+   =========================================== */
+.admin-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--border-radius-xxl);
+  padding: 28px 32px;
+  font-size: 19px;
+  font-weight: var(--font-weight-medium);
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  font-family: var(--font-family-mono);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Admin card with blue background */
+.admin-card.light-blue {
+  background-color: #002a69;
+}
+
+.admin-card.light-blue .card-text-blue {
+  color: var(--text-on-dark);
+}
+
+/* Admin card with yellow background */
+.admin-card.light-yellow {
+  background-color: var(--primary-orange);
+}
+
+.admin-card.light-yellow .card-text-yellow {
+  color: var(--text-primary);
+}
+
+.card-text-blue,
+.card-text-yellow {
+  flex: 1;
+  text-align: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+}
+
+/* ===========================================
+   ALERTS CARD
+   =========================================== */
+.alerts-card {
+  background-color: var(--bg-dark-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 60px 50px;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 900px;
+  font-family: var(--font-family-mono);
+}
+
+.alerts-title {
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+  margin-bottom: 28px;
+}
+
+.alerts-card hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 20px;
+}
+
+.alert-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--font-size-xl);
+  color: var(--text-on-dark);
+}
+
+.alert-entry:first-of-type {
+  border-top: none;
+}
+
+/* ===========================================
+   CARGO/CONTAINER CARDS
+   =========================================== */
+.cargo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 20px;
+  background: var(--bg-dark-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.cargo-card.blue-block,
+.cargo-card.beige-block {
+  background: var(--bg-dark-secondary);
+}
+
+.cargo-container {
+  background: var(--bg-dark-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 30px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===========================================
+   ITEM CARDS (Store/Inventory)
+   =========================================== */
+.itemCard {
+  background: var(--bg-light-blue);
+  padding: 20px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  text-align: center;
+  /* CRITICAL: Dark text on light card */
+  color: var(--text-on-card);
+}
+
+.itemCard h3,
+.itemCard h4,
+.itemCard p,
+.itemCard span {
+  color: var(--text-on-card);
+}
+
+.itemImage {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+}
+
+.itemImagePlaceholder {
+  width: 100%;
+  height: 120px;
+  background: #eee;
+  border-radius: var(--border-radius-lg);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===========================================
+   ORDER CARDS
+   =========================================== */
+.order-card {
+  background-color: #003366;
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  width: 220px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+.order-card h3 {
+  margin: 0 0 6px;
+  font-size: var(--font-size-md);
+  color: var(--text-on-dark);
+}
+
+.order-card p {
+  margin: 4px 0;
+  color: var(--text-on-dark);
+}
+
+.orderItem {
+  background: var(--bg-white);
+  border-radius: var(--border-radius-lg);
+  padding: 28px 32px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orderItem p {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===========================================
+   ROUND CARDS
+   =========================================== */
+.round-card {
+  background-color: var(--bg-dark-primary);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  width: 240px;
+  height: 200px;
+  box-shadow: var(--shadow-sm);
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+.round-card h3 {
+  margin: 0 0 8px;
+  font-size: var(--font-size-md);
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   STATS CARDS
+   =========================================== */
+.stats-card {
+  padding: 15px;
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  flex: 1;
+  min-width: 150px;
+}
+
+.stats-card h3 {
+  margin: 0 0 10px 0;
+  font-size: var(--font-size-md);
+}
+
+.stats-card p {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-on-dark-muted);
+  margin-top: 4px;
+}
+
+/* ===========================================
+   CART CARDS
+   =========================================== */
+.cartItem {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  padding-bottom: 30px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.cartItemImage,
+.cartItemImagePlaceholder {
+  width: 110px;
+  height: 110px;
+  border-radius: var(--border-radius-md);
+  background-color: #d0d0d0;
+  object-fit: cover;
+}
+
+.cartItemInfo {
+  flex: 1;
+}
+
+.cartItemInfo h4 {
+  font-size: var(--font-size-xl);
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+
+.cartItemInfo p {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ===========================================
+   FEEDBACK CARD
+   =========================================== */
+.feedback-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--bg-light-blue);
+  border-radius: var(--border-radius-xl);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  margin: 60px auto;
+  /* CRITICAL: Dark text for readability */
+  color: var(--text-on-card);
+}
+
+.feedback-container h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-on-card);
+  margin-bottom: 24px;
+}
+
+/* ===========================================
+   PROFILE CARD
+   =========================================== */
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--bg-light-yellow);
+  border-radius: var(--border-radius-lg);
+  padding: 40px 20px;
+  max-width: 600px;
+  margin: 40px auto;
+  font-family: var(--font-family-primary);
+  /* CRITICAL: Dark text for readability */
+  color: var(--text-on-card);
+}
+
+.profile-container h2 {
+  color: var(--text-on-card);
+  font-size: var(--font-size-2xl);
+  margin-bottom: 8px;
+}
+
+.profile-container p {
+  color: var(--text-on-card);
+  margin-bottom: 24px;
+}
+
+/* ===========================================
+   CONTENT BLOCKS
+   =========================================== */
+.content-block {
+  width: 100%;
+  border-radius: var(--border-radius-xl);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  padding: 20px;
+  margin: 30px 0;
+  background: var(--bg-dark-secondary);
+}
+
+.blue-block,
+.beige-block {
+  background: var(--bg-dark-secondary);
+}
+
+.block-content {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.block-title {
+  width: 100%;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-on-dark);
+  margin-bottom: 12px;
+}
+
+/* ===========================================
+   BADGES
+   =========================================== */
+.card-badge {
+  border-radius: 50%;
+  padding: 7px 12px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  min-width: 28px;
+  text-align: center;
+}
+
+.blue-badge {
+  background-color: var(--primary-blue-alt);
+  color: white;
+}
+
+.yellow-badge {
+  background-color: var(--primary-gold);
+  color: var(--text-primary);
+}
+
+.red-badge {
+  background-color: #cc0000;
+  color: white;
+}
+
+.completed-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--success);
+  color: var(--text-on-dark);
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: 4px;
+}

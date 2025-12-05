@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicAxios } from '../../config/axiosConfig';
-import '../../css/Volunteer/Volunteer_Order.css';
+import '../../index.css'; 
 
 const VolunteerOrders = ({ userData }) => {
   const navigate = useNavigate();
