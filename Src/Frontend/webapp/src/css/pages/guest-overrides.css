@@ -1,0 +1,373 @@
+/* ===========================================
+   Guest / Client Page - Inline Style Overrides
+   Street Medicine Go
+   
+   This file overrides React inline styles
+   MUST BE IMPORTED LAST in index.css
+   =========================================== */
+
+/* ===========================================
+   DASHBOARD GREETING - FORCE GOLD
+   =========================================== */
+.dashboard-greeting,
+h2.dashboard-greeting,
+h2[class*="greeting"],
+h2[class*="dashboard"],
+.store-content > h2,
+.guest-content > h2,
+.client-content > h2 {
+  color: #f6b800 !important;
+}
+
+/* Override any inline color styles on greeting */
+h2[style*="color"],
+.dashboard-greeting[style],
+h2.dashboard-greeting[style] {
+  color: #f6b800 !important;
+}
+
+/* ===========================================
+   FEEDBACK MODAL - DARK THEME OVERRIDES
+   =========================================== */
+/* Modal container - override light backgrounds */
+div[style*="backgroundColor: 'rgb(209, 218, 226)'"],
+div[style*="background-color: rgb(209, 218, 226)"],
+div[style*="backgroundColor: '#d1dae2'"],
+div[style*="background-color: #d1dae2"],
+div[style*="backgroundColor"][style*="209, 218, 226"] {
+  background-color: #1a2332 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Feedback form with light gray/blue background */
+form[style*="backgroundColor"],
+div[style*="borderRadius: '20px'"][style*="backgroundColor"],
+div[style*="border-radius: 20px"][style*="background-color"] {
+  background-color: #1a2332 !important;
+}
+
+/* Title text in feedback */
+h2[style*="color: 'var(--text-primary)'"],
+h2[style*="color: var(--text-primary)"],
+h2[style*="color: '#333'"],
+h2[style*="color: rgb(51, 51, 51)"] {
+  color: #ffffff !important;
+}
+
+/* Labels in feedback form */
+label[style*="color"],
+div[style*="feedback"] label[style] {
+  color: #ffffff !important;
+}
+
+/* Button text overrides */
+button[style*="color: 'black'"],
+button[style*="color: black"],
+button[style*="color: '#000'"],
+button[style*="color: rgb(0, 0, 0)"] {
+  color: #ffffff !important;
+}
+
+/* Submit Feedback button */
+button[style*="Submit"],
+button:contains("Submit Feedback") {
+  background-color: #003e7e !important;
+  color: #ffffff !important;
+}
+
+/* Cancel button */
+button[style*="Cancel"],
+button:contains("Cancel") {
+  color: #cccccc !important;
+}
+
+/* ===========================================
+   NAVBAR TEXT VISIBILITY OVERRIDES
+   =========================================== */
+/* Fix all navbar text that's dark */
+.store-header span[style],
+.guest-header span[style],
+.client-header span[style],
+header span[style*="color"],
+.header-left span[style] {
+  color: #f6b800 !important;
+}
+
+/* Fix all navbar buttons */
+.store-header button[style],
+.guest-header button[style],
+.client-header button[style],
+header button[style*="color"] {
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   PROFILE BUTTON - ORANGE
+   =========================================== */
+/* Target Profile button by position and class patterns */
+.profileButton,
+button.profileButton,
+.store-header button:nth-child(1),
+.header-left button {
+  background-color: #ff6b00 !important;
+  color: #ffffff !important;
+}
+
+/* Override any inline background:none on profile */
+button[style*="background: none"].profileButton,
+button.profileButton[style] {
+  background-color: #ff6b00 !important;
+}
+
+/* ===========================================
+   ACCORDION/DRAWER BUTTONS - DARK THEME
+   =========================================== */
+/* View Orders and Make a New Order buttons */
+/* Target by inline backgroundColor patterns */
+div[style*="backgroundColor: 'rgba(217, 217, 217"],
+div[style*="background-color: rgba(217, 217, 217"],
+div[style*="backgroundColor: rgba(217, 217, 217"],
+button[style*="backgroundColor: 'rgba(217, 217, 217"],
+button[style*="background-color: rgba(217, 217, 217"],
+div[style*="backgroundColor: '#d1dae2'"],
+div[style*="background-color: rgb(209, 218, 226)"],
+div[style*="backgroundColor: '#decda7'"],
+div[style*="background-color: rgb(222, 205, 167)"],
+div[style*="rgb(217, 217, 217)"],
+div[style*="d1dae2"],
+div[style*="decda7"] {
+  background-color: #1a2332 !important;
+  border: 2px solid #3a5070 !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Hover state */
+div[style*="backgroundColor: 'rgba(217, 217, 217'"]:hover,
+div[style*="backgroundColor: '#d1dae2'"]:hover,
+div[style*="backgroundColor: '#decda7'"]:hover {
+  background-color: #2a3f5f !important;
+  border-color: #f6b800 !important;
+}
+
+/* Drawer button text - FORCE WHITE */
+div[style*="backgroundColor: 'rgba(217, 217, 217"] span,
+div[style*="background-color: rgba(217, 217, 217"] span,
+div[style*="backgroundColor: '#d1dae2'"] span,
+div[style*="backgroundColor: '#decda7'"] span,
+div[style*="rgb(217, 217, 217)"] span,
+div[style*="d1dae2"] span,
+div[style*="decda7"] span {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Arrow icons in drawer buttons */
+div[style*="backgroundColor"] span[style*="▼"],
+div[style*="backgroundColor"] span[style*="▶"],
+div[style*="backgroundColor"] svg {
+  color: #f6b800 !important;
+}
+
+/* Alternative: target by common drawer class patterns */
+.drawer-toggle,
+.order-drawer-toggle,
+.accordion-toggle,
+.collapsible-header {
+  background-color: #1a2332 !important;
+  border: 2px solid #3a5070 !important;
+  color: #ffffff !important;
+}
+
+/* Drawer arrow/icon */
+.drawer-toggle svg,
+.order-drawer-toggle svg,
+.accordion-toggle svg,
+.drawer-toggle span[style*="▼"],
+.drawer-toggle span[style*="▶"] {
+  color: #f6b800 !important;
+}
+
+/* ===========================================
+   MOBILE OVERRIDES - EXTRA PROMINENT BUTTONS
+   =========================================== */
+@media (max-width: 600px) {
+  div[style*="backgroundColor: 'rgba(217, 217, 217"],
+  div[style*="background-color: rgba(217, 217, 217"],
+  div[style*="backgroundColor: '#d1dae2'"],
+  div[style*="backgroundColor: '#decda7'"],
+  div[style*="rgb(217, 217, 217)"],
+  div[style*="d1dae2"],
+  div[style*="decda7"] {
+    background-color: #1a2332 !important;
+    border: 2px solid #f6b800 !important;
+    border-radius: 16px !important;
+    padding: 20px 24px !important;
+    box-shadow: 0 4px 16px rgba(246, 184, 0, 0.25) !important;
+  }
+
+  div[style*="backgroundColor"] span,
+  div[style*="background-color"] span {
+    color: #ffffff !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* ===========================================
+   WELCOME HEADING OVERRIDE
+   =========================================== */
+h2[style*="color"][style*="rgb(246, 184, 0)"],
+h2[style*="color: '#f6b800'"],
+h2[style*="color: #f6b800"] {
+  color: #f6b800 !important;
+}
+
+/* Make sure "Hello, username" in content is gold */
+.store-content > h2:first-of-type,
+.guest-content > h2:first-of-type,
+.client-content > h2:first-of-type {
+  color: #f6b800 !important;
+}
+
+/* ===========================================
+   SECTION HEADER "Available Items"
+   =========================================== */
+h3[style*="fontWeight: 'bold'"],
+h3[style*="font-weight: bold"],
+.section-header-text {
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   ITEM CARDS - KEEP LIGHT BUT ENSURE CONSISTENCY
+   =========================================== */
+/* Item cards background - light grayish blue is OK */
+.item-card[style],
+.product-card[style],
+div[style*="backgroundColor: '#d4dbe8'"],
+div[style*="background-color: rgb(212, 219, 232)"] {
+  background-color: #d4dbe8 !important;
+  border-radius: 16px !important;
+}
+
+/* Item name text - dark for contrast on light card */
+.item-card h4[style],
+.product-card h4[style] {
+  color: #1a2332 !important;
+}
+
+/* Category text - gray */
+.item-card p[style*="color: '#666'"],
+.item-card p[style*="color: rgb(102, 102, 102)"],
+.product-card p[style*="color: '#666'"] {
+  color: #666666 !important;
+}
+
+/* Stock text - darker */
+.item-card p[style*="Total Stock"],
+.product-card p[style*="Total Stock"] {
+  color: #444444 !important;
+}
+
+/* No Image placeholder */
+div[style*="No Image"],
+.no-image-text {
+  color: #888888 !important;
+  background-color: #e8e8e8 !important;
+}
+
+/* ===========================================
+   LINK COLORS
+   =========================================== */
+a[style*="color"],
+a[href*="custom"][style] {
+  color: #3498db !important;
+}
+
+a[style*="color"]:hover {
+  color: #5dade2 !important;
+}
+
+/* ===========================================
+   CART BUTTON WITH COUNT
+   =========================================== */
+.cartButton[style],
+button[style*="Cart"] {
+  color: #ffffff !important;
+}
+
+/* Cart count badge */
+.cartButton span[style],
+.cart-count[style] {
+  background-color: #ff6b00 !important;
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   FEEDBACK AND LOGOUT BUTTONS
+   =========================================== */
+.feedbackButton[style],
+.logoutButton[style],
+button[style*="Feedback"],
+button[style*="Log Out"] {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+
+.feedbackButton[style]:hover,
+.logoutButton[style]:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===========================================
+   ORDER CONTENT INSIDE DRAWERS
+   =========================================== */
+.drawer-content[style],
+.order-list[style],
+.orders-container[style] {
+  background-color: #1a2332 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+}
+
+.drawer-content h4[style],
+.order-list h4[style] {
+  color: #f6b800 !important;
+}
+
+.drawer-content p[style],
+.order-list p[style] {
+  color: #cccccc !important;
+}
+
+/* ===========================================
+   LOADING STATES
+   =========================================== */
+.loading-text[style],
+p[style*="Loading"] {
+  color: #cccccc !important;
+}
+
+/* ===========================================
+   ERROR MESSAGES
+   =========================================== */
+.error-message[style],
+div[style*="backgroundColor: '#ffebee'"],
+div[style*="background-color: rgb(255, 235, 238)"] {
+  background-color: rgba(231, 76, 60, 0.2) !important;
+  color: #ff6b6b !important;
+  border-left: 4px solid #e74c3c !important;
+}
+
+/* ===========================================
+   SUCCESS MESSAGES
+   =========================================== */
+.success-message[style],
+div[style*="backgroundColor: '#e8f5e9'"],
+div[style*="background-color: rgb(232, 245, 233)"] {
+  background-color: rgba(39, 174, 96, 0.2) !important;
+  color: #4ade80 !important;
+  border-left: 4px solid #27ae60 !important;
+}

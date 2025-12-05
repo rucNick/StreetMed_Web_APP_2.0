@@ -119,7 +119,7 @@ const Admin = ({ onLogout, userData }) => {
             className="admin-card light-blue"
             onClick={() => navigate('/cargo_admin')}
           >
-            <span className="card-text-blue">Manage Cargo</span>
+            <span className="card-text-blue">Manage Inventory</span>
           </div>
 
           <div

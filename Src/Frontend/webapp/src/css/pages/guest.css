@@ -1,157 +1,661 @@
 /* ===========================================
-   Guest Pages - Specific Overrides
+   Guest / Client Page - Dark Theme
    Street Medicine Go
-   
-   NOTE: This file contains ONLY guest-specific
-   overrides. Base styles are in components/
    =========================================== */
 
 /* ===========================================
-   GUEST PAGE CONTAINER
+   PAGE BACKGROUND
    =========================================== */
-.guest-page {
-  background-color: var(--bg-dark-tertiary);
+.guest-page,
+.client-page,
+.store-page,
+body {
+  background-color: #0f1c38;
+  min-height: 100vh;
 }
 
 /* ===========================================
-   GUEST HEADER
-   - Uses dark theme styling
+   DASHBOARD GREETING - GOLD COLOR
    =========================================== */
-.guest-page .site-header {
-  background: #d9d9d9;
-}
-
-.guest-page .welcome-text {
-  /* FIXED: Was white on light gray - now readable */
-  color: var(--text-secondary);
+.dashboard-greeting,
+h2.dashboard-greeting,
+.store-content h2,
+.guest-content h2,
+.client-content h2,
+.welcome-heading,
+h2[class*="greeting"],
+h2[class*="welcome"] {
+  color: #f6b800 !important;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 25px;
 }
 
 /* ===========================================
-   GUEST DASHBOARD
-   - Uses dark blue background
+   FEEDBACK MODAL - DARK THEME
    =========================================== */
-.guest-page .user-dashboard {
-  background: var(--bg-dark-tertiary);
+/* Modal backdrop */
+.feedback-modal-overlay,
+.modal-overlay,
+.modal-backdrop,
+div[class*="modal"][class*="overlay"] {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
 }
 
-.guest-page .dashboard-greeting {
-  color: var(--text-on-dark);
+/* Feedback card/container */
+.feedback-modal,
+.feedback-container,
+.feedback-card,
+.feedback-form-container,
+div[class*="feedback"][class*="modal"],
+div[class*="feedback"][class*="card"] {
+  background-color: #1a2332 !important;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Feedback title */
+.feedback-modal h2,
+.feedback-container h2,
+.feedback-card h2,
+.feedback-title,
+div[class*="feedback"] h2 {
+  color: #ffffff !important;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* Form labels */
+.feedback-modal label,
+.feedback-container label,
+.feedback-card label,
+.feedback-form label,
+div[class*="feedback"] label {
+  color: #ffffff !important;
+  font-size: 16px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Input fields */
+.feedback-modal input,
+.feedback-modal textarea,
+.feedback-container input,
+.feedback-container textarea,
+.feedback-card input,
+.feedback-card textarea,
+.feedback-form input,
+.feedback-form textarea,
+div[class*="feedback"] input,
+div[class*="feedback"] textarea {
+  background-color: #ffffff !important;
+  border: 1px solid #cccccc !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  font-size: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  color: #333333 !important;
+  margin-bottom: 20px !important;
+}
+
+.feedback-modal input:focus,
+.feedback-modal textarea:focus,
+.feedback-container input:focus,
+.feedback-container textarea:focus,
+div[class*="feedback"] input:focus,
+div[class*="feedback"] textarea:focus {
+  outline: none !important;
+  border-color: #f6b800 !important;
+  box-shadow: 0 0 0 3px rgba(246, 184, 0, 0.2) !important;
+}
+
+/* Textarea specific */
+.feedback-modal textarea,
+.feedback-container textarea,
+div[class*="feedback"] textarea {
+  min-height: 120px !important;
+  resize: vertical !important;
+}
+
+/* Submit button */
+.feedback-modal button[type="submit"],
+.feedback-container button[type="submit"],
+.feedback-submit-btn,
+.submit-feedback-btn,
+div[class*="feedback"] button:first-of-type {
+  background-color: #003e7e !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 14px 32px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  margin-bottom: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.feedback-modal button[type="submit"]:hover,
+.feedback-container button[type="submit"]:hover,
+.feedback-submit-btn:hover,
+div[class*="feedback"] button:first-of-type:hover {
+  background-color: #002d5f !important;
+}
+
+/* Cancel button */
+.feedback-modal button[type="button"],
+.feedback-container .cancel-btn,
+.feedback-cancel-btn,
+.cancel-feedback-btn,
+div[class*="feedback"] button:last-of-type {
+  background-color: transparent !important;
+  color: #cccccc !important;
+  border: none !important;
+  padding: 12px 32px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  transition: all 0.3s ease !important;
+}
+
+.feedback-modal button[type="button"]:hover,
+.feedback-container .cancel-btn:hover,
+.feedback-cancel-btn:hover,
+div[class*="feedback"] button:last-of-type:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* ===========================================
-   GUEST CARD STYLES
-   CRITICAL: Light cards need dark text
+   NAVBAR / HEADER - DARK THEME
    =========================================== */
-
-/* Light blue cards */
-.guest-page .light-blue {
-  background: var(--bg-light-blue);
-  color: var(--text-on-card); /* FIXED: #333 instead of white */
+.store-header,
+.guest-header,
+.client-header {
+  background-color: #0f1c38;
+  height: 70px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.guest-page .light-blue .card-text,
-.guest-page .light-blue h3,
-.guest-page .light-blue h4,
-.guest-page .light-blue p,
-.guest-page .light-blue span {
-  color: var(--text-on-card);
-}
-
-/* Light yellow cards */
-.guest-page .light-yellow {
-  background: var(--bg-light-yellow);
-  color: var(--text-on-card);
+/* Logo */
+.store-header .store-logo,
+.store-header .logo,
+.guest-header .logo,
+.client-header .logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
 }
 
 /* ===========================================
-   GUEST ITEM CARDS
+   NAVBAR TEXT - FIX VISIBILITY
    =========================================== */
-.guest-page .itemCard {
-  background: var(--bg-light-blue);
-  color: var(--text-on-card);
+/* Hello greeting text */
+.store-header .welcome-text,
+.store-header span,
+.guest-header .welcome-text,
+.client-header .welcome-text,
+.header-left span,
+.header-left .welcome-text {
+  color: #f6b800 !important;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.guest-page .itemCard h3,
-.guest-page .itemCard h4,
-.guest-page .itemCard p {
-  color: var(--text-on-card);
+/* All navbar buttons/links */
+.store-header button,
+.store-header a,
+.guest-header button,
+.guest-header a,
+.client-header button,
+.client-header a,
+.profileButton,
+.cartButton,
+.feedbackButton,
+.logoutButton {
+  color: #ffffff !important;
+  background: none;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.store-header button:hover,
+.store-header a:hover,
+.guest-header button:hover,
+.guest-header a:hover,
+.client-header button:hover,
+.client-header a:hover,
+.profileButton:hover,
+.cartButton:hover,
+.feedbackButton:hover,
+.logoutButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* ===========================================
-   GUEST HEADER BUTTONS
-   - Dark text on light header
+   PROFILE BUTTON - ORANGE
    =========================================== */
-.guest-page .profileButton,
-.guest-page .cartButton,
-.guest-page .feedbackButton,
-.guest-page .logoutButton {
-  color: var(--text-secondary);
+.profileButton,
+.store-header .profileButton,
+.guest-header .profileButton,
+.client-header .profileButton,
+button[class*="profile"],
+.header-left button:first-of-type {
+  background-color: #ff6b00 !important;
+  color: #ffffff !important;
+  padding: 8px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.profileButton:hover,
+.store-header .profileButton:hover,
+button[class*="profile"]:hover {
+  background-color: #e55a00 !important;
+  transform: translateY(-2px);
 }
 
 /* ===========================================
-   GUEST CATEGORY TITLES
+   MAIN CONTENT AREA
    =========================================== */
-.guest-page .category-title {
-  color: var(--text-on-dark);
+.store-content,
+.guest-content,
+.client-content,
+.main-content {
+  padding: 30px;
+  background-color: #0f1c38;
 }
 
-.guest-page .items-title {
-  color: var(--text-on-dark);
+/* Hello greeting in content */
+.store-content h1,
+.store-content h2.welcome-heading,
+.guest-content h1,
+.client-content h1 {
+  color: #f6b800;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 25px;
 }
 
 /* ===========================================
-   GUEST MODAL CONTENT
+   ACCORDION / DRAWER BUTTONS - DARK THEME
    =========================================== */
-.guest-page .itemDetailContent {
-  background: var(--bg-white);
+/* View Orders, Make a New Order buttons */
+.drawer-btn,
+.accordion-btn,
+.order-drawer-btn,
+.collapsible-btn,
+.store-content > div > div,
+.guest-content > div > div,
+.client-content > div > div {
+  background-color: #1a2332 !important;
+  border: 2px solid #3a5070 !important;
+  border-radius: 12px !important;
+  padding: 18px 24px !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.guest-page .detail-title {
-  color: var(--text-primary);
+.drawer-btn:hover,
+.accordion-btn:hover,
+.order-drawer-btn:hover {
+  background-color: #2a3f5f !important;
+  border-color: #f6b800 !important;
+  transform: translateX(5px);
 }
 
-.guest-page .detail-desc {
-  color: var(--text-secondary);
+/* Arrow/chevron icon */
+.drawer-btn svg,
+.accordion-btn svg,
+.drawer-btn span:first-child,
+.accordion-btn span:first-child {
+  color: #f6b800 !important;
+}
+
+/* Override inline background colors on accordion buttons */
+div[style*="backgroundColor: 'rgba(217, 217, 217"],
+div[style*="background-color: rgba(217, 217, 217"],
+div[style*="backgroundColor: rgba(217, 217, 217"],
+div[style*="backgroundColor: '#d1dae2'"],
+div[style*="background-color: rgb(209, 218, 226)"],
+div[style*="backgroundColor: '#decda7'"],
+div[style*="background-color: rgb(222, 205, 167)"] {
+  background-color: #1a2332 !important;
+  border: 2px solid #3a5070 !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Text inside accordion buttons */
+div[style*="backgroundColor: 'rgba(217, 217, 217"] span,
+div[style*="background-color: rgba(217, 217, 217"] span,
+div[style*="backgroundColor: '#d1dae2'"] span,
+div[style*="backgroundColor: '#decda7'"] span {
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
 /* ===========================================
-   GUEST CART
+   SECTION TITLES
    =========================================== */
-.guest-page .cartLeft {
-  background-color: #f5f5f5;
+.store-content h3,
+.guest-content h3,
+.client-content h3,
+.section-title,
+.available-items-title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 30px 0 15px 0;
 }
 
-.guest-page .cartLeft h3 {
-  color: var(--text-secondary);
+/* "Didn't find items" link */
+.store-content a,
+.guest-content a,
+.client-content a,
+a[href*="custom"],
+.custom-order-link {
+  color: #3498db;
+  text-decoration: underline;
+  font-size: 14px;
 }
 
-.guest-page .cartRight {
-  background-color: var(--bg-white);
-}
-
-.guest-page .cartRight h3 {
-  color: var(--text-secondary);
-}
-
-.guest-page .cartItemInfo h4 {
-  color: var(--text-secondary);
-}
-
-.guest-page .cartItemInfo p {
-  color: var(--text-muted);
+.store-content a:hover,
+.guest-content a:hover,
+a[href*="custom"]:hover {
+  color: #5dade2;
 }
 
 /* ===========================================
-   GUEST RESPONSIVE OVERRIDES
+   ITEM CARDS
    =========================================== */
-@media (max-width: 600px) {
-  .guest-page .dashboard-greeting {
-    font-size: var(--font-size-2xl);
-    margin-bottom: 30px;
+.item-card,
+.product-card,
+.store-item-card {
+  background-color: #d4dbe8;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid #c0c8d8;
+  cursor: pointer;
+}
+
+.item-card:hover,
+.product-card:hover,
+.store-item-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Item image container */
+.item-card .image-container,
+.product-card .image-container,
+.item-image-wrapper {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.item-card img,
+.product-card img {
+  max-width: 100%;
+  height: 120px;
+  object-fit: contain;
+}
+
+/* No image placeholder */
+.no-image-placeholder,
+.item-card .no-image,
+.product-card .no-image {
+  background-color: #e8e8e8;
+  border-radius: 12px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888888;
+  font-size: 14px;
+}
+
+/* Item name */
+.item-card h4,
+.product-card h4,
+.item-name {
+  color: #1a2332;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 10px 0 5px 0;
+}
+
+/* Item category */
+.item-card .category,
+.product-card .category,
+.item-category {
+  color: #666666;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Stock info */
+.item-card .stock,
+.product-card .stock,
+.item-stock {
+  color: #444444;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===========================================
+   ITEMS GRID
+   =========================================== */
+.items-grid,
+.products-grid,
+.store-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* ===========================================
+   CART BADGE
+   =========================================== */
+.cart-badge,
+.cartButton span,
+.cart-count {
+  background-color: #ff6b00;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+/* ===========================================
+   ORDER DRAWER CONTENT
+   =========================================== */
+.order-drawer,
+.orders-list,
+.drawer-content {
+  background-color: #1a2332;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.order-drawer h4,
+.orders-list h4 {
+  color: #f6b800;
+  margin-bottom: 15px;
+}
+
+.order-drawer p,
+.orders-list p {
+  color: #cccccc;
+}
+
+/* ===========================================
+   RESPONSIVE - TABLET
+   =========================================== */
+@media (max-width: 900px) {
+  .store-header,
+  .guest-header,
+  .client-header {
+    padding: 0 20px;
+    flex-wrap: wrap;
+    height: auto;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    gap: 15px;
   }
 
-  .guest-page .dashboard-card {
-    padding: 18px 24px;
-    font-size: var(--font-size-md);
+  .items-grid,
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+  }
+
+  .drawer-btn,
+  .accordion-btn {
+    max-width: 100%;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - MOBILE
+   =========================================== */
+@media (max-width: 600px) {
+  .store-header,
+  .guest-header,
+  .client-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .header-right,
+  .store-header > div:last-child {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .store-content,
+  .guest-content,
+  .client-content {
+    padding: 20px 15px;
+  }
+
+  .store-content h1,
+  .guest-content h1,
+  .client-content h1 {
+    font-size: 24px;
+  }
+
+  /* Accordion buttons - MORE PROMINENT ON MOBILE */
+  .drawer-btn,
+  .accordion-btn,
+  .order-drawer-btn,
+  .collapsible-btn,
+  div[style*="backgroundColor: 'rgba(217, 217, 217"],
+  div[style*="background-color: rgba(217, 217, 217"],
+  div[style*="backgroundColor: '#d1dae2'"],
+  div[style*="backgroundColor: '#decda7'"] {
+    background-color: #1a2332 !important;
+    border: 2px solid #f6b800 !important;
+    border-radius: 16px !important;
+    padding: 20px 24px !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(246, 184, 0, 0.2) !important;
+    max-width: 100% !important;
+  }
+
+  .drawer-btn span,
+  .accordion-btn span,
+  div[style*="backgroundColor"] span {
+    color: #ffffff !important;
+  }
+
+  .items-grid,
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .item-card,
+  .product-card {
+    padding: 15px;
+  }
+
+  .item-card h4,
+  .product-card h4 {
+    font-size: 16px;
+  }
+
+  .profileButton,
+  .cartButton,
+  .feedbackButton,
+  .logoutButton {
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .items-grid,
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Even more prominent on very small screens */
+  .drawer-btn,
+  .accordion-btn,
+  div[style*="backgroundColor: 'rgba(217, 217, 217"],
+  div[style*="backgroundColor: '#d1dae2'"],
+  div[style*="backgroundColor: '#decda7'"] {
+    padding: 22px 20px !important;
+    font-size: 17px !important;
+    border-width: 2px !important;
+    border-color: #f6b800 !important;
   }
 }

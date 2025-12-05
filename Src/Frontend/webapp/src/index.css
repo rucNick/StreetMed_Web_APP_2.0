@@ -54,6 +54,8 @@
    inline styles from React components
    =========================================== */
 @import './css/pages/volunteer_overrides.css';
+@import './css/pages/guest-overrides.css';
+
 
 /* ===========================================
    UTILITY CLASSES

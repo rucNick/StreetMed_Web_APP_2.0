@@ -1,10 +1,8 @@
 /* ===========================================
-   Admin Pages - Complete Styles (FIXED)
+   Admin Pages - Complete Styles
    Street Medicine Go
    
-   FIXES:
-   - Mobile/phone view support
-   - Dark background for inventory pages
+   Mobile/phone view support included
    =========================================== */
 
 /* ===========================================
@@ -108,7 +106,7 @@
 }
 
 /* ===========================================
-   ADMIN CONTENT CONTAINERS - FIXED BACKGROUNDS
+   ADMIN CONTENT CONTAINERS
    =========================================== */
 .admin-page .main-content {
   padding: 40px 60px;
@@ -116,7 +114,6 @@
   min-height: calc(100vh - 83px);
 }
 
-/* CRITICAL FIX: Dark background for cargo/inventory containers */
 .admin-page .cargo-container,
 .cargo-container {
   background-color: #0f1c38 !important;
@@ -132,7 +129,7 @@
 }
 
 /* ===========================================
-   ADMIN TITLES - WHITE TEXT ON DARK BG
+   ADMIN TITLES
    =========================================== */
 .admin-page .cargo-title,
 .admin-page .orders-title,
@@ -228,7 +225,7 @@
 }
 
 /* ===========================================
-   ADMIN FORMS - DARK THEME
+   ADMIN FORMS
    =========================================== */
 .admin-page .cargo-input,
 .cargo-input {
@@ -247,7 +244,6 @@
   outline: none;
 }
 
-/* Form labels */
 .admin-page label,
 .cargo-container label {
   color: #ffffff !important;
@@ -307,7 +303,7 @@
 }
 
 /* ===========================================
-   ADMIN MODALS - DARK THEME
+   ADMIN MODALS
    =========================================== */
 .admin-page .modal-content,
 .cargo-modal .modal-content {
