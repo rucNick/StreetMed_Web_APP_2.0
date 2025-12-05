@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { secureAxios } from '../../config/axiosConfig'
+import '../../index.css'; 
 
 const Reset_Password = () => {
   const navigate = useNavigate()

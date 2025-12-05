@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { publicAxios } from "../../config/axiosConfig";
-import "../../css/Home/Home_Feedback.css"; // Use dedicated CSS for the feedback page
+import '../../index.css'; 
 
 const Home_Feedback = ({ username }) => {
   const navigate = useNavigate();

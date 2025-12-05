@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encrypt, decrypt, getSessionId, isInitialized } from "../../security/ecdhClient";
 import { secureAxios } from "../../config/axiosConfig";
-import "../../css/Login/Login.css";
+import '../../index.css'; 
 import SessionErrorModal from '../../components/SessionErrorModal';
 
 const Login = ({ onLoginSuccess }) => {
@@ -167,8 +167,8 @@ const Login = ({ onLoginSuccess }) => {
               Log in
             </button>
           </form>
-\          <p className="signup-text">
-            Don't have an account? <a href="#" className="signup-link" onClick={handleSignUpClick}>Sign up here</a>.
+          <p className="signup-text">
+            Don't have an account? <a href="/ eslint-disable-next-line " className="signup-link" onClick={handleSignUpClick}>Sign up here</a>.
           </p>
         </div>
       </div>

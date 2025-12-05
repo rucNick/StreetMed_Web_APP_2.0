@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { secureAxios } from '../../config/axiosConfig';
-import '../../css/Admin/Admin_ViewAppli.css';
+import '../../index.css'; 
 
 const AdminViewAppli = ({ userData }) => {
   const navigate = useNavigate();
@@ -314,7 +314,7 @@ const AdminViewAppli = ({ userData }) => {
             <div style={{ 
               marginTop: '20px', 
               padding: '15px', 
-              backgroundColor: '#f5f5f5', 
+              backgroundColor: '#212c46', 
               borderRadius: '4px' 
             }}>
               <h3>Application Summary</h3>

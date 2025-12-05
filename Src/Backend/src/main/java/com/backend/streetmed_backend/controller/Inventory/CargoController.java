@@ -114,4 +114,34 @@ public class CargoController {
         }, asyncExecutor);
     }
 
+    @Operation(summary = "Delete cargo item")
+    @DeleteMapping("/items/{id}")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> deleteItem(
+            @PathVariable Integer id,
+            @RequestHeader("Admin-Username") String adminUsername,
+            @RequestHeader("Authentication-Status") String authStatus) {
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (!"true".equals(authStatus)) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("status", "error", "message", "Not authenticated"));
+                }
+
+                cargoItemService.deleteItem(id);
+
+                return ResponseEntity.ok(Map.of(
+                        "status", "success",
+                        "message", "Item deleted successfully"
+                ));
+            } catch (RuntimeException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("status", "error", "message", e.getMessage()));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("status", "error", "message", e.getMessage()));
+            }
+        }, asyncExecutor);
+    }
+
 }

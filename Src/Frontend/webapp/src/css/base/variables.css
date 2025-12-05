@@ -1,0 +1,206 @@
+/* ===========================================
+   CSS Variables / Design Tokens
+   Street Medicine Go - Unified Design System
+   =========================================== */
+
+:root {
+  /* =====================
+     PRIMARY BRAND COLORS
+     ===================== */
+  --primary-blue: #003e7e;
+  --primary-blue-hover: #002d5f;
+  --primary-blue-alt: #003295;
+  --primary-blue-dark: #002a69;
+  
+  --primary-gold: #f6b800;
+  --primary-gold-hover: #db9914;
+  --primary-orange: #ffb916;
+  --primary-orange-hover: #f7ac0a;
+
+  /* =====================
+     BACKGROUND COLORS
+     ===================== */
+  /* Light theme backgrounds */
+  --bg-light: #f5f6f8;
+  --bg-light-gray: #c8c9c7;
+  --bg-light-blue: #d1dae2;
+  --bg-light-yellow: #decda7;
+  --bg-white: #ffffff;
+  
+  /* Dark theme backgrounds - IMPROVED for readability */
+  --bg-dark-primary: #0f1c38;      /* Main dark background */
+  --bg-dark-secondary: #1a2332;    /* Card backgrounds on dark */
+  --bg-dark-tertiary: #212c46;     /* Elevated surfaces on dark */
+  --bg-dark-hover: #2a3f5f;        /* Hover states on dark */
+  --bg-dark-border: #3a5070;       /* Borders on dark theme */
+  
+  /* Glass/Overlay effects */
+  --bg-overlay-dark: rgba(0, 0, 0, 0.4);
+  --bg-overlay-light: rgba(255, 255, 255, 0.1);
+  --bg-glass: rgba(255, 255, 255, 0.2);
+  --bg-glass-header: rgba(217, 217, 217, 0.105);
+
+  /* =====================
+     TEXT COLORS
+     - CRITICAL: Use appropriate contrast
+     ===================== */
+  /* For light backgrounds */
+  --text-primary: #333333;
+  --text-secondary: #444444;
+  --text-muted: #666666;
+  --text-light-muted: #777777;
+  --text-placeholder: #999999;
+  
+  /* For dark backgrounds */
+  --text-on-dark: #ffffff;
+  --text-on-dark-muted: #cccccc;
+  --text-on-dark-secondary: #aaaaaa;
+  
+  /* CRITICAL: Card text - always dark on light cards */
+  --text-on-card: #333333;
+  --text-on-card-secondary: #555555;
+  
+  /* Special text colors */
+  --text-link: #1890ff;
+  --text-link-hover: #0d6efd;
+
+  /* =====================
+     STATUS COLORS
+     ===================== */
+  --success: #27ae60;
+  --success-light: #2ecc71;
+  --success-bg: #d4edda;
+  --success-text: #155724;
+  
+  --warning: #f39c12;
+  --warning-light: #f4b942;
+  --warning-bg: #fff3cd;
+  --warning-text: #856404;
+  
+  --error: #e74c3c;
+  --error-light: #ff4d4f;
+  --error-bg: #ffebee;
+  --error-text: #c62828;
+  
+  --info: #3498db;
+  --info-light: #5dade2;
+  --info-bg: #e3f2fd;
+  --info-text: #1565c0;
+
+  /* =====================
+     BORDERS & SHADOWS
+     ===================== */
+  --border-light: #cccccc;
+  --border-medium: #c4c4c4;
+  --border-dark: #3a5070;
+  
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --border-radius-xxl: 25px;
+  --border-radius-pill: 999px;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 6px 12px rgba(0, 0, 0, 0.2);
+  --shadow-glass: 0 4px 30px rgba(0, 0, 0, 0.1);
+
+  /* =====================
+     SPACING
+     ===================== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+  --spacing-4xl: 64px;
+
+  /* =====================
+     TYPOGRAPHY
+     ===================== */
+  --font-family-primary: Arial, Helvetica, sans-serif;
+  --font-family-mono: 'Courier New', Courier, monospace;
+  --font-family-serif: Cambria, serif;
+  
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 32px;
+  --font-size-5xl: 36px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.8;
+
+  /* =====================
+     LAYOUT
+     ===================== */
+  --header-height: 66px;
+  --header-height-lg: 83px;
+  --sidebar-width: 280px;
+  --content-max-width: 1400px;
+  --card-max-width-sm: 420px;
+  --card-max-width-md: 650px;
+  --card-max-width-lg: 1000px;
+  --card-height-lg: 700px;
+  --card-padding: 100px;
+  --card-padding-mobile: 20px;
+  --logo-size: 65px;
+  --logo-size-sm: 150px;
+  --logo-size-lg: 250px;
+
+  /* =====================
+     TRANSITIONS
+     ===================== */
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.4s ease;
+
+  /* =====================
+     GLASS/BLUR EFFECTS
+     ===================== */
+  --backdrop-blur-sm: blur(3px);
+  --backdrop-blur-md: blur(10px);
+  --background-blur: blur(5px);
+  --background-scale: scale(1.05);
+  --border-glass: 1px solid rgba(255, 255, 255, 0.3);
+  --box-shadow-glass: 0 4px 30px rgba(0, 0, 0, 0.1);
+  --box-shadow-button: 0 4px 8px rgba(0, 0, 0, 0.15);
+
+  /* =====================
+     Z-INDEX SCALE
+     ===================== */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 900;
+  --z-modal: 1000;
+  --z-popover: 1100;
+  --z-tooltip: 1200;
+}
+
+/* =====================
+   DARK THEME OVERRIDES
+   Applied via .dark-theme class on body or container
+   ===================== */
+.dark-theme {
+  --bg-primary: var(--bg-dark-primary);
+  --bg-secondary: var(--bg-dark-secondary);
+  --bg-tertiary: var(--bg-dark-tertiary);
+  --text-primary: var(--text-on-dark);
+  --text-secondary: var(--text-on-dark-muted);
+  --border-color: var(--border-dark);
+}

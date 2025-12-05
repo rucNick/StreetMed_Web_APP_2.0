@@ -1,0 +1,206 @@
+/* ===========================================
+   Home Pages - Specific Overrides
+   Street Medicine Go
+   
+   NOTE: This file contains ONLY home-specific
+   overrides. Base styles are in components/
+   =========================================== */
+
+/* ===========================================
+   HOME PAGE CONTAINER
+   =========================================== */
+.home-page {
+  background-color: var(--bg-light-gray);
+}
+
+/* ===========================================
+   HOME HEADER
+   - Uses light theme styling
+   =========================================== */
+.home-page .site-header {
+  background: #d9d9d9;
+}
+
+.home-page .welcome-text {
+  color: var(--text-secondary); /* #444 - readable on light bg */
+}
+
+/* ===========================================
+   HOME DASHBOARD
+   - Uses light gray background
+   =========================================== */
+.home-page .user-dashboard {
+  background: var(--bg-light-gray);
+}
+
+.home-page .dashboard-greeting {
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   HOME CARD STYLES
+   All cards use dark text on light backgrounds
+   =========================================== */
+
+/* Light blue cards */
+.home-page .light-blue {
+  background: var(--bg-light-blue);
+  color: var(--text-on-card); /* #333 */
+}
+
+/* Light yellow cards */
+.home-page .light-yellow {
+  background: var(--bg-light-yellow);
+  color: var(--text-on-card);
+}
+
+/* Dashboard cards */
+.home-page .dashboard-card {
+  color: var(--text-on-card);
+}
+
+/* ===========================================
+   HOME ITEM CARDS
+   =========================================== */
+.home-page .itemCard {
+  background: var(--bg-light-blue);
+  color: var(--text-on-card);
+}
+
+.home-page .itemCard h3,
+.home-page .itemCard h4,
+.home-page .itemCard p {
+  color: var(--text-on-card);
+}
+
+/* ===========================================
+   HOME HEADER BUTTONS
+   - Dark text on light header
+   =========================================== */
+.home-page .profileButton,
+.home-page .cartButton,
+.home-page .feedbackButton,
+.home-page .logoutButton {
+  color: var(--text-secondary);
+}
+
+/* ===========================================
+   HOME ITEMS HEADER
+   =========================================== */
+.home-page .items-title {
+  color: var(--text-primary);
+}
+
+/* ===========================================
+   HOME MODAL CONTENT
+   =========================================== */
+.home-page .itemDetailContent {
+  background: var(--bg-white);
+}
+
+.home-page .detail-title {
+  color: var(--text-primary);
+}
+
+.home-page .detail-desc {
+  color: var(--text-secondary);
+}
+
+/* Cancel button */
+.home-page .cancel-btn {
+  background: #d9d9d9;
+  color: var(--text-primary);
+}
+
+.home-page .cancel-btn:hover {
+  background: #c8c8c8;
+}
+
+/* ===========================================
+   HOME CART
+   =========================================== */
+.home-page .cartLeft {
+  background-color: #f5f5f5;
+}
+
+.home-page .cartLeft h3 {
+  color: var(--text-secondary);
+}
+
+.home-page .cartRight {
+  background-color: var(--bg-white);
+}
+
+.home-page .cartRight h3 {
+  color: var(--text-secondary);
+}
+
+.home-page .cartItemInfo h4 {
+  color: var(--text-secondary);
+}
+
+.home-page .cartItemInfo p {
+  color: var(--text-muted);
+}
+
+/* ===========================================
+   HOME FEEDBACK PAGE
+   =========================================== */
+.home-feedback-page {
+  background-color: var(--bg-light-gray);
+}
+
+/* ===========================================
+   HOME ORDER HISTORY
+   =========================================== */
+.home-order-history {
+  background: var(--bg-light-gray);
+}
+
+.home-order-history .ordersList {
+  background: var(--bg-light-blue);
+}
+
+.home-order-history .orderItem {
+  background: var(--bg-white);
+}
+
+.home-order-history .orderItem p {
+  color: var(--text-secondary);
+}
+
+/* ===========================================
+   HOME PROFILE
+   =========================================== */
+.home-profile .profile-container {
+  background-color: var(--bg-light-yellow);
+}
+
+.home-profile .profile-container h2,
+.home-profile .profile-container p {
+  color: var(--text-on-card);
+}
+
+/* ===========================================
+   HOME RESPONSIVE OVERRIDES
+   =========================================== */
+@media (max-width: 600px) {
+  .home-page .dashboard-greeting {
+    font-size: var(--font-size-2xl);
+    margin-bottom: 30px;
+  }
+
+  .home-page .dashboard-card {
+    padding: 18px 24px;
+    font-size: var(--font-size-md);
+  }
+
+  .home-page .itemDetailContent {
+    padding: 30px 24px;
+  }
+
+  .home-page .itemDetailImage {
+    width: 220px;
+    height: 220px;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { publicAxios } from '../../config/axiosConfig';
+import '../../index.css'; 
 
 const VolunteerAppli = () => {
   const navigate = useNavigate();

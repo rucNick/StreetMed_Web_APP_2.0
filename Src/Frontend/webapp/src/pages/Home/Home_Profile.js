@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encrypt, decrypt, getSessionId, isInitialized } from "../../security/ecdhClient";
 import { secureAxios } from "../../config/axiosConfig";
-import "../../css/Home/Home_Profile.css";
+import '../../index.css'; 
 
 const Home_Profile = ({
   username,

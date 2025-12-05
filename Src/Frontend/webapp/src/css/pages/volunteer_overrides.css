@@ -1,0 +1,501 @@
+/* ===========================================
+   Volunteer Dashboard - Inline Style Overrides
+   Street Medicine Go
+   
+   This file contains !important overrides for
+   inline styles in React components that need
+   to match the dark theme
+   =========================================== */
+
+/* ===========================================
+   FORCE DARK THEME ON ALL VOLUNTEER ELEMENTS
+   =========================================== */
+
+/* Empty state containers */
+.volunteer-dashboard-container [style*="backgroundColor"][style*="f9f9f9"],
+.volunteer-dashboard-container [style*="background-color"][style*="f9f9f9"],
+.volunteer-dashboard-container div[style*="#f9f9f9"] {
+  background-color: #212c46 !important;
+  color: #ffffff !important;
+  border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Text color overrides */
+.volunteer-dashboard-container [style*="color"][style*="#666"],
+.volunteer-dashboard-container [style*="color: '#666'"],
+.volunteer-dashboard-container [style*="color: \"#666\""] {
+  color: #cccccc !important;
+}
+
+.volunteer-dashboard-container [style*="color"][style*="#999"],
+.volunteer-dashboard-container [style*="color: '#999'"] {
+  color: #aaaaaa !important;
+}
+
+/* Fix paragraph colors in cards */
+.orders-cards p,
+.rounds-cards p {
+  color: #ffffff !important;
+}
+
+/* No active assignments message */
+.orders-cards > div:first-child:last-child {
+  background-color: #212c46 !important;
+  color: #ffffff !important;
+}
+
+.orders-cards > div:first-child:last-child p {
+  color: #ffffff !important;
+}
+
+.orders-cards > div:first-child:last-child p + p {
+  color: #cccccc !important;
+}
+
+/* Round cards - all text white */
+.round-card,
+.round-card * {
+  color: #ffffff;
+}
+
+.round-card h3 {
+  color: #f6b800 !important;
+}
+
+.round-card p {
+  color: #ffffff !important;
+}
+
+.round-card p strong {
+  color: #cccccc !important;
+}
+
+/* Order cards - all text white */
+.order-card,
+.order-card * {
+  color: #ffffff;
+}
+
+.order-card h3 {
+  color: #f6b800 !important;
+}
+
+.order-card p {
+  color: #ffffff !important;
+}
+
+.order-card p strong {
+  color: #cccccc !important;
+}
+
+/* ===========================================
+   BUTTONS OVERRIDE
+   =========================================== */
+
+/* "Go to Order Queue" button */
+.orders-cards button[style*="ff6b00"],
+.orders-cards button[style*="#ff6b00"] {
+  background-color: #ff6b00 !important;
+  color: #ffffff !important;
+}
+
+/* Refresh button */
+.volunteer-left-panel button[style*="27ae60"],
+.volunteer-left-panel button[style*="#27ae60"] {
+  background-color: #27ae60 !important;
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   STATUS BADGES - Keep original colors but ensure visibility
+   =========================================== */
+.order-card span[style*="borderRadius"],
+.order-card [style*="border-radius"] {
+  /* These should keep their status colors */
+}
+
+/* ===========================================
+   SECTION HEADER STYLES
+   =========================================== */
+
+/* Assignment section container */
+.volunteer-left-panel > div[style*="marginBottom: '30px'"],
+.volunteer-left-panel > div[style*="margin-bottom: 30px"] {
+  background-color: #1a2332 !important;
+  border-radius: 16px;
+  padding: 20px !important;
+}
+
+/* Fix the h2 inside assignment section */
+.volunteer-left-panel > div h2 {
+  background-color: #002a69 !important;
+}
+
+/* ===========================================
+   LOADING STATE
+   =========================================== */
+.orders-cards p:only-child {
+  color: #cccccc !important;
+  padding: 30px;
+  text-align: center;
+}
+
+/* "Loading assignments..." text */
+.orders-cards > p {
+  color: #cccccc !important;
+}
+
+/* ===========================================
+   SPECIFIC TEXT FIXES
+   =========================================== */
+
+/* "No upcoming rounds yet" */
+.rounds-cards > p:only-child {
+  color: #cccccc !important;
+  font-size: 16px;
+  padding: 20px;
+}
+
+/* Section header text */
+.volunteer-left-panel h2 {
+  color: #ffffff !important;
+}
+
+.volunteer-left-panel h2 strong {
+  color: #ffffff !important;
+}
+
+.volunteer-left-panel h2 span {
+  color: #cccccc !important;
+}
+
+/* ===========================================
+   ORDER CARD BORDERS (Status indicators)
+   =========================================== */
+.order-card[style*="borderLeft: '4px solid #3498db'"],
+.order-card[style*="border-left: 4px solid #3498db"] {
+  border-left: 4px solid #3498db !important;
+}
+
+.order-card[style*="borderLeft: '4px solid #f39c12'"],
+.order-card[style*="border-left: 4px solid #f39c12"] {
+  border-left: 4px solid #f39c12 !important;
+}
+
+/* ===========================================
+   CALENDAR CONTAINER
+   =========================================== */
+.volunteer-right-panel > h2 {
+  background-color: #0f1c38 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ===========================================
+   MODAL CONTENT FIXES
+   =========================================== */
+.fullview-modal-content,
+.rounds-modal-content {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+}
+
+.fullview-modal-content h2,
+.rounds-modal-content h3 {
+  color: #333333 !important;
+}
+
+.fullview-modal-content p,
+.rounds-modal-content p {
+  color: #444444 !important;
+}
+
+.fullview-modal-content strong,
+.rounds-modal-content strong {
+  color: #333333 !important;
+}
+
+/* ===========================================
+   NAV BAR WELCOME TEXT
+   =========================================== */
+.nav-bar .nav-welcome h2,
+.nav-welcome h2 {
+  color: #f6b800 !important;
+}
+
+/* ===========================================
+   PROFILE BUTTON - ORANGE BY DEFAULT
+   =========================================== */
+/* Target Profile button specifically */
+.nav-bar button.nav-btn[style*="margin-left"],
+header button.nav-btn[style*="margin-left"],
+.nav-btn[style*="margin-left: 10px"],
+.nav-btn[style*="marginLeft"] {
+  background-color: #ff6b00 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.nav-bar button.nav-btn[style*="margin-left"]:hover,
+header button.nav-btn[style*="margin-left"]:hover {
+  background-color: #e55a00 !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT CENTER - HEADER FIXES
+   =========================================== */
+.page-container .site-header {
+  background-color: #0f1c38 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-container .site-header .site-title {
+  color: #ffffff !important;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.page-container .site-header .header-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+.page-container .site-header .logo-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+}
+
+.page-container .site-header .header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT - FILTER BUTTONS DARK THEME
+   =========================================== */
+/* Inactive filter button override */
+.orders-filterGroup button[style*="backgroundColor: '#f0f0f0'"],
+.orders-filterGroup button[style*="background-color: rgb(240, 240, 240)"],
+.drawer-container button[style*="backgroundColor: '#f0f0f0'"],
+.drawer-container button[style*="background-color: rgb(240, 240, 240)"] {
+  background-color: #2a3f5f !important;
+  color: #ffffff !important;
+  border: 1px solid #3a5070 !important;
+}
+
+/* Inactive button text color override */
+.orders-filterGroup button[style*="color: 'black'"],
+.orders-filterGroup button[style*="color: black"],
+.drawer-container button[style*="color: 'black'"],
+.drawer-container button[style*="color: black"] {
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT - EMPTY STATE DARK THEME
+   =========================================== */
+/* Empty state container */
+.table-scroll > div[style*="backgroundColor: '#f9f9f9'"],
+.table-scroll > div[style*="background-color: rgb(249, 249, 249)"],
+.table-scroll div[style*="textAlign: 'center'"][style*="backgroundColor"] {
+  background-color: #212c46 !important;
+  border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+/* Empty state heading - "All Clear!" or "No Active Assignments" */
+.table-scroll h3[style*="color: '#666'"],
+.table-scroll h3[style*="color: rgb(102, 102, 102)"] {
+  color: #ffffff !important;
+}
+
+/* Empty state description text */
+.table-scroll p[style*="color: '#999'"],
+.table-scroll p[style*="color: rgb(153, 153, 153)"] {
+  color: #aaaaaa !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT - PRIORITY LEGEND
+   =========================================== */
+.table-scroll div[style*="backgroundColor: '#f8f9fa'"],
+.table-scroll div[style*="background-color: rgb(248, 249, 250)"] {
+  background-color: #212c46 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.table-scroll div[style*="backgroundColor: '#f8f9fa'"] span[style*="fontWeight: 'bold'"],
+.table-scroll div[style*="background-color: rgb(248, 249, 250)"] span {
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT - ORDER CARDS DARK THEME
+   =========================================== */
+/* White/light order cards */
+.table-scroll div[style*="backgroundColor: 'white'"],
+.table-scroll div[style*="background-color: white"],
+.table-scroll div[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #1a2332 !important;
+}
+
+/* Urgent order card */
+.table-scroll div[style*="backgroundColor: '#fffaf0'"],
+.table-scroll div[style*="background-color: rgb(255, 250, 240)"] {
+  background-color: #2a2a1a !important;
+}
+
+/* Order card titles */
+.table-scroll div[style*="backgroundColor"] h3[style*="color: '#333'"],
+.table-scroll div[style*="backgroundColor"] h3[style*="color: rgb(51, 51, 51)"],
+.table-scroll div[style*="backgroundColor"] h3:not([style*="color: '#ff6b00'"]):not([style*="color: rgb(255, 107, 0)"]) {
+  color: #ffffff !important;
+}
+
+/* Order card paragraph text */
+.table-scroll div[style*="border"] p,
+.table-scroll div[style*="borderRadius: '8px'"] p {
+  color: #cccccc !important;
+}
+
+.table-scroll div[style*="border"] strong,
+.table-scroll div[style*="borderRadius: '8px'"] strong {
+  color: #ffffff !important;
+}
+
+.table-scroll div[style*="border"] li,
+.table-scroll div[style*="borderRadius: '8px'"] li {
+  color: #cccccc !important;
+}
+
+/* Round info badge in order cards */
+.table-scroll div[style*="backgroundColor: '#e3f2fd'"],
+.table-scroll div[style*="background-color: rgb(227, 242, 253)"] {
+  background-color: rgba(52, 152, 219, 0.2) !important;
+  color: #5dade2 !important;
+}
+
+.table-scroll div[style*="backgroundColor: '#e3f2fd'"] strong,
+.table-scroll div[style*="background-color: rgb(227, 242, 253)"] strong {
+  color: #5dade2 !important;
+}
+
+/* Assignment round info */
+.table-scroll div[style*="backgroundColor: '#e8f5e9'"],
+.table-scroll div[style*="background-color: rgb(232, 245, 233)"] {
+  background-color: rgba(39, 174, 96, 0.2) !important;
+  color: #4ade80 !important;
+}
+
+.table-scroll div[style*="backgroundColor: '#e8f5e9'"] strong,
+.table-scroll div[style*="background-color: rgb(232, 245, 233)"] strong {
+  color: #4ade80 !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT - ROUND INFO BANNER
+   =========================================== */
+.orders-card > div[style*="backgroundColor: '#e8f5e9'"],
+.orders-card > div[style*="background-color: rgb(232, 245, 233)"],
+.cargo-card > div[style*="backgroundColor: '#e8f5e9'"],
+.cargo-card > div[style*="background-color: rgb(232, 245, 233)"] {
+  background-color: rgba(39, 174, 96, 0.2) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(39, 174, 96, 0.3) !important;
+}
+
+.orders-card > div[style*="backgroundColor: '#fff3e0'"],
+.orders-card > div[style*="background-color: rgb(255, 243, 224)"],
+.cargo-card > div[style*="backgroundColor: '#fff3e0'"],
+.cargo-card > div[style*="background-color: rgb(255, 243, 224)"] {
+  background-color: rgba(255, 107, 0, 0.2) !important;
+  color: #ffb366 !important;
+  border: 1px solid rgba(255, 107, 0, 0.3) !important;
+}
+
+/* ===========================================
+   ORDER MANAGEMENT - ERROR MESSAGE
+   =========================================== */
+.orders-card div[style*="backgroundColor: '#ffebee'"],
+.orders-card div[style*="background-color: rgb(255, 235, 238)"],
+.cargo-card div[style*="backgroundColor: '#ffebee'"],
+.cargo-card div[style*="background-color: rgb(255, 235, 238)"] {
+  background-color: rgba(231, 76, 60, 0.2) !important;
+  color: #ff6b6b !important;
+  border-left: 4px solid #e74c3c !important;
+}
+
+/* ===========================================
+   TABLE STYLES FOR CARGO VOLUNTEER
+   =========================================== */
+.cargo-table {
+  background-color: #1a2332 !important;
+}
+
+.cargo-table th {
+  background-color: #212c46 !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #3a5070 !important;
+}
+
+.cargo-table td {
+  background-color: #1a2332 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.cargo-table tr:hover td {
+  background-color: #2a3f5f !important;
+}
+
+/* Status badges in cargo table */
+.status.fine {
+  background-color: #27ae60 !important;
+  color: #ffffff !important;
+}
+
+.status.low {
+  background-color: #f39c12 !important;
+  color: #333333 !important;
+}
+
+.status.out {
+  background-color: #e74c3c !important;
+  color: #ffffff !important;
+}
+
+/* ===========================================
+   PAGE BODY FOR CARGO VOLUNTEER
+   =========================================== */
+.page-body {
+  background-color: #0f1c38 !important;
+  min-height: 100vh;
+}
+
+.store-header {
+  background-color: #0f1c38 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cargo-title {
+  color: #ffffff !important;
+}
+
+.cargo-container {
+  background-color: #0f1c38 !important;
+}
+
+.cargo-card {
+  background-color: #1a2332 !important;
+  color: #ffffff !important;
+}
+
+.table-title {
+  color: #ffffff !important;
+}

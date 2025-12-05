@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { secureAxios } from "../../config/axiosConfig";
-import "../../css/Home/Home_OrderHistory.css";
+import '../../index.css'; 
 
 const Home_OrderHistory = ({ userId }) => {
   const navigate = useNavigate();

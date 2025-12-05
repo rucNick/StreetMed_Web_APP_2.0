@@ -1,15 +1,11 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import "../../css/Login/Before_Login.css";
+import '../../index.css'; 
 
 function Before_Login() {
   const navigate = useNavigate();
 
-  const handleVolunteerApplicationClick = (e) => {
-    e.preventDefault();
-    navigate("/volunteerAppli");
-  };
 
   const handleGuestClick = (e) => {
     e.preventDefault();

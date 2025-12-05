@@ -4,7 +4,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { publicAxios, secureAxios } from "../../config/axiosConfig";
 import { useNavigate } from "react-router-dom";
-import "../../css/Volunteer/Volunteer_Dashboard.css";
+import '../../index.css'; 
 
 const Volunteer_Dashboard = ({ userData, onLogout }) => {
   const navigate = useNavigate();
@@ -265,7 +265,7 @@ const Volunteer_Dashboard = ({ userData, onLogout }) => {
           <br />
           
           {/* My Current Assignments */}
-          <div style={{ marginBottom: '30px', border: '2px solid #27ae60', padding: '15px', borderRadius: '8px' }}>
+          <div style={{ marginBottom: '30px', padding: '15px', borderRadius: '8px' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <strong>📋 My Current Assignments</strong>
               <span style={{ fontSize: '14px', color: '#666' }}>

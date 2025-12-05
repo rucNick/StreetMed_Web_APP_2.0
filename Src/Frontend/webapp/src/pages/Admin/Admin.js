@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { secureAxios } from '../../config/axiosConfig';
 
-import '../../css/Admin/Admin.css';
+import '../../index.css'; 
 
 const Admin = ({ onLogout, userData }) => {
   const navigate = useNavigate();
@@ -119,7 +119,7 @@ const Admin = ({ onLogout, userData }) => {
             className="admin-card light-blue"
             onClick={() => navigate('/cargo_admin')}
           >
-            <span className="card-text-blue">Manage Cargo</span>
+            <span className="card-text-blue">Manage Inventory</span>
           </div>
 
           <div

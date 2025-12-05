@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { secureAxios } from '../../config/axiosConfig';
 import { useNavigate } from 'react-router-dom';
-import '../../css/Admin/Cargo_Admin.css';
+import '../../index.css'; 
 
 // Predefined size options from XXS to XXXL
 const SIZE_OPTIONS = [
@@ -267,7 +267,7 @@ const Cargo_Admin = ({ userData }) => {
 
       const resp = await secureAxios.post('/api/cargo/items', fd, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': undefined,
           'Admin-Username': userData.username,
           'Authentication-Status': 'true'
         }
@@ -334,7 +334,7 @@ const Cargo_Admin = ({ userData }) => {
         fd,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': undefined,
             'Admin-Username': userData.username,
             'Authentication-Status': 'true'
           }

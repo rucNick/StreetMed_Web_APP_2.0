@@ -1,5 +1,4 @@
 // src/components/SessionErrorModal.js
-import React from 'react';
 
 const SessionErrorModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;

@@ -8,7 +8,7 @@ import {
   isInitialized
 } from '../../security/ecdhClient';
 import { secureAxios } from '../../config/axiosConfig';
-import '../../css/Login/Register.css'; // Note: This should be a new file
+import '../../index.css'; 
 import SessionErrorModal from '../../components/SessionErrorModal';
 
 const Register = () => {
@@ -330,7 +330,7 @@ const Register = () => {
                 <input
                   type="text"
                   id="username"
-                  placeholder="Full Name"
+                  placeholder="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -353,7 +353,7 @@ const Register = () => {
                 <input
                   type="tel"
                   id="phone"
-                  placeholder="Password"
+                  placeholder="Phone Number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />

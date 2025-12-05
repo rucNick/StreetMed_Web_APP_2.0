@@ -1,0 +1,484 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+/* ===========================================
+   INPUT GROUPS
+   =========================================== */
+.input-group,
+.formGroup,
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  margin-bottom: var(--spacing-md);
+}
+
+.input-group label,
+.formGroup label,
+.form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+/* Labels on dark backgrounds */
+.dark-theme .input-group label,
+.dark-theme .formGroup label {
+  color: var(--text-on-dark);
+}
+
+/* ===========================================
+   TEXT INPUTS
+   =========================================== */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="search"],
+input[type="url"],
+.input,
+.cargo-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input:focus,
+.input:focus,
+.cargo-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0, 62, 126, 0.1);
+}
+
+/* Placeholder */
+input::placeholder,
+.input::placeholder {
+  color: var(--text-placeholder);
+}
+
+/* Disabled state */
+input:disabled,
+.input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Cargo input (admin forms) - ensure readability */
+.cargo-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--bg-white);
+  border: 2px solid var(--border-dark);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.cargo-input:focus {
+  border-color: var(--primary-gold);
+}
+
+/* ===========================================
+   TEXTAREA
+   =========================================== */
+textarea,
+.textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color var(--transition-fast);
+}
+
+textarea:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+.feedback-textarea {
+  height: 150px;
+  resize: vertical;
+}
+
+/* ===========================================
+   SELECT DROPDOWN
+   =========================================== */
+select,
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--border-radius-md);
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+select:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+/* Dark theme select */
+.dark-theme select,
+.modal-content select {
+  background-color: var(--bg-dark-tertiary);
+  color: var(--text-on-dark);
+  border: 1px solid var(--border-dark);
+}
+
+/* ===========================================
+   CHECKBOX & RADIO
+   =========================================== */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary-blue-alt);
+}
+
+.radio-group,
+.checkbox-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.radio-group label,
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+/* Profile radio group */
+.profile-radioGroup {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.profile-radioGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-white);
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.profile-radioGroup input[type="radio"] {
+  accent-color: var(--primary-blue-alt);
+}
+
+/* ===========================================
+   FORM LAYOUTS
+   =========================================== */
+
+/* Side-by-side inputs */
+.input-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.input-row input {
+  flex: 1;
+}
+
+/* Login form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.login-form .input-group input {
+  padding-left: 50px;
+}
+
+/* ===========================================
+   FORM CARD (Admin)
+   =========================================== */
+.form-card {
+  background: var(--bg-dark-primary);
+  padding: 30px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.form-title {
+  text-align: center;
+  font-size: var(--font-size-2xl);
+  color: var(--text-on-dark);
+  margin-bottom: 10px;
+}
+
+/* ===========================================
+   FEEDBACK FORM
+   =========================================== */
+.feedback-formGroup {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.feedback-formGroup label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.feedback-input {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-sm);
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* ===========================================
+   PROFILE FORM
+   =========================================== */
+.profile-formGroup {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.profile-formGroup label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 6px;
+  color: var(--text-primary);
+  align-self: flex-start;
+}
+
+.profile-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--bg-white);
+}
+
+/* ===========================================
+   AMOUNT SECTION (Cart)
+   =========================================== */
+.amountSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.amountSection span {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.amountSection input {
+  width: 70px;
+  padding: 6px;
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* ===========================================
+   SIZE INPUTS
+   =========================================== */
+.cargo-sizes {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #72cf6d;
+  border-radius: 5px;
+  background: rgba(91, 182, 133, 0.2);
+}
+
+.cargo-sizes h4 {
+  margin: 0 0 15px 0;
+  color: var(--text-on-dark);
+  font-size: var(--font-size-md);
+}
+
+.cargo-size-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.size-input {
+  width: 120px !important;
+}
+
+.qty-input {
+  width: 100px !important;
+}
+
+/* ===========================================
+   IMAGE UPLOAD
+   =========================================== */
+.image-upload {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px dashed var(--border-dark);
+  border-radius: 5px;
+}
+
+.image-upload label {
+  display: block;
+  color: var(--text-on-dark);
+  margin-bottom: 10px;
+}
+
+/* ===========================================
+   FORM NOTES & HINTS
+   =========================================== */
+.form-note {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* ===========================================
+   LINKS IN FORMS
+   =========================================== */
+.forgot-password-link {
+  display: inline-block;
+  text-decoration: underline;
+  font-size: var(--font-size-xl);
+  color: var(--text-on-dark);
+  text-align: right;
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.forgot-password-link:hover {
+  color: #e4b557;
+}
+
+.signup-text {
+  font-size: var(--font-size-lg);
+  color: var(--text-on-dark);
+  margin-top: var(--spacing-lg);
+}
+
+.signup-link {
+  text-decoration: underline;
+  font-size: var(--font-size-xl);
+  color: #e4b557;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.signup-link:hover {
+  color: #d1a54c;
+}
+
+/* ===========================================
+   FORM VALIDATION STATES
+   =========================================== */
+input.error,
+.input.error,
+textarea.error {
+  border-color: var(--error);
+}
+
+input.success,
+.input.success,
+textarea.success {
+  border-color: var(--success);
+}
+
+/* Security indicator */
+.security-indicator {
+  font-size: var(--font-size-md);
+  margin-top: 15px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.security-indicator.success {
+  color: var(--success);
+  font-weight: var(--font-weight-bold);
+}
+
+.security-indicator.fail {
+  color: var(--error);
+}
+
+/* ===========================================
+   RESPONSIVE ADJUSTMENTS
+   =========================================== */
+@media (max-width: 500px) {
+  .input-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .feedback-container {
+    margin: 20px;
+    padding: 20px;
+  }
+}

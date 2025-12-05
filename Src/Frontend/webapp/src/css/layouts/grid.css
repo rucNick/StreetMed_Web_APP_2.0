@@ -1,0 +1,482 @@
+/* ===========================================
+   Grid - Grid Systems and Layout Utilities
+   Street Medicine Go
+   =========================================== */
+
+/* ===========================================
+   PAGE CONTAINERS
+   =========================================== */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Light theme page container */
+.page-container-light {
+  background-color: var(--bg-light);
+}
+
+/* Dark theme page container */
+.page-container-dark {
+  background-color: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   FULL SCREEN WRAPPER (Login pages)
+   =========================================== */
+.full-screen-wrapper,
+.login-page-wrapper,
+.signup-page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Blurred Background Layer */
+.full-screen-wrapper::before,
+.login-page-wrapper::before,
+.background-image-layer {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/public/skyline.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(5px);
+  transform: scale(1.05);
+  z-index: -2;
+}
+
+/* Dark Overlay */
+.full-screen-wrapper::after,
+.login-page-wrapper::after,
+.background-image-layer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+/* ===========================================
+   MAIN CONTENT AREAS
+   =========================================== */
+.main-content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 30px 30px;
+}
+
+.cargo-container {
+  padding: 40px 60px;
+  background-color: var(--bg-light);
+  min-height: calc(100vh - var(--header-height-lg));
+}
+
+/* Dark theme cargo container */
+.cargo-container-dark {
+  background-color: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   CONTENT WRAPPERS
+   =========================================== */
+.login-page-content,
+.login-content-wrapper,
+.signup-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - var(--header-height-lg));
+}
+
+.form-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* ===========================================
+   DASHBOARD LAYOUTS
+   =========================================== */
+
+/* Admin Dashboard */
+.admin-dashboard {
+  display: flex;
+  height: calc(100vh - var(--header-height-lg));
+  background-color: var(--bg-dark-primary);
+}
+
+/* User Dashboard (Guest/Home) */
+.user-dashboard {
+  min-height: calc(100vh - var(--header-height));
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Light theme dashboard */
+.user-dashboard-light {
+  background: var(--bg-light-gray);
+}
+
+/* Dark theme dashboard */
+.user-dashboard-dark {
+  background: var(--bg-dark-tertiary);
+}
+
+.dashboard-greeting {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: 40px;
+}
+
+.dark-theme .dashboard-greeting {
+  color: var(--text-on-dark);
+}
+
+.dashboard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 500px;
+}
+
+/* Volunteer Dashboard */
+.volunteer-dashboard-container {
+  display: flex;
+  flex-direction: row;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+  padding: 30px 60px 30px 60px;
+  gap: 20px;
+  font-family: var(--font-family-mono);
+  background: var(--bg-dark-primary);
+}
+
+/* ===========================================
+   ROUNDS LAYOUT
+   =========================================== */
+.rounds-container {
+  background-color: var(--bg-dark-primary);
+  min-height: calc(100vh - var(--header-height-lg));
+  padding: 60px 40px;
+  font-family: var(--font-family-primary);
+  display: flex;
+  flex-direction: column;
+  color: var(--bg-dark-primary);
+}
+
+.rounds-title {
+  text-align: center;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 40px;
+  color: var(--text-on-dark);
+}
+
+.rounds-section {
+  background-color: var(--bg-dark-tertiary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===========================================
+   CARD GRIDS
+   =========================================== */
+
+/* Item Grid (Store items) */
+.itemGrid {
+  margin-top: 10px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+/* Rounds/Orders Cards Container */
+.rounds-cards,
+.orders-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  background: var(--bg-dark-primary);
+  border-radius: var(--border-radius-xxl);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+}
+
+/* ===========================================
+   ORDER HISTORY LAYOUT
+   =========================================== */
+.orderHistory-container {
+  min-height: calc(100vh - 100px);
+  background: var(--bg-light-gray);
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.orderHistory-header {
+  width: 100%;
+  max-width: 820px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.orderHistory-header h2 {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.ordersList {
+  width: 100%;
+  max-width: 820px;
+  background: var(--bg-light-blue);
+  border-radius: var(--border-radius-xl);
+  padding: 40px 50px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* ===========================================
+   ORDERS CONTAINER
+   =========================================== */
+.orders-container {
+  padding: 20px;
+}
+
+.orders-card {
+  background-color: var(--bg-dark-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 30px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===========================================
+   CATEGORY SECTIONS
+   =========================================== */
+.category-section {
+  margin-top: 24px;
+}
+
+.category-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding-bottom: 4px;
+}
+
+/* ===========================================
+   ITEMS HEADER
+   =========================================== */
+.items-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.items-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-on-dark);
+}
+
+.items-miss-link {
+  font-size: var(--font-size-sm);
+  color: var(--text-link);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.items-miss-link:hover {
+  color: var(--text-link-hover);
+}
+
+/* ===========================================
+   TABS CONTAINER
+   =========================================== */
+.tabs-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+/* ===========================================
+   PRIORITY LEGEND
+   =========================================== */
+.priority-legend {
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.priority-urgent {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 107, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); }
+}
+
+/* ===========================================
+   CALENDAR CONTAINER
+   =========================================== */
+.volunteer-right-panel .react-calendar {
+  width: 440px;
+  height: 440px;
+  background-color: var(--bg-white);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+
+.highlight-day {
+  background-color: #f78702 !important;
+  color: var(--text-on-dark) !important;
+  border-radius: 50%;
+}
+
+/* ===========================================
+   DIVIDERS
+   =========================================== */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: var(--spacing-lg) 0;
+  font-size: var(--font-size-4xl);
+  color: var(--text-on-dark);
+  font-family: var(--font-family-mono);
+}
+
+.divider span {
+  background-color: transparent;
+  padding: 0 var(--spacing-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--text-on-dark);
+  z-index: 0;
+}
+
+.divider_bottom {
+  content: "";
+  flex-grow: 1;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+  align-items: center;
+  text-align: center;
+  margin: 25px 0 20px;
+  font-size: var(--font-size-4xl);
+  color: var(--text-on-dark);
+  width: 100%;
+}
+
+/* ===========================================
+   ERROR BANNER
+   =========================================== */
+.error-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 20px;
+}
+
+/* ===========================================
+   RESPONSIVE ADJUSTMENTS
+   =========================================== */
+@media (max-width: 768px) {
+  .volunteer-dashboard-container {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .rounds-section {
+    padding: 20px;
+  }
+
+  .cargo-container {
+    padding: 20px;
+  }
+
+  .volunteer-right-panel .react-calendar {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-greeting {
+    font-size: var(--font-size-2xl);
+    margin-bottom: 30px;
+  }
+
+  .orderHistory-container {
+    padding: 40px 24px;
+  }
+
+  .orderHistory-header {
+    margin-bottom: 24px;
+  }
+
+  .orderHistory-header h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .ordersList {
+    padding: 30px 24px;
+  }
+
+  .user-dashboard {
+    padding: 40px 20px;
+  }
+}
