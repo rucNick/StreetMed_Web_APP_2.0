@@ -18,7 +18,7 @@ function Round_Admin() {
     endTime: "",
     location: "",
     maxParticipants: "",
-    orderCapacity: "20",  // NEW: Add order capacity with default 20
+    orderCapacity: "20",
     teamLeadId: "",
     clinicianId: ""
   });
@@ -26,22 +26,21 @@ function Round_Admin() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState(null);
-  // modalTab: "details" | "lottery" | "signups" | "orders"
+  // modalTab: "details" | "edit" | "lottery" | "signups" | "orders"
   const [modalTab, setModalTab] = useState("details");
   const [modalLotteryResult, setModalLotteryResult] = useState("");
   const [modalRoundDetails, setModalRoundDetails] = useState(null);
-  const [roundOrders, setRoundOrders] = useState([]);  // NEW: Store orders for round
+  const [roundOrders, setRoundOrders] = useState([]);
 
-  const [updateRoundStep, setUpdateRoundStep] = useState("inputId");
-  const [roundIdToUpdate, setRoundIdToUpdate] = useState("");
-  const [updateRoundData, setUpdateRoundData] = useState(null);
+  // Edit form data in modal
+  const [editRoundData, setEditRoundData] = useState(null);
 
   const formatDatetimeLocal = (dt) => {
     if (!dt) return "";
     return new Date(dt).toISOString().slice(0,16);
   };
 
-  // 1. view rounds - Using secureAxios for admin operations
+  // 1. view rounds
   const fetchRounds = async () => {
     try {
       const url = roundFilter === "all" ? `/api/admin/rounds/all` : `/api/admin/rounds/upcoming`;
@@ -67,7 +66,7 @@ function Round_Admin() {
     }
   };
 
-  // 2. create rounds - Using secureAxios
+  // 2. create rounds
   const createRound = async () => {
     try {
       const payload = {
@@ -79,7 +78,7 @@ function Round_Admin() {
         endTime: newRound.endTime,
         location: newRound.location,
         maxParticipants: parseInt(newRound.maxParticipants, 10),
-        orderCapacity: parseInt(newRound.orderCapacity, 10) || 20  // NEW: Include order capacity
+        orderCapacity: parseInt(newRound.orderCapacity, 10) || 20
       };
       if (newRound.teamLeadId.trim() !== "") {
         const tid = parseInt(newRound.teamLeadId, 10);
@@ -93,6 +92,19 @@ function Round_Admin() {
       const response = await secureAxios.post('/api/admin/rounds/create', payload);
       if (response.data.status === "success") {
         setMessage("Round created with ID: " + response.data.roundId);
+        // Reset form
+        setNewRound({
+          title: "",
+          description: "",
+          startTime: "",
+          endTime: "",
+          location: "",
+          maxParticipants: "",
+          orderCapacity: "20",
+          teamLeadId: "",
+          clinicianId: ""
+        });
+        fetchRounds();
       } else {
         setMessage(response.data.message || "Error creating round");
       }
@@ -106,7 +118,7 @@ function Round_Admin() {
     }
   };
 
-  // 3. cancel rounds - Using secureAxios
+  // 3. cancel rounds
   const cancelRoundById = async (roundId, e) => {
     e.stopPropagation();
     try {
@@ -130,7 +142,7 @@ function Round_Admin() {
     }
   };
 
-  // NEW: Fetch orders for a round
+  // Fetch orders for a round
   const fetchRoundOrders = async () => {
     try {
       const response = await secureAxios.get(`/api/admin/rounds/${selectedRound.roundId}/order-status`, {
@@ -147,7 +159,7 @@ function Round_Admin() {
     }
   };
 
-  // NEW: Auto-assign unassigned orders
+  // Auto-assign unassigned orders
   const autoAssignOrders = async () => {
     try {
       const response = await secureAxios.post('/api/admin/rounds/auto-assign-orders', {
@@ -166,8 +178,7 @@ function Round_Admin() {
     }
   };
 
-  // 4. modal(lottory, detail, manage signup, orders)
-
+  // Modal functions
   const openModal = (round) => {
     setSelectedRound(round);
     setModalOpen(true);
@@ -175,15 +186,74 @@ function Round_Admin() {
     setModalLotteryResult("");
     setModalRoundDetails(null);
     setRoundOrders([]);
+    setEditRoundData(null);
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setSelectedRound(null);
     setModalTab("details");
+    setEditRoundData(null);
   };
 
-  // run lottery（in modal）- Using secureAxios
+  // Switch to edit mode with pre-filled data
+  const startEditMode = () => {
+    setEditRoundData({
+      roundId: selectedRound.roundId,
+      title: selectedRound.title || "",
+      description: selectedRound.description || "",
+      startTime: formatDatetimeLocal(selectedRound.startTime),
+      endTime: formatDatetimeLocal(selectedRound.endTime),
+      location: selectedRound.location || "",
+      maxParticipants: selectedRound.maxParticipants || "",
+      orderCapacity: selectedRound.orderCapacity || 20,
+      status: selectedRound.status || ""
+    });
+    setModalTab("edit");
+  };
+
+  // Update round from modal
+  const updateRoundFromModal = async () => {
+    try {
+      const payload = {
+        authenticated: true,
+        adminUsername: userData.username,
+        title: editRoundData.title,
+        description: editRoundData.description,
+        startTime: editRoundData.startTime,
+        endTime: editRoundData.endTime,
+        location: editRoundData.location,
+        maxParticipants: parseInt(editRoundData.maxParticipants, 10),
+        orderCapacity: parseInt(editRoundData.orderCapacity, 10) || 20,
+        status: editRoundData.status
+      };
+      const response = await secureAxios.put(`/api/admin/rounds/${editRoundData.roundId}`, payload);
+      if (response.data.status === "success") {
+        setMessage("Round updated successfully!");
+        // Update the selected round with new data
+        setSelectedRound({
+          ...selectedRound,
+          ...editRoundData,
+          startTime: editRoundData.startTime,
+          endTime: editRoundData.endTime
+        });
+        setModalTab("details");
+        setEditRoundData(null);
+        fetchRounds(); // Refresh the list
+      } else {
+        setMessage(response.data.message || "Error updating round");
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.response?.data?.httpsRequired) {
+        setMessage("Secure HTTPS connection required for admin operations.");
+      } else {
+        setMessage(error.response?.data?.message || error.message);
+      }
+    }
+  };
+
+  // Run lottery
   const runLotteryForModal = async () => {
     try {
       const response = await secureAxios.post(`/api/admin/rounds/${selectedRound.roundId}/lottery`, {
@@ -205,7 +275,7 @@ function Round_Admin() {
     }
   };
 
-  // detail(in modal）- Using secureAxios
+  // Fetch signups
   const fetchModalSignups = async () => {
     try {
       const response = await secureAxios.get(`/api/admin/rounds/${selectedRound.roundId}`, {
@@ -229,7 +299,7 @@ function Round_Admin() {
     }
   };
 
-  // approve/reject signups（in modal）- Using secureAxios
+  // Confirm/Reject signups
   const confirmSignup = async (signupId) => {
     try {
       const response = await secureAxios.put(`/api/admin/rounds/signup/${signupId}/confirm`, {
@@ -278,64 +348,6 @@ function Round_Admin() {
     }
   };
 
-  const fetchRoundForUpdate = async () => {
-    try {
-      const response = await secureAxios.get(`/api/admin/rounds/${roundIdToUpdate}`, {
-        params: {
-          authenticated: true,
-          adminUsername: userData.username
-        }
-      });
-      if (response.data.status === "success") {
-        const round = response.data.round;
-        round.startTime = formatDatetimeLocal(round.startTime);
-        round.endTime = formatDatetimeLocal(round.endTime);
-        setUpdateRoundData(round);
-        setUpdateRoundStep("editForm");
-        setMessage("");
-      } else {
-        setMessage(response.data.message || "Error fetching round");
-      }
-    } catch (error) {
-      console.error(error);
-      if (error.response?.data?.httpsRequired) {
-        setMessage("Secure HTTPS connection required for admin operations.");
-      } else {
-        setMessage(error.response?.data?.message || error.message);
-      }
-    }
-  };
-
-  const updateRound = async () => {
-    try {
-      const payload = {
-        authenticated: true,
-        adminUsername: userData.username,
-        title: updateRoundData.title,
-        description: updateRoundData.description,
-        startTime: updateRoundData.startTime,
-        endTime: updateRoundData.endTime,
-        location: updateRoundData.location,
-        maxParticipants: parseInt(updateRoundData.maxParticipants, 10),
-        orderCapacity: parseInt(updateRoundData.orderCapacity, 10) || 20, // NEW: Include order capacity
-        status: updateRoundData.status
-      };
-      const response = await secureAxios.put(`/api/admin/rounds/${updateRoundData.roundId}`, payload);
-      if (response.data.status === "success") {
-        setMessage("Round updated successfully with ID: " + response.data.roundId);
-      } else {
-        setMessage(response.data.message || "Error updating round");
-      }
-    } catch (error) {
-      console.error(error);
-      if (error.response?.data?.httpsRequired) {
-        setMessage("Secure HTTPS connection required for admin operations.");
-      } else {
-        setMessage(error.response?.data?.message || error.message);
-      }
-    }
-  };
-
   return (
     <div className="rounds-container">
       {/* ─────────────────────  NAVBAR  ───────────────────── */}
@@ -360,25 +372,14 @@ function Round_Admin() {
           >
             Create Round
           </button>
-          <button
-            className={`nav-btn ${activeTab === "updateRound" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("updateRound");
-              setUpdateRoundStep("inputId");
-              setRoundIdToUpdate("");
-              setUpdateRoundData(null);
-            }}
-          >
-            Update Round
+          <button className="nav-btn" onClick={autoAssignOrders}>
+            Auto-Assign
           </button>
         </nav>
   
         <div className="navbar-right">
-          <button className="nav-btn action-btn" onClick={autoAssignOrders}>
-            Auto-Assign Orders
-          </button>
           <button className="nav-btn back-btn" onClick={() => navigate("/")}>
-            Back to Dashboard
+            ← Dashboard
           </button>
         </div>
       </header>
@@ -387,7 +388,7 @@ function Round_Admin() {
   
       {message && <p className="status-msg">{message}</p>}
   
-      {/* ─────────────────────  MAIN CARD  ───────────────────── */}
+      {/* ─────────────────────  MAIN CONTENT  ───────────────────── */}
       <div className="rounds-section">
         {activeTab === "viewRounds" && (
           <>
@@ -404,9 +405,7 @@ function Round_Admin() {
                   All
                 </button>
                 <button
-                  className={`chip ${
-                    roundFilter === "upcoming" ? "selected" : ""
-                  }`}
+                  className={`chip ${roundFilter === "upcoming" ? "selected" : ""}`}
                   onClick={() => {
                     setRoundFilter("upcoming");
                     fetchRounds();
@@ -421,13 +420,10 @@ function Round_Admin() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th className="table-header-cell">Round ID</th>
+                    <th className="table-header-cell">ID</th>
                     <th className="table-header-cell">Title</th>
-                    <th className="table-header-cell">Description</th>
                     <th className="table-header-cell">Start Time</th>
-                    <th className="table-header-cell">End Time</th>
                     <th className="table-header-cell">Location</th>
-                    <th className="table-header-cell">Max</th>
                     <th className="table-header-cell">Orders</th>
                     <th className="table-header-cell">Status</th>
                     <th className="table-header-cell">Action</th>
@@ -438,22 +434,21 @@ function Round_Admin() {
                     <tr key={idx} onClick={() => openModal(round)}>
                       <td className="table-cell">{round.roundId}</td>
                       <td className="table-cell">{round.title}</td>
-                      <td className="table-cell">{round.description}</td>
                       <td className="table-cell">
                         {new Date(round.startTime).toLocaleString()}
                       </td>
-                      <td className="table-cell">
-                        {new Date(round.endTime).toLocaleString()}
-                      </td>
                       <td className="table-cell">{round.location}</td>
-                      <td className="table-cell">{round.maxParticipants}</td>
                       <td className="table-cell">
                         {round.currentOrderCount || 0}/{round.orderCapacity || 20}
                       </td>
-                      <td className="table-cell">{round.status}</td>
+                      <td className="table-cell">
+                        <span className={`status-badge status-${round.status?.toLowerCase()}`}>
+                          {round.status}
+                        </span>
+                      </td>
                       <td className="table-cell">
                         <button
-                          className="action-button"
+                          className="action-button cancel-btn"
                           onClick={(e) => cancelRoundById(round.roundId, e)}
                         >
                           Cancel
@@ -470,267 +465,145 @@ function Round_Admin() {
         {/* ========== CREATE ROUND TAB ========== */}
         {activeTab === "createRound" && (
           <>
-            <h2 className="form-title">Create Round</h2>
+            <h2 className="form-title">Create New Round</h2>
             <div className="form-wrapper">
               <div className="form-card">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Title"
-                  value={newRound.title}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, title: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Description"
-                  value={newRound.description}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, description: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  type="datetime-local"
-                  placeholder="Start Time"
-                  value={newRound.startTime}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, startTime: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  type="datetime-local"
-                  placeholder="End Time"
-                  value={newRound.endTime}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, endTime: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Location"
-                  value={newRound.location}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, location: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Max Participants"
-                  value={newRound.maxParticipants}
-                  onChange={(e) =>
-                    setNewRound({
-                      ...newRound,
-                      maxParticipants: e.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Order Capacity (default: 20)"
-                  value={newRound.orderCapacity}
-                  onChange={(e) =>
-                    setNewRound({
-                      ...newRound,
-                      orderCapacity: e.target.value,
-                    })
-                  }
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Team Lead ID (optional)"
-                  value={newRound.teamLeadId}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, teamLeadId: e.target.value })
-                  }
-                />
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Clinician ID (optional)"
-                  value={newRound.clinicianId}
-                  onChange={(e) =>
-                    setNewRound({ ...newRound, clinicianId: e.target.value })
-                  }
-                />
-                <button className="action-button" onClick={createRound}>
+                <div className="form-group">
+                  <label>Title</label>
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="Enter round title"
+                    value={newRound.title}
+                    onChange={(e) => setNewRound({ ...newRound, title: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="Enter description"
+                    value={newRound.description}
+                    onChange={(e) => setNewRound({ ...newRound, description: e.target.value })}
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Start Time</label>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      value={newRound.startTime}
+                      onChange={(e) => setNewRound({ ...newRound, startTime: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>End Time</label>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      value={newRound.endTime}
+                      onChange={(e) => setNewRound({ ...newRound, endTime: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Location</label>
+                  <input
+                    className="input"
+                    type="text"
+                    placeholder="Enter location"
+                    value={newRound.location}
+                    onChange={(e) => setNewRound({ ...newRound, location: e.target.value })}
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Max Participants</label>
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="e.g., 10"
+                      value={newRound.maxParticipants}
+                      onChange={(e) => setNewRound({ ...newRound, maxParticipants: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Order Capacity</label>
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="Default: 20"
+                      value={newRound.orderCapacity}
+                      onChange={(e) => setNewRound({ ...newRound, orderCapacity: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Team Lead ID (optional)</label>
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="User ID"
+                      value={newRound.teamLeadId}
+                      onChange={(e) => setNewRound({ ...newRound, teamLeadId: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Clinician ID (optional)</label>
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder="User ID"
+                      value={newRound.clinicianId}
+                      onChange={(e) => setNewRound({ ...newRound, clinicianId: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <button className="action-button submit-btn" onClick={createRound}>
                   Create Round
                 </button>
               </div>
             </div>
           </>
         )}
-  
-        {/* ========== UPDATE ROUND TAB ========== */}
-        {activeTab === "updateRound" && (
-          <>
-            <h2 className="form-title">Update Round</h2>
-  
-            {/* step 1 │ enter ID */}
-            {updateRoundStep === "inputId" && (
-              <div className="form-wrapper">
-                <div className="form-card">
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Enter Round ID"
-                    value={roundIdToUpdate}
-                    onChange={(e) => setRoundIdToUpdate(e.target.value)}
-                  />
-                  <button className="action-button" onClick={fetchRoundForUpdate}>
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-  
-            {/* step 2 │ edit form */}
-            {updateRoundStep === "editForm" && updateRoundData && (
-              <div className="form-wrapper">
-                <div className="form-card">
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Title"
-                    value={updateRoundData.title}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        title: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Description"
-                    value={updateRoundData.description}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    placeholder="Start Time"
-                    value={updateRoundData.startTime}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        startTime: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    placeholder="End Time"
-                    value={updateRoundData.endTime}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        endTime: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Location"
-                    value={updateRoundData.location}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        location: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Max Participants"
-                    value={updateRoundData.maxParticipants}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        maxParticipants: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Order Capacity"
-                    value={updateRoundData.orderCapacity || 20}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        orderCapacity: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    className="input"
-                    type="text"
-                    placeholder="Status"
-                    value={updateRoundData.status || ""}
-                    onChange={(e) =>
-                      setUpdateRoundData({
-                        ...updateRoundData,
-                        status: e.target.value,
-                      })
-                    }
-                  />
-                  <button className="action-button" onClick={updateRound}>
-                    Update Round
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
       </div>
   
       {/* ─────────────────────  MODAL  ───────────────────── */}
       {modalOpen && selectedRound && (
-        <div className="item-modal-overlay" onClick={closeModal}>
-          <div className="item-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">Round Detail – {selectedRound.title}</h2>
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedRound.title}</h2>
+              <button className="modal-close-btn" onClick={closeModal}>×</button>
+            </div>
   
-            <div className="modal-nav">
+            <div className="modal-tabs">
               <button
-                className={`modal-chip ${modalTab === "details" ? "selected" : ""}`}
+                className={`modal-tab ${modalTab === "details" ? "active" : ""}`}
                 onClick={() => setModalTab("details")}
               >
                 Details
               </button>
               <button
-                className={`modal-chip ${modalTab === "lottery" ? "selected" : ""}`}
-                onClick={() => setModalTab("lottery")}
+                className={`modal-tab ${modalTab === "edit" ? "active" : ""}`}
+                onClick={startEditMode}
               >
-                Run Lottery
+                Edit
               </button>
               <button
-                className={`modal-chip ${modalTab === "signups" ? "selected" : ""}`}
+                className={`modal-tab ${modalTab === "signups" ? "active" : ""}`}
                 onClick={() => {
                   setModalTab("signups");
                   fetchModalSignups();
                 }}
               >
-                Manage Sign‑ups
+                Sign-ups
               </button>
               <button
-                className={`modal-chip ${modalTab === "orders" ? "selected" : ""}`}
+                className={`modal-tab ${modalTab === "orders" ? "active" : ""}`}
                 onClick={() => {
                   setModalTab("orders");
                   fetchRoundOrders();
@@ -738,125 +611,252 @@ function Round_Admin() {
               >
                 Orders
               </button>
+              <button
+                className={`modal-tab ${modalTab === "lottery" ? "active" : ""}`}
+                onClick={() => setModalTab("lottery")}
+              >
+                Lottery
+              </button>
             </div>
   
             <div className="modal-body">
+              {/* DETAILS TAB */}
               {modalTab === "details" && (
-                <div>
-                  <p><strong>ID:</strong> {selectedRound.roundId}</p>
-                  <p><strong>Title:</strong> {selectedRound.title}</p>
-                  <p><strong>Description:</strong> {selectedRound.description}</p>
-                  <p><strong>Start Time:</strong> {new Date(selectedRound.startTime).toLocaleString()}</p>
-                  <p><strong>End Time:</strong> {new Date(selectedRound.endTime).toLocaleString()}</p>
-                  <p><strong>Location:</strong> {selectedRound.location}</p>
-                  <p><strong>Max Participants:</strong> {selectedRound.maxParticipants}</p>
-                  <p><strong>Order Capacity:</strong> {selectedRound.orderCapacity || 20}</p>
-                  <p><strong>Current Orders:</strong> {selectedRound.currentOrderCount || 0}/{selectedRound.orderCapacity || 20}</p>
-                  <p><strong>Available Order Slots:</strong> {(selectedRound.orderCapacity || 20) - (selectedRound.currentOrderCount || 0)}</p>
-                  <p><strong>Status:</strong> {selectedRound.status}</p>
+                <div className="details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Round ID</span>
+                    <span className="detail-value">{selectedRound.roundId}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Status</span>
+                    <span className={`detail-value status-badge status-${selectedRound.status?.toLowerCase()}`}>
+                      {selectedRound.status}
+                    </span>
+                  </div>
+                  <div className="detail-item full-width">
+                    <span className="detail-label">Description</span>
+                    <span className="detail-value">{selectedRound.description || "No description"}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Start Time</span>
+                    <span className="detail-value">{new Date(selectedRound.startTime).toLocaleString()}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">End Time</span>
+                    <span className="detail-value">{new Date(selectedRound.endTime).toLocaleString()}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Location</span>
+                    <span className="detail-value">{selectedRound.location}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Max Participants</span>
+                    <span className="detail-value">{selectedRound.maxParticipants}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Order Capacity</span>
+                    <span className="detail-value">{selectedRound.currentOrderCount || 0} / {selectedRound.orderCapacity || 20}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Available Slots</span>
+                    <span className="detail-value">{(selectedRound.orderCapacity || 20) - (selectedRound.currentOrderCount || 0)}</span>
+                  </div>
+                  <div className="detail-actions">
+                    <button className="action-button edit-btn" onClick={startEditMode}>
+                      ✏️ Edit Round
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* EDIT TAB */}
+              {modalTab === "edit" && editRoundData && (
+                <div className="edit-form">
+                  <div className="form-group">
+                    <label>Title</label>
+                    <input
+                      className="input"
+                      type="text"
+                      value={editRoundData.title}
+                      onChange={(e) => setEditRoundData({ ...editRoundData, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <input
+                      className="input"
+                      type="text"
+                      value={editRoundData.description}
+                      onChange={(e) => setEditRoundData({ ...editRoundData, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Start Time</label>
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={editRoundData.startTime}
+                        onChange={(e) => setEditRoundData({ ...editRoundData, startTime: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>End Time</label>
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={editRoundData.endTime}
+                        onChange={(e) => setEditRoundData({ ...editRoundData, endTime: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Location</label>
+                    <input
+                      className="input"
+                      type="text"
+                      value={editRoundData.location}
+                      onChange={(e) => setEditRoundData({ ...editRoundData, location: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Max Participants</label>
+                      <input
+                        className="input"
+                        type="number"
+                        value={editRoundData.maxParticipants}
+                        onChange={(e) => setEditRoundData({ ...editRoundData, maxParticipants: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Order Capacity</label>
+                      <input
+                        className="input"
+                        type="number"
+                        value={editRoundData.orderCapacity}
+                        onChange={(e) => setEditRoundData({ ...editRoundData, orderCapacity: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      className="input"
+                      value={editRoundData.status}
+                      onChange={(e) => setEditRoundData({ ...editRoundData, status: e.target.value })}
+                    >
+                      <option value="SCHEDULED">SCHEDULED</option>
+                      <option value="IN_PROGRESS">IN_PROGRESS</option>
+                      <option value="COMPLETED">COMPLETED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </div>
+                  <div className="form-actions">
+                    <button className="action-button cancel-btn" onClick={() => setModalTab("details")}>
+                      Cancel
+                    </button>
+                    <button className="action-button submit-btn" onClick={updateRoundFromModal}>
+                      Save Changes
+                    </button>
+                  </div>
                 </div>
               )}
   
-              {/* LOTTERY */}
+              {/* LOTTERY TAB */}
               {modalTab === "lottery" && (
-                <div>
-                  <button className="action-button" onClick={runLotteryForModal}>
-                    Run Lottery
+                <div className="lottery-section">
+                  <p>Run the lottery to randomly select volunteers for this round.</p>
+                  <button className="action-button submit-btn" onClick={runLotteryForModal}>
+                    🎲 Run Lottery
                   </button>
                   {modalLotteryResult && <p className="status-msg">{modalLotteryResult}</p>}
                 </div>
               )}
   
-              {/* SIGN‑UPS */}
+              {/* SIGN-UPS TAB */}
               {modalTab === "signups" && (
-                <div>
-                  {modalRoundDetails &&
-                  modalRoundDetails.signups &&
-                  modalRoundDetails.signups.length > 0 ? (
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th className="table-header-cell">Signup ID</th>
-                          <th className="table-header-cell">Volunteer</th>
-                          <th className="table-header-cell">Status</th>
-                          <th className="table-header-cell">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {modalRoundDetails.signups.map((signup, idx) => (
-                          <tr key={idx}>
-                            <td className="table-cell">{signup.signupId}</td>
-                            <td className="table-cell">
-                              {signup.firstName
-                                ? signup.firstName +
-                                  (signup.lastName ? " " + signup.lastName : "")
-                                : signup.username || "N/A"}
-                            </td>
-                            <td className="table-cell">{signup.status}</td>
-                            <td className="table-cell">
-                              <button
-                                className="action-button"
-                                onClick={() => confirmSignup(signup.signupId)}
-                              >
-                                Confirm
-                              </button>
-                              <button
-                                className="action-button"
-                                onClick={() => rejectSignup(signup.signupId)}
-                              >
-                                Reject
-                              </button>
-                            </td>
+                <div className="signups-section">
+                  {modalRoundDetails?.signups?.length > 0 ? (
+                    <div className="table-wrapper">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th className="table-header-cell">ID</th>
+                            <th className="table-header-cell">Volunteer</th>
+                            <th className="table-header-cell">Status</th>
+                            <th className="table-header-cell">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {modalRoundDetails.signups.map((signup, idx) => (
+                            <tr key={idx}>
+                              <td className="table-cell">{signup.signupId}</td>
+                              <td className="table-cell">
+                                {signup.firstName
+                                  ? `${signup.firstName} ${signup.lastName || ""}`
+                                  : signup.username || "N/A"}
+                              </td>
+                              <td className="table-cell">{signup.status}</td>
+                              <td className="table-cell">
+                                <button
+                                  className="action-button small"
+                                  onClick={() => confirmSignup(signup.signupId)}
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  className="action-button small cancel-btn"
+                                  onClick={() => rejectSignup(signup.signupId)}
+                                >
+                                  ✕
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : (
-                    <p>No sign‑ups available.</p>
+                    <p className="empty-state">No sign-ups yet.</p>
                   )}
                 </div>
               )}
 
-              {/* ORDERS */}
+              {/* ORDERS TAB */}
               {modalTab === "orders" && (
-                <div>
-                  <p><strong>Order Capacity:</strong> {roundOrders.length || 0} / {selectedRound.orderCapacity || 20}</p>
-                  {roundOrders && roundOrders.length > 0 ? (
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th className="table-header-cell">Order ID</th>
-                          <th className="table-header-cell">User ID</th>
-                          <th className="table-header-cell">Status</th>
-                          <th className="table-header-cell">Address</th>
-                          <th className="table-header-cell">Request Time</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {roundOrders.map((order, idx) => (
-                          <tr key={idx}>
-                            <td className="table-cell">{order.orderId}</td>
-                            <td className="table-cell">{order.userId === -1 ? "Guest" : order.userId}</td>
-                            <td className="table-cell">{order.status}</td>
-                            <td className="table-cell">{order.deliveryAddress}</td>
-                            <td className="table-cell">
-                              {new Date(order.requestTime).toLocaleString()}
-                            </td>
+                <div className="orders-section">
+                  <p className="order-summary">
+                    <strong>Orders:</strong> {roundOrders.length || 0} / {selectedRound.orderCapacity || 20}
+                  </p>
+                  {roundOrders?.length > 0 ? (
+                    <div className="table-wrapper">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th className="table-header-cell">Order ID</th>
+                            <th className="table-header-cell">User</th>
+                            <th className="table-header-cell">Status</th>
+                            <th className="table-header-cell">Address</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {roundOrders.map((order, idx) => (
+                            <tr key={idx}>
+                              <td className="table-cell">{order.orderId}</td>
+                              <td className="table-cell">{order.userId === -1 ? "Guest" : order.userId}</td>
+                              <td className="table-cell">{order.status}</td>
+                              <td className="table-cell">{order.deliveryAddress}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : (
-                    <p>No orders assigned to this round yet.</p>
+                    <p className="empty-state">No orders assigned yet.</p>
                   )}
                 </div>
               )}
-            </div>
-  
-            <div className="modal-buttons">
-              <button className="modal-close" onClick={closeModal}>
-                Close
-              </button>
             </div>
           </div>
         </div>

@@ -94,14 +94,15 @@ public class CargoItemService {
             existingItem.setNeedsPrescription(updatedItem.getNeedsPrescription());
         }
 
-        // Update size quantities if provided
         if (updatedItem.getSizeQuantities() != null) {
             existingItem.setSizeQuantities(updatedItem.getSizeQuantities());
 
-            // Recalculate total quantity from sizes
-            int totalFromSizes = updatedItem.getSizeQuantities().values().stream()
-                    .mapToInt(Integer::intValue).sum();
-            existingItem.setQuantity(totalFromSizes);
+            // Only recalculate total from sizes if there ARE sizes
+            if (!updatedItem.getSizeQuantities().isEmpty()) {
+                int totalFromSizes = updatedItem.getSizeQuantities().values().stream()
+                        .mapToInt(Integer::intValue).sum();
+                existingItem.setQuantity(totalFromSizes);
+            }
         }
 
         // Handle image update

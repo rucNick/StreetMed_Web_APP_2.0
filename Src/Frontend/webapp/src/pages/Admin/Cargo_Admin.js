@@ -156,8 +156,17 @@ const Cargo_Admin = ({ userData }) => {
     setUpdateSizeEntries(updatedEntries);
   };
 
-  const handleRemoveUpdateSizeEntry = idx => {
-    setUpdateSizeEntries(updateSizeEntries.filter((_, i) => i !== idx));
+
+  const handleRemoveUpdateSizeEntry = (idx) => {
+    const newEntries = updateSizeEntries.filter((_, i) => i !== idx);
+    
+    // If removing the last size entry, preserve the total quantity
+    if (newEntries.length === 0 && updateSizeEntries.length > 0) {
+      const previousTotal = updateSizeEntries.reduce((sum, e) => sum + (e.quantity || 0), 0);
+      setUpdateItemData(prev => ({ ...prev, quantity: previousTotal }));
+    }
+    
+    setUpdateSizeEntries(newEntries);
   };
 
   const renderStatus = qty => {
@@ -301,19 +310,20 @@ const Cargo_Admin = ({ userData }) => {
       return;
     }
 
-    try {
-      const sizeQuantities = {};
-      updateSizeEntries.forEach(e => {
-        if (e.size && e.quantity >= 0) {
-          sizeQuantities[e.size] = Math.max(0, e.quantity);
+     try {
+        const sizeQuantities = {};
+        updateSizeEntries.forEach(e => {
+          if (e.size && e.quantity >= 0) {
+            sizeQuantities[e.size] = Math.max(0, e.quantity);
+          }
+        });
+
+        let finalQuantity = Math.max(0, updateItemData.quantity);
+        if (Object.keys(sizeQuantities).length > 0) {
+          finalQuantity = Object.values(sizeQuantities).reduce((a, b) => a + b, 0);
         }
-      });
 
-      let finalQuantity = Math.max(0, updateItemData.quantity);
-      if (Object.keys(sizeQuantities).length > 0) {
-        finalQuantity = Object.values(sizeQuantities).reduce((a, b) => a + b, 0);
-      }
-
+  
       const dataToSend = {
         ...updateItemData,
         quantity: finalQuantity,

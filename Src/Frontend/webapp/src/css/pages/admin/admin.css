@@ -1,5 +1,6 @@
 /* ===========================================
-   Admin Pages - Complete Styles
+   Admin Dashboard Page
+   Street Medicine Go
    =========================================== */
 
 /* ===========================================
@@ -10,14 +11,10 @@
   background-color: #0f1c38;
   font-family: Cambria, serif;
   overflow-x: hidden;
-  width: 100%;
 }
 
 .admin-page .page-container {
   background-color: #0f1c38;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
 }
 
 /* ===========================================
@@ -34,14 +31,14 @@
 }
 
 /* ===========================================
-   ADMIN DASHBOARD LAYOUT - DESKTOP
+   ADMIN DASHBOARD LAYOUT
    =========================================== */
 .admin-page .admin-dashboard {
   display: flex;
   flex-direction: row;
   min-height: calc(100vh - 83px);
   background-color: #0f1c38;
-  gap: 20px;
+  gap: 24px;
   padding: 40px;
   box-sizing: border-box;
 }
@@ -50,12 +47,11 @@
    ADMIN LEFT PANEL
    =========================================== */
 .admin-page .admin-left {
-  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
 }
 
 .admin-page .admin-greeting {
@@ -63,7 +59,7 @@
   font-weight: 700;
   color: #ffffff;
   font-family: 'Courier New', Courier, monospace;
-  margin: 0;
+  margin: 0 0 10px 0;
 }
 
 /* ===========================================
@@ -71,13 +67,13 @@
    =========================================== */
 .admin-page .admin-card {
   font-family: 'Courier New', Courier, monospace;
-  padding: 30px 25px;
+  padding: 28px 24px;
   border-radius: 16px;
   text-align: center;
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s, box-shadow 0.2s;
   text-decoration: none;
   display: block;
   box-sizing: border-box;
@@ -85,7 +81,7 @@
 
 .admin-page .admin-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .admin-page .admin-card.light-blue {
@@ -112,14 +108,13 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 20px;
 }
 
 .admin-page .alerts-card {
   background-color: #212c46;
   font-family: 'Courier New', Courier, monospace;
   border-radius: 16px;
-  padding: 30px;
+  padding: 28px;
   width: 100%;
   max-width: 400px;
   box-sizing: border-box;
@@ -128,54 +123,33 @@
 .admin-page .alerts-title {
   color: #ffffff;
   font-size: 24px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 15px;
+  margin: 0 0 20px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .admin-page .alert-entry {
   color: #ffffff;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .admin-page .alert-entry:last-child {
   border-bottom: none;
 }
 
-/* Alert badges/indicators */
-.admin-page .alert-badge,
-.admin-page .alert-count {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 /* ===========================================
    ADMIN CONTENT CONTAINERS
    =========================================== */
-.admin-page .main-content {
-  padding: 40px 60px;
-  background-color: #0f1c38;
-  min-height: calc(100vh - 83px);
-  box-sizing: border-box;
-}
-
-.admin-page .cargo-container,
+.admin-page .main-content,
 .cargo-container {
-  background-color: #0f1c38 !important;
-  padding: 40px 60px;
+  padding: 40px;
+  background-color: #0f1c38;
   min-height: calc(100vh - 83px);
   box-sizing: border-box;
 }
@@ -184,7 +158,7 @@
 .cargo-card {
   background-color: #1a2332 !important;
   border-radius: 16px;
-  padding: 30px;
+  padding: 28px;
   box-sizing: border-box;
 }
 
@@ -198,18 +172,8 @@
   color: #ffffff !important;
 }
 
-.admin-page .table-title,
-.table-title {
-  color: #ffffff !important;
-}
-
-.admin-page .block-title,
-.block-title {
-  color: #ffffff !important;
-}
-
 /* ===========================================
-   ADMIN TABLES - DARK THEME
+   ADMIN TABLES
    =========================================== */
 .admin-page .cargo-table,
 .admin-page .orders-table,
@@ -226,7 +190,6 @@
 .orders-table th {
   background: #212c46 !important;
   color: #ffffff !important;
-  border-color: #3a5070;
   padding: 12px 14px;
   font-weight: 600;
   font-size: 14px;
@@ -239,16 +202,8 @@
 .orders-table td {
   background: #1a2332 !important;
   color: #ffffff !important;
-  border-color: #2a3f5f;
   padding: 12px 14px;
   font-size: 14px;
-}
-
-.admin-page .cargo-table tr:hover,
-.admin-page .orders-table tr:hover,
-.cargo-table tr:hover,
-.orders-table tr:hover {
-  background-color: #2a3f5f !important;
 }
 
 /* Table scroll container */
@@ -259,58 +214,6 @@
   border: 1px solid #3a5070;
   border-radius: 8px;
   -webkit-overflow-scrolling: touch;
-}
-
-.table-scroll thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: #212c46 !important;
-}
-
-/* Custom scrollbar */
-.table-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.table-scroll::-webkit-scrollbar-track {
-  background: #1a2332;
-}
-
-.table-scroll::-webkit-scrollbar-thumb {
-  background: #3a5070;
-  border-radius: 4px;
-}
-
-.table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #4a6080;
-}
-
-/* ===========================================
-   ADMIN FORMS
-   =========================================== */
-.admin-page .cargo-input,
-.cargo-input {
-  background-color: #ffffff !important;
-  color: #333333 !important;
-  border: 2px solid #3a5070;
-  padding: 10px 12px;
-  border-radius: 4px;
-  width: 100%;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.admin-page .cargo-input:focus,
-.cargo-input:focus {
-  border-color: #f6b800;
-  outline: none;
-}
-
-.admin-page label,
-.cargo-container label {
-  color: #ffffff !important;
 }
 
 /* ===========================================
@@ -326,451 +229,122 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s;
 }
 
 .admin-page .manage-btn:hover,
 .manage-btn:hover {
-  background-color: #db9914;
-}
-
-.admin-page .drawer-toggle,
-.drawer-toggle {
-  background-color: #f6b800;
-  color: #0f1c38;
+  background-color: #e5a800;
 }
 
 /* ===========================================
-   ADMIN FILTER BUTTONS
-   =========================================== */
-.admin-page .filter-btn,
-.filter-btn {
-  background-color: #2a3f5f;
-  color: #ffffff;
-  border: 1px solid #3a5070;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.admin-page .filter-btn:hover,
-.filter-btn:hover {
-  background-color: #3a5070;
-}
-
-.admin-page .filter-btn.active,
-.filter-btn.active {
-  background-color: #f6b800;
-  color: #333333;
-  border-color: #f6b800;
-}
-
-/* ===========================================
-   ADMIN MODALS
-   =========================================== */
-.admin-page .modal-content,
-.cargo-modal .modal-content {
-  background-color: #1a2332 !important;
-  color: #ffffff;
-}
-
-.admin-page .modal-content h2,
-.cargo-modal .modal-content h2 {
-  color: #ffffff !important;
-}
-
-.admin-page .modal-field,
-.cargo-modal .modal-field {
-  color: #ffffff;
-}
-
-.admin-page .modal-field label,
-.cargo-modal .modal-field label {
-  color: #ffffff !important;
-}
-
-.admin-page .modal-content select,
-.cargo-modal .modal-content select {
-  background-color: #212c46;
-  color: #ffffff;
-  border: 1px solid #3a5070;
-}
-
-/* ===========================================
-   ADMIN STATS
-   =========================================== */
-.admin-page .stats-bar,
-.stats-bar {
-  background-color: #212c46;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.admin-page .stat-value,
-.stat-value {
-  color: #ffffff;
-}
-
-.admin-page .stat-label,
-.stat-label {
-  color: #cccccc;
-}
-
-/* ===========================================
-   ADMIN ERROR MESSAGES
-   =========================================== */
-.admin-page .error-message,
-.admin-page .cargo-error,
-.cargo-error {
-  padding: 10px;
-  margin: 10px 0;
-  background-color: rgba(255, 77, 79, 0.2);
-  color: #ff6b6b;
-  border-radius: 4px;
-  border-left: 4px solid #f44336;
-}
-
-/* ===========================================
-   ADMIN LOADING & EMPTY STATES
-   =========================================== */
-.admin-page .loading-container,
-.loading-container {
-  color: #cccccc;
-  padding: 40px;
-  text-align: center;
-}
-
-.admin-page .empty-state {
-  color: #888888;
-  background: #1a2332;
-  padding: 40px;
-  border-radius: 8px;
-  text-align: center;
-}
-
-/* ===========================================
-   SECTION HEADER (Orange bar)
+   SECTION HEADER
    =========================================== */
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   padding: 14px 20px;
-  margin-bottom: 25px;
-  border-radius: 16px;
+  margin-bottom: 20px;
+  border-radius: 12px;
   background: #ffb916;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .section-header h2 {
-  font-size: 20px;
+  font-size: 18px;
   margin: 0;
   color: #003295;
 }
 
 /* ===========================================
-   CARGO HEADER
+   RESPONSIVE - TABLET
    =========================================== */
-.cargo-header,
-.orders-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-/* ===========================================
-   DRAWER CONTAINER
-   =========================================== */
-.drawer-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 30px 0;
-  flex-wrap: wrap;
-}
-
-/* ===========================================
-   ==========================================
-   MOBILE RESPONSIVE OVERRIDES
-   ==========================================
-   =========================================== */
-
-/* ===========================================
-   RESPONSIVE - TABLET (768px)
-   =========================================== */
-@media screen and (max-width: 768px) {
-  /* CRITICAL: Force single column layout on dashboard */
+@media (max-width: 768px) {
   .admin-page .admin-dashboard {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    height: auto !important;
-    min-height: calc(100vh - 83px);
-    padding: 20px 16px !important;
-    gap: 24px !important;
-    align-items: stretch !important;
+    flex-direction: column;
+    padding: 20px 16px;
+    gap: 20px;
+    height: auto;
   }
 
-  /* Left panel - full width, comes first */
   .admin-page .admin-left {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    flex: 0 0 auto !important;
-    order: 1 !important;
-    padding: 0 !important;
+    max-width: 100%;
+    width: 100%;
   }
 
-  /* Right panel (alerts) - full width, comes second */
   .admin-page .admin-right {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    flex: 0 0 auto !important;
-    order: 2 !important;
-    padding: 0 !important;
-    justify-content: stretch !important;
-    align-items: stretch !important;
+    width: 100%;
   }
 
-  /* Alerts card - full width */
   .admin-page .alerts-card {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-  }
-
-  /* Admin cards full width */
-  .admin-page .admin-card {
-    width: 100% !important;
-    max-width: 100% !important;
+    max-width: 100%;
   }
 
   .admin-page .main-content,
   .cargo-container {
-    padding: 20px !important;
-  }
-
-  .admin-page .cargo-card,
-  .cargo-card {
-    padding: 20px;
-  }
-
-  .cargo-header,
-  .orders-header {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 20px 16px;
   }
 
   .section-header {
     flex-direction: column;
-    gap: 15px;
     text-align: center;
-  }
-
-  .drawer-container {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .drawer-toggle {
-    width: 100%;
-  }
-
-  /* Table responsive */
-  .table-scroll {
-    max-height: 400px;
-  }
-
-  .cargo-table th,
-  .cargo-table td,
-  .orders-table th,
-  .orders-table td {
-    padding: 10px 8px;
-    font-size: 13px;
   }
 }
 
 /* ===========================================
-   RESPONSIVE - MOBILE (480px)
+   RESPONSIVE - MOBILE
    =========================================== */
-@media screen and (max-width: 480px) {
-  /* Even stronger overrides for small screens */
+@media (max-width: 480px) {
   .admin-page .admin-dashboard {
-    padding: 16px 12px !important;
-    gap: 20px !important;
+    padding: 16px 12px;
+    gap: 16px;
   }
 
   .admin-page .admin-greeting {
-    font-size: 28px !important;
+    font-size: 28px;
   }
 
   .admin-page .admin-left {
-    gap: 14px !important;
+    gap: 14px;
   }
 
   .admin-page .admin-card {
-    padding: 24px 20px !important;
-    font-size: 18px !important;
+    padding: 22px 18px;
+    font-size: 17px;
   }
 
   .admin-page .alerts-card {
-    padding: 20px 16px !important;
+    padding: 20px 16px;
   }
 
   .admin-page .alerts-title {
-    font-size: 22px !important;
-  }
-
-  .admin-page .alert-entry {
-    font-size: 14px !important;
-    padding: 10px 0 !important;
+    font-size: 20px;
   }
 
   .cargo-container {
-    padding: 12px !important;
+    padding: 16px 12px;
   }
 
   .cargo-card {
-    padding: 15px;
-  }
-
-  .cargo-title,
-  .orders-title {
-    font-size: 22px !important;
-  }
-
-  .table-title {
-    font-size: 18px !important;
-  }
-
-  /* Make tables horizontally scrollable */
-  .table-scroll {
-    overflow-x: auto;
-  }
-
-  .cargo-table,
-  .orders-table {
-    min-width: 550px;
-  }
-
-  .cargo-table th,
-  .cargo-table td,
-  .orders-table th,
-  .orders-table td {
-    padding: 8px 6px;
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
-  /* Action buttons stack vertically on mobile */
-  .action-buttons {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .manage-btn {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
-  /* Modal adjustments */
-  .modal-content {
-    padding: 20px !important;
-    margin: 10px;
-    max-width: calc(100% - 20px) !important;
-  }
-
-  .modal-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  /* Stats bar stack */
-  .stats-bar {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  /* Filter buttons wrap */
-  .orders-filterGroup {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .filter-btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  /* Section header mobile */
-  .section-header {
-    padding: 12px 15px;
-  }
-
-  .section-header h2 {
-    font-size: 18px;
-  }
-
-  .btn-group {
-    flex-direction: column;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .btn-group .manage-btn {
-    width: 100%;
+    padding: 16px;
   }
 }
 
-/* ===========================================
-   RESPONSIVE - SMALL MOBILE (360px)
-   =========================================== */
-@media screen and (max-width: 360px) {
-  .admin-page .admin-dashboard {
-    padding: 12px 10px !important;
-  }
-
+@media (max-width: 360px) {
   .admin-page .admin-greeting {
-    font-size: 24px !important;
+    font-size: 24px;
   }
 
   .admin-page .admin-card {
-    padding: 20px 16px !important;
-    font-size: 16px !important;
-    border-radius: 12px !important;
+    padding: 18px 14px;
+    font-size: 15px;
+    border-radius: 12px;
   }
 
   .admin-page .alerts-card {
-    padding: 16px 12px !important;
-    border-radius: 12px !important;
-  }
-
-  .admin-page .alerts-title {
-    font-size: 20px !important;
-  }
-
-  .cargo-title,
-  .orders-title {
-    font-size: 18px !important;
-  }
-
-  .cargo-container {
-    padding: 10px !important;
-  }
-
-  .cargo-card {
-    padding: 12px;
+    padding: 16px 12px;
     border-radius: 12px;
   }
 }
