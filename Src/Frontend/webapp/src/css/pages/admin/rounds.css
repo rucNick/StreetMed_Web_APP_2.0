@@ -1,0 +1,726 @@
+/* ===========================================
+   Rounds Administration Page
+   Street Medicine Go
+   
+   Dark theme + Mobile support
+   Matches Round_Admin.js component structure
+   =========================================== */
+
+/* ===========================================
+   ROUNDS PAGE CONTAINER
+   =========================================== */
+.rounds-container {
+  background-color: #0f1c38;
+  min-height: 100vh;
+  padding-bottom: 40px;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===========================================
+   SMG NAVBAR - GOLD BAR
+   =========================================== */
+.smg-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  min-height: 70px;
+  background-color: #f6b800;
+  padding: 15px 20px;
+  margin: 20px;
+  border-radius: 16px;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+/* Navbar sections */
+.smg-navbar .navbar-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.smg-navbar .navbar-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.smg-navbar .navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Logo */
+.smg-navbar .navbar-logo,
+.smg-navbar .logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Nav buttons in gold bar */
+.smg-navbar .nav-btn {
+  background-color: transparent;
+  color: #003295;
+  border: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.smg-navbar .nav-btn:hover {
+  background-color: rgba(0, 50, 149, 0.1);
+}
+
+.smg-navbar .nav-btn.active {
+  background-color: #003295;
+  color: #ffffff;
+}
+
+.smg-navbar .nav-btn.action-btn {
+  background-color: rgba(0, 50, 149, 0.15);
+}
+
+.smg-navbar .nav-btn.back-btn {
+  background-color: transparent;
+}
+
+/* ===========================================
+   PAGE TITLE
+   =========================================== */
+.rounds-title {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin: 30px 20px;
+  font-family: Cambria, serif;
+}
+
+/* ===========================================
+   STATUS MESSAGE
+   =========================================== */
+.status-msg {
+  text-align: center;
+  padding: 10px 20px;
+  margin: 0 20px 20px;
+  color: #f6b800;
+  font-size: 14px;
+}
+
+/* ===========================================
+   ROUNDS SECTION - MAIN CONTENT
+   =========================================== */
+.rounds-section {
+  background-color: #1a2332;
+  border-radius: 16px;
+  margin: 0 20px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ===========================================
+   SECTION HEADER - GOLD BAR WITH FILTERS
+   =========================================== */
+.section-header {
+  background-color: #f6b800;
+  padding: 20px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.section-header h2 {
+  color: #003295;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Button group / chips */
+.btn-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  background-color: #ffffff;
+  color: #333333;
+}
+
+.chip.selected {
+  background-color: #003295;
+  color: #ffffff;
+}
+
+.chip:not(.selected):hover {
+  background-color: #f0f0f0;
+}
+
+/* ===========================================
+   TABLE STYLES
+   =========================================== */
+.table-wrapper {
+  padding: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1a2332;
+  min-width: 800px;
+}
+
+.table thead {
+  background-color: #212c46;
+}
+
+.table-header-cell {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 15px 12px;
+  text-align: left;
+  border-bottom: 2px solid #3a5070;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.table tbody tr:hover {
+  background-color: #212c46;
+}
+
+.table-cell {
+  color: #cccccc;
+  font-size: 14px;
+  padding: 15px 12px;
+  vertical-align: middle;
+}
+
+/* Action buttons in table */
+.action-button {
+  background-color: #f6b800;
+  color: #333333;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 5px;
+}
+
+.action-button:hover {
+  background-color: #db9914;
+}
+
+/* ===========================================
+   FORM STYLES
+   =========================================== */
+.form-title {
+  color: #f6b800;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+}
+
+.form-wrapper {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.form-card {
+  background-color: #212c46;
+  border-radius: 12px;
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input {
+  background-color: #1a2332;
+  border: 1px solid #3a5070;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #f6b800;
+  box-shadow: 0 0 0 3px rgba(246, 184, 0, 0.2);
+}
+
+.input::placeholder {
+  color: #888888;
+}
+
+/* ===========================================
+   MODAL STYLES
+   =========================================== */
+.item-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.item-modal {
+  background-color: #1a2332;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-title {
+  color: #f6b800;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 25px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-nav {
+  display: flex;
+  gap: 10px;
+  padding: 15px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+}
+
+.modal-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #3a5070;
+  background-color: transparent;
+  color: #cccccc;
+}
+
+.modal-chip.selected {
+  background-color: #f6b800;
+  color: #333333;
+  border-color: #f6b800;
+}
+
+.modal-body {
+  padding: 25px;
+  color: #ffffff;
+}
+
+.modal-body p {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+.modal-body strong {
+  color: #f6b800;
+}
+
+.modal-buttons {
+  padding: 20px 25px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-close {
+  background-color: #3a5070;
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background-color: #4a6080;
+}
+
+/* ===========================================
+   ==========================================
+   MOBILE RESPONSIVE OVERRIDES
+   ==========================================
+   =========================================== */
+
+/* ===========================================
+   RESPONSIVE - TABLET (1024px)
+   =========================================== */
+@media screen and (max-width: 1024px) {
+  .smg-navbar {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .smg-navbar .nav-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .rounds-title {
+    font-size: 28px;
+  }
+
+  .rounds-section {
+    margin: 0 15px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - MOBILE (768px)
+   =========================================== */
+@media screen and (max-width: 768px) {
+  .rounds-container {
+    padding-bottom: 30px;
+  }
+
+  /* NAVBAR - Stack everything vertically */
+  .smg-navbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    margin: 12px !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .smg-navbar .navbar-left {
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .smg-navbar .navbar-logo {
+    width: 45px;
+    height: 45px;
+  }
+
+  .smg-navbar .navbar-center {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .smg-navbar .navbar-right {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 50, 149, 0.2);
+  }
+
+  .smg-navbar .nav-btn {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Page title */
+  .rounds-title {
+    font-size: 24px !important;
+    margin: 20px 12px !important;
+  }
+
+  /* Status message */
+  .status-msg {
+    margin: 0 12px 15px;
+  }
+
+  /* Main section */
+  .rounds-section {
+    margin: 0 12px !important;
+    border-radius: 12px;
+  }
+
+  /* Section header - stack on mobile */
+  .section-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+
+  .section-header h2 {
+    text-align: center;
+    font-size: 18px;
+  }
+
+  .btn-group {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .chip {
+    width: 100% !important;
+    text-align: center;
+    padding: 12px 20px;
+  }
+
+  /* Table */
+  .table-wrapper {
+    padding: 12px;
+  }
+
+  .table {
+    min-width: 650px;
+  }
+
+  .table-header-cell,
+  .table-cell {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  .action-button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  /* Forms */
+  .form-wrapper {
+    padding: 15px;
+  }
+
+  .form-card {
+    padding: 20px;
+  }
+
+  .form-title {
+    font-size: 20px;
+    padding: 15px;
+  }
+
+  /* Modal */
+  .item-modal-overlay {
+    padding: 10px;
+  }
+
+  .item-modal {
+    max-height: 85vh;
+  }
+
+  .modal-title {
+    font-size: 18px;
+    padding: 20px;
+  }
+
+  .modal-nav {
+    padding: 12px 15px;
+    gap: 8px;
+  }
+
+  .modal-chip {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .modal-body {
+    padding: 20px 15px;
+  }
+
+  .modal-body .table {
+    min-width: 500px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - SMALL MOBILE (480px)
+   =========================================== */
+@media screen and (max-width: 480px) {
+  .smg-navbar {
+    margin: 10px !important;
+    padding: 12px !important;
+    border-radius: 12px;
+  }
+
+  .smg-navbar .navbar-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .smg-navbar .nav-btn {
+    font-size: 13px !important;
+    padding: 10px 14px !important;
+  }
+
+  .rounds-title {
+    font-size: 20px !important;
+    margin: 16px 10px !important;
+  }
+
+  .rounds-section {
+    margin: 0 10px !important;
+    border-radius: 10px;
+  }
+
+  .section-header {
+    padding: 14px !important;
+  }
+
+  .section-header h2 {
+    font-size: 16px;
+  }
+
+  .chip {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .table-wrapper {
+    padding: 10px;
+  }
+
+  .table {
+    min-width: 550px;
+  }
+
+  .table-header-cell,
+  .table-cell {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  .action-button {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  /* Form adjustments */
+  .form-card {
+    padding: 16px;
+  }
+
+  .input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  /* Modal adjustments */
+  .modal-title {
+    font-size: 16px;
+    padding: 16px;
+  }
+
+  .modal-nav {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .modal-chip {
+    width: 100%;
+    text-align: center;
+  }
+
+  .modal-body {
+    padding: 16px 12px;
+  }
+
+  .modal-body .table {
+    min-width: 450px;
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - EXTRA SMALL (360px)
+   =========================================== */
+@media screen and (max-width: 360px) {
+  .smg-navbar {
+    margin: 8px !important;
+    padding: 10px !important;
+  }
+
+  .smg-navbar .nav-btn {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  .rounds-title {
+    font-size: 18px !important;
+  }
+
+  .rounds-section {
+    margin: 0 8px !important;
+  }
+
+  .section-header h2 {
+    font-size: 14px;
+  }
+
+  .chip {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .table {
+    min-width: 450px;
+  }
+
+  .table-header-cell,
+  .table-cell {
+    padding: 6px 4px;
+    font-size: 10px;
+  }
+}

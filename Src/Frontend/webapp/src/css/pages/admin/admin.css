@@ -1,8 +1,5 @@
 /* ===========================================
    Admin Pages - Complete Styles
-   Street Medicine Go
-   
-   Mobile/phone view support included
    =========================================== */
 
 /* ===========================================
@@ -12,10 +9,15 @@
   min-height: 100vh;
   background-color: #0f1c38;
   font-family: Cambria, serif;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .admin-page .page-container {
   background-color: #0f1c38;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ===========================================
@@ -32,24 +34,28 @@
 }
 
 /* ===========================================
-   ADMIN DASHBOARD LAYOUT
+   ADMIN DASHBOARD LAYOUT - DESKTOP
    =========================================== */
 .admin-page .admin-dashboard {
   display: flex;
-  height: calc(100vh - 83px);
+  flex-direction: row;
+  min-height: calc(100vh - 83px);
   background-color: #0f1c38;
+  gap: 20px;
+  padding: 40px;
+  box-sizing: border-box;
 }
 
 /* ===========================================
    ADMIN LEFT PANEL
    =========================================== */
 .admin-page .admin-left {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 440px;
-  padding: 40px 50px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .admin-page .admin-greeting {
@@ -57,6 +63,7 @@
   font-weight: 700;
   color: #ffffff;
   font-family: 'Courier New', Courier, monospace;
+  margin: 0;
 }
 
 /* ===========================================
@@ -64,6 +71,21 @@
    =========================================== */
 .admin-page .admin-card {
   font-family: 'Courier New', Courier, monospace;
+  padding: 30px 25px;
+  border-radius: 16px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  display: block;
+  box-sizing: border-box;
+}
+
+.admin-page .admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .admin-page .admin-card.light-blue {
@@ -88,21 +110,56 @@
 .admin-page .admin-right {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 20px;
 }
 
 .admin-page .alerts-card {
   background-color: #212c46;
   font-family: 'Courier New', Courier, monospace;
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
 }
 
 .admin-page .alerts-title {
   color: #ffffff;
+  font-size: 24px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 15px;
 }
 
 .admin-page .alert-entry {
   color: #ffffff;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-page .alert-entry:last-child {
+  border-bottom: none;
+}
+
+/* Alert badges/indicators */
+.admin-page .alert-badge,
+.admin-page .alert-count {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 /* ===========================================
@@ -112,6 +169,7 @@
   padding: 40px 60px;
   background-color: #0f1c38;
   min-height: calc(100vh - 83px);
+  box-sizing: border-box;
 }
 
 .admin-page .cargo-container,
@@ -119,6 +177,7 @@
   background-color: #0f1c38 !important;
   padding: 40px 60px;
   min-height: calc(100vh - 83px);
+  box-sizing: border-box;
 }
 
 .admin-page .cargo-card,
@@ -126,6 +185,7 @@
   background-color: #1a2332 !important;
   border-radius: 16px;
   padding: 30px;
+  box-sizing: border-box;
 }
 
 /* ===========================================
@@ -195,8 +255,10 @@
 .table-scroll {
   max-height: 500px;
   overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid #3a5070;
   border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-scroll thead th {
@@ -209,6 +271,7 @@
 /* Custom scrollbar */
 .table-scroll::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 .table-scroll::-webkit-scrollbar-track {
@@ -236,6 +299,7 @@
   border-radius: 4px;
   width: 100%;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .admin-page .cargo-input:focus,
@@ -342,6 +406,9 @@
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .admin-page .stat-value,
@@ -387,104 +454,6 @@
 }
 
 /* ===========================================
-   ADMIN SUMMARY FOOTER
-   =========================================== */
-.admin-page .summary-footer,
-.summary-footer {
-  background-color: #212c46;
-  border: 1px solid #3a5070;
-  padding: 15px;
-  border-radius: 4px;
-  margin-top: 20px;
-}
-
-.admin-page .summary-footer strong,
-.summary-footer strong {
-  color: #ffffff;
-}
-
-.admin-page .summary-footer .timestamp,
-.summary-footer .timestamp {
-  color: #cccccc;
-}
-
-/* ===========================================
-   ADMIN USER INFO
-   =========================================== */
-.admin-page .user-info,
-.admin-page .round-info,
-.user-info,
-.round-info {
-  color: #ffffff;
-}
-
-.admin-page .round-capacity,
-.round-capacity {
-  color: #cccccc;
-}
-
-.admin-page .unassigned-label,
-.unassigned-label {
-  color: #f39c12;
-}
-
-/* ===========================================
-   ADMIN FEEDBACK MODAL
-   =========================================== */
-.admin-page .feedback-modal,
-.feedback-modal {
-  background-color: #1a2332;
-  color: #ffffff;
-}
-
-.admin-page .feedback-modal h2 {
-  color: #ffffff;
-}
-
-.admin-page .feedback-modal strong {
-  color: #f6b800;
-}
-
-.admin-page .feedback-content,
-.feedback-content {
-  background-color: #212c46;
-  color: #ffffff;
-  padding: 10px;
-  border-radius: 4px;
-}
-
-/* ===========================================
-   ADMIN SIZE MANAGEMENT
-   =========================================== */
-.admin-page .cargo-sizes h4,
-.cargo-sizes h4 {
-  color: #ffffff;
-}
-
-.cargo-sizes {
-  margin: 20px 0;
-  padding: 15px;
-  border: 1px solid #72cf6d;
-  border-radius: 5px;
-  background: rgba(91, 182, 133, 0.2);
-}
-
-/* ===========================================
-   ADMIN IMAGE UPLOAD
-   =========================================== */
-.admin-page .image-upload label,
-.image-upload label {
-  color: #ffffff;
-}
-
-.image-upload {
-  margin: 20px 0;
-  padding: 15px;
-  border: 1px dashed #3a5070;
-  border-radius: 5px;
-}
-
-/* ===========================================
    SECTION HEADER (Orange bar)
    =========================================== */
 .section-header {
@@ -497,6 +466,7 @@
   border-radius: 16px;
   background: #ffb916;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 .section-header h2 {
@@ -530,22 +500,60 @@
 }
 
 /* ===========================================
+   ==========================================
+   MOBILE RESPONSIVE OVERRIDES
+   ==========================================
+   =========================================== */
+
+/* ===========================================
    RESPONSIVE - TABLET (768px)
    =========================================== */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
+  /* CRITICAL: Force single column layout on dashboard */
   .admin-page .admin-dashboard {
-    flex-direction: column;
-    height: auto;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    height: auto !important;
     min-height: calc(100vh - 83px);
+    padding: 20px 16px !important;
+    gap: 24px !important;
+    align-items: stretch !important;
   }
 
+  /* Left panel - full width, comes first */
   .admin-page .admin-left {
-    max-width: 100%;
-    padding: 30px 20px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    order: 1 !important;
+    padding: 0 !important;
   }
 
+  /* Right panel (alerts) - full width, comes second */
   .admin-page .admin-right {
-    padding: 20px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    order: 2 !important;
+    padding: 0 !important;
+    justify-content: stretch !important;
+    align-items: stretch !important;
+  }
+
+  /* Alerts card - full width */
+  .admin-page .alerts-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Admin cards full width */
+  .admin-page .admin-card {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .admin-page .main-content,
@@ -556,11 +564,6 @@
   .admin-page .cargo-card,
   .cargo-card {
     padding: 20px;
-  }
-
-  .admin-page .alerts-card {
-    max-width: 100%;
-    padding: 30px 20px;
   }
 
   .cargo-header,
@@ -601,23 +604,41 @@
 /* ===========================================
    RESPONSIVE - MOBILE (480px)
    =========================================== */
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
+  /* Even stronger overrides for small screens */
+  .admin-page .admin-dashboard {
+    padding: 16px 12px !important;
+    gap: 20px !important;
+  }
+
   .admin-page .admin-greeting {
-    font-size: 28px;
+    font-size: 28px !important;
   }
 
   .admin-page .admin-left {
-    padding: 20px 15px;
-    gap: 16px;
+    gap: 14px !important;
   }
 
   .admin-page .admin-card {
-    padding: 20px;
-    font-size: 16px;
+    padding: 24px 20px !important;
+    font-size: 18px !important;
+  }
+
+  .admin-page .alerts-card {
+    padding: 20px 16px !important;
+  }
+
+  .admin-page .alerts-title {
+    font-size: 22px !important;
+  }
+
+  .admin-page .alert-entry {
+    font-size: 14px !important;
+    padding: 10px 0 !important;
   }
 
   .cargo-container {
-    padding: 15px !important;
+    padding: 12px !important;
   }
 
   .cargo-card {
@@ -626,7 +647,7 @@
 
   .cargo-title,
   .orders-title {
-    font-size: 24px !important;
+    font-size: 22px !important;
   }
 
   .table-title {
@@ -640,7 +661,7 @@
 
   .cargo-table,
   .orders-table {
-    min-width: 600px;
+    min-width: 550px;
   }
 
   .cargo-table th,
@@ -715,14 +736,33 @@
 /* ===========================================
    RESPONSIVE - SMALL MOBILE (360px)
    =========================================== */
-@media (max-width: 360px) {
+@media screen and (max-width: 360px) {
+  .admin-page .admin-dashboard {
+    padding: 12px 10px !important;
+  }
+
   .admin-page .admin-greeting {
-    font-size: 24px;
+    font-size: 24px !important;
+  }
+
+  .admin-page .admin-card {
+    padding: 20px 16px !important;
+    font-size: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .admin-page .alerts-card {
+    padding: 16px 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .admin-page .alerts-title {
+    font-size: 20px !important;
   }
 
   .cargo-title,
   .orders-title {
-    font-size: 20px !important;
+    font-size: 18px !important;
   }
 
   .cargo-container {

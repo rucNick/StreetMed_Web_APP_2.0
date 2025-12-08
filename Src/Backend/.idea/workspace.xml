@@ -6,14 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-<<<<<<< Updated upstream
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Auth/AdminController.java" afterDir="false" />
-=======
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/CorsConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/WebMvcConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/config/WebMvcConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/OptionsRequestFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/OptionsRequestFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/RequestCorsFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/filter/RequestCorsFilter.java" afterDir="false" />
->>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,12 +30,12 @@
     &quot;assignee&quot;: &quot;rucNick&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/rucNick/StreetMed_Web_APP_2.0.git&quot;,
-    &quot;accountId&quot;: &quot;37c70a02-1ff5-477a-8a81-2fce5036184b&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/rucNick/StreetMed_Web_APP_2.0.git",
+    "accountId": "8d8147d8-7058-48a2-bf8e-7ad57168339f"
   }
-}</component>
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -84,13 +76,9 @@
     &quot;Spring Boot.StreetmedBackendApplication.executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.Unnamed.executor&quot;: &quot;Run&quot;,
     &quot;database.data.extractors.current.export.id&quot;: &quot;Comma-separated (CSV)_id&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main 上的 #19&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-<<<<<<< Updated upstream
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Desktop/smp/StreetMed_Web_APP_2.0/Src/Backend&quot;,
-=======
     &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Desktop/StreetMed@Pitt/StreetMed_Web_APP_2.0/Src/Backend&quot;,
->>>>>>> Stashed changes
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -116,7 +104,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26199.169" />
+        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
       </set>
     </attachedChunks>
   </component>
@@ -149,7 +138,6 @@
       <workItem from="1757884310062" duration="4033000" />
       <workItem from="1757921276910" duration="8502000" />
       <workItem from="1757959205174" duration="2442000" />
-<<<<<<< Updated upstream
       <workItem from="1760393308964" duration="4270000" />
       <workItem from="1760565279021" duration="5708000" />
       <workItem from="1760646076220" duration="1965000" />
@@ -161,8 +149,7 @@
       <workItem from="1762892567999" duration="14829000" />
       <workItem from="1763014489127" duration="4346000" />
       <workItem from="1763020412022" duration="32000" />
-=======
->>>>>>> Stashed changes
+      <workItem from="1764970818528" duration="606000" />
     </task>
     <task id="LOCAL-00001" summary="replace security protocal for admincontroller, authcontroller, pwd recovery controller and add the pwd change confirmation method in the EmailService">
       <option name="closed" value="true" />

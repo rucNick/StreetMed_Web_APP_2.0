@@ -42,9 +42,9 @@
 @import './css/pages/login.css';
 @import './css/pages/guest.css';
 @import './css/pages/home.css';
-@import './css/pages/admin.css';
+@import './css/pages/admin/admin.css';
 @import './css/pages/volunteer.css';
-@import './css/pages/rounds.css';
+@import './css/pages/admin/rounds.css';
 @import './css/pages/volunteer-orders.css';
 
 
@@ -55,6 +55,7 @@
    =========================================== */
 @import './css/pages/volunteer_overrides.css';
 @import './css/pages/guest-overrides.css';
+@import './css/pages/admin/admin_mobile.css';
 
 
 /* ===========================================

@@ -1,0 +1,312 @@
+/* ===========================================
+   FORCE SINGLE COLUMN ON MOBILE - DASHBOARD
+   =========================================== */
+@media screen and (max-width: 768px) {
+  /* Target all possible dashboard container classes */
+  .admin-page .admin-dashboard,
+  .admin-dashboard,
+  .admin-page > div,
+  .admin-page .page-content,
+  .admin-page .dashboard-wrapper,
+  .admin-page .dashboard-content,
+  [class*="admin-dashboard"],
+  [class*="dashboard-layout"] {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    gap: 20px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Force left panel to be full width and first */
+  .admin-page .admin-left,
+  .admin-left,
+  .admin-page [class*="admin-left"],
+  .admin-page [class*="left-panel"],
+  .admin-page [class*="dashboard-left"],
+  .admin-page > div > div:first-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    order: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Force right panel (alerts) to be full width and second */
+  .admin-page .admin-right,
+  .admin-right,
+  .admin-page [class*="admin-right"],
+  .admin-page [class*="right-panel"],
+  .admin-page [class*="dashboard-right"],
+  .admin-page [class*="alerts"],
+  .admin-page > div > div:last-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    order: 2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+  }
+
+  /* Force alerts card full width */
+  .admin-page .alerts-card,
+  .alerts-card,
+  [class*="alerts-card"],
+  [class*="alert-card"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Force admin cards full width */
+  .admin-page .admin-card,
+  .admin-card,
+  [class*="admin-card"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Greeting text */
+  .admin-page .admin-greeting,
+  .admin-greeting,
+  [class*="admin-greeting"],
+  [class*="greeting"] {
+    font-size: 26px !important;
+    margin-bottom: 16px !important;
+  }
+}
+
+/* Even smaller screens */
+@media screen and (max-width: 480px) {
+  .admin-page .admin-dashboard,
+  .admin-dashboard,
+  [class*="admin-dashboard"] {
+    padding: 12px !important;
+    gap: 16px !important;
+  }
+
+  .admin-page .admin-greeting,
+  .admin-greeting {
+    font-size: 24px !important;
+  }
+
+  .admin-page .admin-card,
+  .admin-card {
+    padding: 20px 16px !important;
+    font-size: 16px !important;
+  }
+
+  .admin-page .alerts-card,
+  .alerts-card {
+    padding: 16px !important;
+  }
+
+  .admin-page .alerts-title,
+  .alerts-title {
+    font-size: 20px !important;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .admin-page .admin-dashboard,
+  .admin-dashboard {
+    padding: 10px !important;
+    gap: 14px !important;
+  }
+
+  .admin-page .admin-greeting,
+  .admin-greeting {
+    font-size: 22px !important;
+  }
+
+  .admin-page .admin-card,
+  .admin-card {
+    padding: 18px 14px !important;
+    font-size: 14px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* ===========================================
+   FORCE NAVBAR STACK ON MOBILE - ROUNDS PAGE
+   =========================================== */
+@media screen and (max-width: 768px) {
+  /* Target all possible navbar selectors */
+  .smg-navbar,
+  .rounds-navbar,
+  [class*="smg-navbar"],
+  [class*="rounds-nav"],
+  [class*="gold-bar"],
+  [class*="yellow-bar"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 12px !important;
+    margin: 12px !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Logo centered */
+  .smg-navbar .navbar-logo,
+  .smg-navbar .logo,
+  .smg-navbar img,
+  [class*="navbar-logo"],
+  [class*="smg-navbar"] img {
+    align-self: center !important;
+    margin-bottom: 8px !important;
+    width: 45px !important;
+    height: 45px !important;
+  }
+
+  /* Nav buttons full width */
+  .smg-navbar .nav-btn,
+  .smg-navbar button,
+  .smg-navbar a,
+  [class*="smg-navbar"] button,
+  [class*="smg-navbar"] a,
+  [class*="nav-btn"] {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+    display: block !important;
+  }
+
+  /* Rounds card header */
+  .rounds-card-header,
+  [class*="rounds-card-header"],
+  [class*="card-header"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  /* Rounds filters */
+  .rounds-filters,
+  [class*="rounds-filters"],
+  [class*="filter-group"] {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .rounds-filters .filter-btn,
+  [class*="filter-btn"] {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Page title */
+  .rounds-page h1,
+  .rounds-admin h1,
+  .rounds-title,
+  [class*="rounds-title"] {
+    font-size: 22px !important;
+    margin: 16px 12px !important;
+    text-align: center !important;
+  }
+
+  /* Rounds card margin */
+  .rounds-card,
+  [class*="rounds-card"]:not([class*="rounds-card-header"]) {
+    margin: 0 10px !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .smg-navbar,
+  [class*="smg-navbar"] {
+    margin: 10px !important;
+    padding: 10px !important;
+  }
+
+  .smg-navbar .nav-btn,
+  [class*="nav-btn"] {
+    font-size: 13px !important;
+    padding: 10px 14px !important;
+  }
+
+  .rounds-page h1,
+  .rounds-title {
+    font-size: 20px !important;
+  }
+
+  .rounds-card {
+    margin: 0 8px !important;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .smg-navbar {
+    margin: 8px !important;
+    padding: 8px !important;
+  }
+
+  .smg-navbar .nav-btn {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  .rounds-page h1,
+  .rounds-title {
+    font-size: 18px !important;
+  }
+}
+
+/* ===========================================
+   TABLE SCROLL CONTAINERS
+   =========================================== */
+@media screen and (max-width: 768px) {
+  .rounds-table-container,
+  .table-scroll,
+  [class*="table-container"],
+  [class*="table-scroll"],
+  [class*="table-wrapper"] {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .rounds-table,
+  .cargo-table,
+  .orders-table,
+  table {
+    min-width: 550px !important;
+  }
+}
+
+/* ===========================================
+   PREVENT HORIZONTAL OVERFLOW
+   =========================================== */
+@media screen and (max-width: 768px) {
+  .admin-page,
+  .rounds-page,
+  .rounds-admin,
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  * {
+    max-width: 100%;
+  }
+}
