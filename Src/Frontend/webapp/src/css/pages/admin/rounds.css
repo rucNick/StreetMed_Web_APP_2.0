@@ -1,6 +1,5 @@
 /* ===========================================
    Rounds Administration Page
-   Street Medicine Go
    Clean mobile-friendly design
    =========================================== */
 
@@ -64,6 +63,8 @@
   border-radius: 8px;
   transition: all 0.2s;
   white-space: nowrap;
+  display: inline-block;
+  box-sizing: border-box;
 }
 
 .nav-btn:hover {
@@ -103,6 +104,41 @@
 }
 
 /* ===========================================
+   ROUNDS STATS BAR
+   =========================================== */
+.rounds-stats-bar {
+  display: flex;
+  gap: 15px;
+  margin: 0 16px 20px;
+  padding: 15px 20px;
+  background-color: #1a2332;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.rounds-stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.rounds-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.rounds-stat-value.scheduled { color: #3b82f6; }
+.rounds-stat-value.in-progress { color: #f59e0b; }
+.rounds-stat-value.completed { color: #10b981; }
+.rounds-stat-value.cancelled { color: #ef4444; }
+
+.rounds-stat-label {
+  font-size: 12px;
+  color: #aaaaaa;
+  margin-top: 4px;
+}
+
+/* ===========================================
    MAIN SECTION CARD
    =========================================== */
 .rounds-section {
@@ -133,6 +169,12 @@
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .btn-group {
   display: flex;
   gap: 8px;
@@ -155,6 +197,27 @@
   color: #fff;
 }
 
+.refresh-btn {
+  background-color: #2196f3;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.refresh-btn:hover {
+  background-color: #1976d2;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ===========================================
    TABLE
    =========================================== */
@@ -168,6 +231,10 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 600px;
+}
+
+.rounds-table {
+  min-width: 800px;
 }
 
 .table-header-cell {
@@ -190,13 +257,33 @@
   background: #212c46;
 }
 
+.rounds-table-row:hover {
+  background-color: rgba(255,255,255,0.05) !important;
+}
+
 .table-cell {
   color: #ccc;
   font-size: 13px;
   padding: 12px 10px;
 }
 
-/* Status badges */
+/* Capacity Badge */
+.capacity-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.capacity-badge.orders {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+/* Status badges - Legacy */
 .status-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -210,6 +297,48 @@
 .status-in_progress { background: #f59e0b; color: #333; }
 .status-completed { background: #10b981; color: #fff; }
 .status-cancelled { background: #ef4444; color: #fff; }
+
+/* Status Badge - Rounds (new) */
+.status-badge-round {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  text-align: center;
+  min-width: 80px;
+}
+
+.status-badge-round.status-scheduled {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.status-badge-round.status-in-progress {
+  background-color: #f59e0b;
+  color: #333333;
+}
+
+.status-badge-round.status-completed {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.status-badge-round.status-cancelled {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.status-badge-round.status-pending {
+  background-color: rgba(245, 189, 70, 0.9);
+  color: #333333;
+}
+
+.status-badge-round.status-processing {
+  background-color: rgba(0, 174, 255, 0.8);
+  color: #ffffff;
+}
 
 /* Action buttons */
 .action-button {
@@ -247,6 +376,55 @@
   padding: 4px 10px;
   font-size: 11px;
   margin-right: 4px;
+}
+
+/* Action Buttons - New */
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn.submit {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.action-btn.submit:hover {
+  background-color: #059669;
+}
+
+.action-btn.cancel {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.action-btn.cancel:hover {
+  background-color: #dc2626;
+}
+
+.action-btn.edit {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.action-btn.edit:hover {
+  background-color: #2563eb;
+}
+
+.action-btn.small {
+  padding: 4px 10px;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.action-btn.confirm {
+  background-color: #10b981;
+  color: #ffffff;
 }
 
 /* ===========================================
@@ -322,7 +500,8 @@
   margin-top: 20px;
 }
 
-.form-actions .action-button {
+.form-actions .action-button,
+.form-actions .action-btn {
   flex: 1;
   padding: 12px;
 }
@@ -349,7 +528,7 @@
   background: #1a2332;
   border-radius: 16px;
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
@@ -366,7 +545,7 @@
 
 .modal-header h2 {
   color: #f6b800;
-  font-size: 20px;
+  font-size: 18px;
   margin: 0;
 }
 
@@ -431,6 +610,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  background-color: rgba(255,255,255,0.03);
+  padding: 12px;
+  border-radius: 8px;
 }
 
 .detail-item.full-width {
@@ -439,20 +621,22 @@
 
 .detail-label {
   color: #888;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .detail-value {
   color: #fff;
   font-size: 14px;
+  margin-top: 4px;
 }
 
 .detail-actions {
   grid-column: 1 / -1;
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 10px;
+  padding-top: 15px;
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -469,12 +653,39 @@
 /* Lottery section */
 .lottery-section {
   text-align: center;
-  padding: 20px;
+  padding: 30px;
 }
 
 .lottery-section p {
   color: #ccc;
   margin-bottom: 20px;
+}
+
+.lottery-result {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  color: #10b981;
+}
+
+/* Signup Status */
+.signup-status {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.signup-status.confirmed {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.signup-status.pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
 }
 
 /* Empty state */
@@ -484,52 +695,102 @@
   padding: 40px 20px;
 }
 
+/* Loading state */
+.loading-container {
+  padding: 40px;
+  text-align: center;
+  color: #aaaaaa;
+}
+
 /* Order summary */
 .order-summary {
   color: #fff;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  background-color: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+.order-summary strong {
+  color: #f6b800;
 }
 
 /* ===========================================
    MOBILE RESPONSIVE
    =========================================== */
 @media (max-width: 768px) {
-  /* Navbar stacks */
+  /* Navbar stacks - FIXED */
   .smg-navbar {
     flex-direction: column;
     align-items: stretch;
     padding: 12px;
     margin: 12px;
-    gap: 10px;
+    gap: 8px;
   }
 
   .navbar-left {
     justify-content: center;
+    margin-bottom: 8px;
   }
 
   .navbar-center {
+    display: flex;
     flex-direction: column;
     width: 100%;
+    gap: 6px;
   }
 
   .navbar-center .nav-btn {
     width: 100%;
     text-align: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 0;
+  }
+
+  .navbar-center .nav-btn.active {
+    background: #003295;
+    color: #fff;
+    width: 100%;
   }
 
   .navbar-right {
     width: 100%;
+    margin-top: 4px;
   }
 
   .navbar-right .nav-btn {
     width: 100%;
     text-align: center;
+    padding: 12px 16px;
   }
 
   /* Title */
   .rounds-title {
     font-size: 24px;
     margin: 20px 12px;
+  }
+
+  /* Stats Bar */
+  .rounds-stats-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 12px 16px;
+    padding: 12px 16px;
+    background-color: #1a2332 !important;
+  }
+
+  .rounds-stat-item {
+    flex: 1 1 30%;
+    min-width: 80px;
+  }
+
+  .rounds-stat-value {
+    font-size: 20px;
+  }
+
+  .rounds-stat-label {
+    font-size: 11px;
   }
 
   /* Section */
@@ -547,10 +808,22 @@
 
   .section-header h2 {
     text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
   }
 
   .btn-group {
     justify-content: center;
+    width: 100%;
+  }
+
+  .refresh-btn {
+    width: 100%;
   }
 
   /* Forms */
@@ -574,7 +847,7 @@
   }
 
   .modal-header h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .modal-tabs {
@@ -618,6 +891,24 @@
 
   .rounds-title {
     font-size: 20px;
+  }
+
+  .rounds-stats-bar {
+    margin: 0 10px 12px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .rounds-stat-item {
+    flex: 1 1 45%;
+  }
+
+  .rounds-stat-value {
+    font-size: 18px;
+  }
+
+  .rounds-stat-label {
+    font-size: 10px;
   }
 
   .rounds-section {
