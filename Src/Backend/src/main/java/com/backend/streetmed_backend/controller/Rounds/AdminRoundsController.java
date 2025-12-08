@@ -372,7 +372,8 @@ public class AdminRoundsController {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
                 }
 
-                List<Rounds> allRounds = roundsService.getAllRounds();
+                // Use the new method that includes counts
+                List<Map<String, Object>> allRounds = roundsService.getAllRoundsWithCounts();
 
                 Map<String, Object> response = new HashMap<>();
                 response.put(getStatus(), "success");
@@ -408,7 +409,8 @@ public class AdminRoundsController {
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
                 }
 
-                List<Rounds> upcomingRounds = roundsService.getUpcomingRounds();
+                // Use the new method that includes counts
+                List<Map<String, Object>> upcomingRounds = roundsService.getUpcomingRoundsWithCounts();
 
                 Map<String, Object> response = new HashMap<>();
                 response.put(getStatus(), "success");

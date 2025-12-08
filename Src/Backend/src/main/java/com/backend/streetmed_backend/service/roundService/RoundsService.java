@@ -153,13 +153,6 @@ public class RoundsService {
     }
 
     /**
-     * Get all scheduled rounds
-     */
-    public List<Rounds> getAllScheduledRounds() {
-        return roundsRepository.findByStatus("SCHEDULED");
-    }
-
-    /**
      * Get upcoming rounds (those with start time in the future)
      */
     public List<Rounds> getUpcomingRounds() {
@@ -394,6 +387,59 @@ public class RoundsService {
         }
 
         return signupsWithDetails;
+    }
+
+    // Add this method to RoundsService.java
+
+    /**
+     * Get all rounds with participant and order counts
+     */
+    public List<Map<String, Object>> getAllRoundsWithCounts() {
+        List<Rounds> rounds = roundsRepository.findAll();
+        return enrichRoundsWithCounts(rounds);
+    }
+
+    /**
+     * Get upcoming rounds with participant and order counts
+     */
+    public List<Map<String, Object>> getUpcomingRoundsWithCounts() {
+        List<Rounds> rounds = roundsRepository.findByStartTimeAfterAndStatusOrderByStartTimeAsc(
+                LocalDateTime.now(), "SCHEDULED");
+        return enrichRoundsWithCounts(rounds);
+    }
+
+    /**
+     * Helper method to enrich rounds with participant and order counts
+     */
+    private List<Map<String, Object>> enrichRoundsWithCounts(List<Rounds> rounds) {
+        List<Map<String, Object>> enrichedRounds = new java.util.ArrayList<>();
+
+        for (Rounds round : rounds) {
+            Map<String, Object> roundData = new HashMap<>();
+            roundData.put("roundId", round.getRoundId());
+            roundData.put("title", round.getTitle());
+            roundData.put("description", round.getDescription());
+            roundData.put("startTime", round.getStartTime());
+            roundData.put("endTime", round.getEndTime());
+            roundData.put("location", round.getLocation());
+            roundData.put("maxParticipants", round.getMaxParticipants());
+            roundData.put("orderCapacity", round.getOrderCapacity() != null ? round.getOrderCapacity() : 20);
+            roundData.put("status", round.getStatus());
+            roundData.put("createdAt", round.getCreatedAt());
+            roundData.put("updatedAt", round.getUpdatedAt());
+
+            // Add participant count
+            long confirmedParticipants = roundSignupRepository.countConfirmedVolunteersForRound(round.getRoundId());
+            roundData.put("currentParticipants", confirmedParticipants);
+
+            // Add order count
+            long orderCount = orderRepository.countByRoundId(round.getRoundId());
+            roundData.put("currentOrderCount", orderCount);
+
+            enrichedRounds.add(roundData);
+        }
+
+        return enrichedRounds;
     }
 
     public long getOrderCountForRound(Integer roundId) {
