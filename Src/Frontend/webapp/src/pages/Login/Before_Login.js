@@ -1,25 +1,44 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import '../../index.css'; 
 
 function Before_Login() {
   const navigate = useNavigate();
-
+  const [showSuppliesModal, setShowSuppliesModal] = useState(false);
 
   const handleGuestClick = (e) => {
     e.preventDefault();
+    setShowSuppliesModal(false);
     navigate("/guest");
   };
 
   const handleLoginClick = (e) => {
     e.preventDefault();
+    setShowSuppliesModal(false);
     navigate("/login");
   };
 
   const handleSignUpClick = (e) => {
     e.preventDefault();
+    setShowSuppliesModal(false);
     navigate("/register");
+  };
+
+  const handleRequestSuppliesClick = (e) => {
+    e.preventDefault();
+    setShowSuppliesModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowSuppliesModal(false);
+  };
+
+  // Close modal when clicking outside
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('supplies-modal-overlay')) {
+      setShowSuppliesModal(false);
+    }
   };
 
   // Your original mobile menu toggle logic
@@ -42,78 +61,17 @@ function Before_Login() {
 
   return (
     <div className="full-screen-wrapper">
-      
-      {/* <header className="site-header">
-        <div className="header-content">
-          <div className="logo-container">
-            <img
-              src="/Untitled.png"
-              alt="Pitt Street Medicine Logo"
-              className="logo"
-            />
-            <h1 className="site-title">Street Med Go</h1>
-          </div>
-          <div className="header-right">
-            <nav className="main-nav">
-              <ul className="nav-list">
-                <li className="nav-item">
-                  <button
-                    type="button"
-                    className="nav-link"
-                    onClick={handleVolunteerApplicationClick}
-                  >
-                    Volunteer Application
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button
-                    type="button"
-                    className="nav-link"
-                    onClick={handleGuestClick}
-                  >
-                    Guest
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button
-                    type="button"
-                    className="nav-link"
-                    onClick={handleLoginClick}
-                  >
-                    Login
-                  </button>
-                </li>
-                <li className="nav-item">
-                  <button
-                    type="button"
-                    className="nav-link"
-                    onClick={handleSignUpClick}
-                  >
-                    Sign up
-                  </button>
-                </li>
-              </ul>
-              <button className="mobile-menu-toggle" aria-label="Toggle menu">
-                <span className="menu-bar"></span>
-                <span className="menu-bar"></span>
-                <span className="menu-bar"></span>
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header> */}
-
       <main className="login-page-content">
         <div className="login-card">
           <img 
-              src="/Untitled.png" // The path to your logo image
+              src="/Untitled.png"
               alt="Street Med Go Logo" 
-              className="login-card-logo" // A new CSS class for styling
+              className="login-card-logo"
             />
           <h2 className="login-page-title">Street Med Go</h2>
           <p className="login-page-subtitle"></p>
 
-          <div className="button-row"> {/* <--- NEW: This is the container for the two buttons */}
+          <div className="button-row">
             <button className="login-option-btn primary-option" onClick={handleLoginClick}>
               Log In
             </button>
@@ -122,16 +80,44 @@ function Before_Login() {
             </button>
           </div>
 
-          {/* <div className="divider">or</div> */}
-          <button className="login-option-btn guest-option" onClick={handleGuestClick}>
-            Continue as Guest
-          </button>
           <div className="divider_bottom"> </div>
-            <button className="login-option-btn request-supplies-btn">
-              Request Supplies
-            </button>
+          <button className="login-option-btn guest-option" onClick={handleRequestSuppliesClick}>
+            Request Supplies
+          </button>
         </div>
       </main>
+
+      {/* Request Supplies Modal */}
+      {showSuppliesModal && (
+        <div className="supplies-modal-overlay" onClick={handleOverlayClick}>
+          <div className="supplies-modal">
+            <button className="supplies-modal-close" onClick={handleCloseModal}>
+              &times;
+            </button>
+            <h3 className="supplies-modal-title">Do you have an account?</h3>
+            <p className="supplies-modal-subtitle">
+              Log in or sign up to track your requests and get faster service.
+            </p>
+            
+            <div className="supplies-modal-buttons">
+              <button className="login-option-btn primary-option" onClick={handleLoginClick}>
+                Yes, Log In
+              </button>
+              <button className="login-option-btn secondary-option" onClick={handleSignUpClick}>
+                No, Sign Up
+              </button>
+            </div>
+            
+            <div className="supplies-modal-divider">
+              <span>or</span>
+            </div>
+            
+            <button className="login-option-btn guest-option" onClick={handleGuestClick}>
+              Continue as Guest
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
