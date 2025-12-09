@@ -602,9 +602,19 @@ public class AdminService {
         userInfo.put("email", user.getEmail());
         userInfo.put("phone", user.getPhone() != null ? user.getPhone() : "");
         userInfo.put("role", user.getRole());
+
+        // Add firstName and lastName from metadata
+        UserMetadata metadata = user.getMetadata();
+        if (metadata != null) {
+            userInfo.put("firstName", metadata.getFirstName() != null ? metadata.getFirstName() : "N/A");
+            userInfo.put("lastName", metadata.getLastName() != null ? metadata.getLastName() : "N/A");
+        } else {
+            userInfo.put("firstName", "N/A");
+            userInfo.put("lastName", "N/A");
+        }
+
         return userInfo;
     }
-
     private Map<String, Object> createDetailedUserInfoMap(User user) {
         Map<String, Object> userDetails = createUserInfoMap(user);
 

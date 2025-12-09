@@ -38,6 +38,14 @@ const AdminUsers = ({ userData }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Helper function to format display name
+  const formatDisplayName = (firstName, lastName) => {
+    const first = firstName && firstName !== 'N/A' ? firstName : '';
+    const last = lastName && lastName !== 'N/A' ? lastName : '';
+    const fullName = `${first} ${last}`.trim();
+    return fullName || 'N/A';
+  };
+
   const loadUsers = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -398,6 +406,7 @@ const AdminUsers = ({ userData }) => {
                   <tr>
                     <th>User ID</th>
                     <th>Username</th>
+                    <th>Name</th>
                     <th>Email</th>
                     <th>Role</th>
                     <th>Phone</th>
@@ -409,6 +418,7 @@ const AdminUsers = ({ userData }) => {
                     <tr key={user.userId || idx}>
                       <td>{user.userId || idx}</td>
                       <td>{user.username}</td>
+                      <td>{formatDisplayName(user.firstName, user.lastName)}</td>
                       <td>{user.email || 'N/A'}</td>
                       <td>{user.role}</td>
                       <td>{user.phone || 'N/A'}</td>
