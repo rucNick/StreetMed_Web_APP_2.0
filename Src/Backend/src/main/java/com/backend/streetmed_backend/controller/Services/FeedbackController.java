@@ -294,4 +294,53 @@ public class FeedbackController {
             }
         }, readOnlyExecutor);
     }
+
+
+    @Operation(summary = "Mark feedback as read",
+            description = "Mark a specific feedback as read (admin only)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Feedback marked as read"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized")
+    })
+    @PutMapping("/{id}/read")
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> markAsRead(
+            @Parameter(description = "ID of the feedback")
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> authData) { // Accepting auth data from Body to match Frontend
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String adminUsername = authData.get("adminUsername");
+                String authStatus = authData.get("authenticated");
+
+                // 1. Authenticate
+                if (!"true".equals(authStatus)) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(Map.of("status", "error", "message", "Not authenticated"));
+                }
+
+                User admin = userService.findByUsername(adminUsername);
+                if (admin == null || !"ADMIN".equals(admin.getRole())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("status", "error", "message", "Unauthorized access"));
+                }
+
+                // 2. Perform Action
+                Feedback updatedFeedback = feedbackService.markAsRead(id);
+
+                // 3. Response
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("message", "Feedback marked as read");
+                response.put("data", updatedFeedback);
+
+                return ResponseEntity.ok(response);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("status", "error", "message", e.getMessage()));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("status", "error", "message", e.getMessage()));
+            }
+        }, asyncExecutor);
+    }
 }

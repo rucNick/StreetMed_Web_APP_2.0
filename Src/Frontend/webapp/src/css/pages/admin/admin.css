@@ -22,7 +22,7 @@
    =========================================== */
 .admin-page .site-header,
 .admin-page .store-header {
-  background-color: #0f1c38;
+  background-color: hsl(221, 58%, 14%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 

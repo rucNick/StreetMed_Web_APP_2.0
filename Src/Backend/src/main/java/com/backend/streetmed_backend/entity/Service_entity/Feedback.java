@@ -22,6 +22,9 @@ public class Feedback {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_read")
+    private boolean isRead = false;
+
     // Default constructor
     public Feedback() {
         this.createdAt = LocalDateTime.now();
@@ -74,5 +77,13 @@ public class Feedback {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
     }
 }

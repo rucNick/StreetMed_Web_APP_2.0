@@ -54,6 +54,15 @@ public class FeedbackService {
         return feedbackRepository.findByCreatedAtBetween(start, end);
     }
 
+
+    public Feedback markAsRead(Integer id) {
+        Feedback feedback = feedbackRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Feedback not found with ID: " + id));
+
+        feedback.setIsRead(true);
+        return feedbackRepository.save(feedback);
+    }
+
     public void deleteFeedback(Integer id) {
         feedbackRepository.deleteById(id);
     }
