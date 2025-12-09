@@ -306,8 +306,6 @@ button[class*="profile"]:hover {
 .accordion-btn,
 .order-drawer-btn,
 .collapsible-btn,
-.store-content > div > div,
-.guest-content > div > div,
 .client-content > div > div {
   background-color: #1a2332 !important;
   border: 2px solid #3a5070 !important;

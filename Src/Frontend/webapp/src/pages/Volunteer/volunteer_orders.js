@@ -242,13 +242,24 @@ const VolunteerOrders = ({ userData }) => {
     return '#95a5a6';
   };
 
-  useEffect(() => {
-    if (activeTab === "PENDING") {
-      loadPendingOrders();
-    } else if (activeTab === "ASSIGNED") {
+useEffect(() => {
+  if (activeTab === "PENDING") {
+    loadPendingOrders();
+  } else if (activeTab === "ASSIGNED") {
+    loadMyAssignments();
+  }
+  
+  // Auto-refresh every 10 seconds when on ASSIGNED tab
+  const interval = setInterval(() => {
+    if (activeTab === "ASSIGNED") {
       loadMyAssignments();
+    } else if (activeTab === "PENDING") {
+      loadPendingOrders();
     }
-  }, [activeTab, loadPendingOrders, loadMyAssignments]);
+  }, 10000);
+  
+  return () => clearInterval(interval);
+}, [activeTab, loadPendingOrders, loadMyAssignments]);
 
   // ============================================
   // DARK THEME STYLES

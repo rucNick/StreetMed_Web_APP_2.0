@@ -15,6 +15,16 @@ const SIZE_OPTIONS = [
   { value: 'XXXL', label: 'XXXL', order: 7 }
 ];
 
+const CATEGORY_OPTIONS = [
+  "Clothes",
+  "Food",
+  "FirstAid",
+  "Hygiene",
+  "Bedding",
+  "Electronics",
+  "Other"
+];
+
 // Helper to get sort order for a size
 const getSizeOrder = (size) => {
   const sizeOption = SIZE_OPTIONS.find(opt => opt.value === size);
@@ -545,13 +555,20 @@ const Cargo_Admin = ({ userData }) => {
                   value={newItemData.description}
                   onChange={e => setNewItemData({ ...newItemData, description: e.target.value })}
                 />
-                <input
+                <select
                   className="cargo-input"
-                  placeholder="Category"
                   value={newItemData.category}
                   onChange={e => setNewItemData({ ...newItemData, category: e.target.value })}
-                />
-                
+                  style={{ backgroundColor: '#fff', color: '#000' }}
+                >
+                  <option value="" disabled>Select Category</option>
+                  {CATEGORY_OPTIONS.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                      
                 {newSizeEntries.length === 0 && (
                   <input
                     className="cargo-input"
@@ -658,12 +675,19 @@ const Cargo_Admin = ({ userData }) => {
                   value={updateItemData.description}
                   onChange={e => setUpdateItemData({ ...updateItemData, description: e.target.value })}
                 />
-                <input
+                <select
                   className="cargo-input"
-                  placeholder="Category"
                   value={updateItemData.category}
                   onChange={e => setUpdateItemData({ ...updateItemData, category: e.target.value })}
-                />
+                  style={{ backgroundColor: '#fff', color: '#000' }}
+                >
+                  <option value="">Select Category...</option>
+                  {CATEGORY_OPTIONS.map(cat => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
                 
                 {updateSizeEntries.length === 0 && (
                   <input

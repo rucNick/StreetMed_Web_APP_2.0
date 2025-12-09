@@ -352,8 +352,9 @@ input[type="radio"] {
 
 .cargo-sizes h4 {
   margin: 0 0 15px 0;
-  color: var(--text-on-dark);
+  color: #1a5c3a; /* Dark green text for visibility on light green background */
   font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
 }
 
 .cargo-size-entry {
@@ -361,6 +362,28 @@ input[type="radio"] {
   align-items: center;
   margin-bottom: 10px;
   gap: 10px;
+}
+
+.cargo-sizes .cargo-input,
+.cargo-sizes select.cargo-input,
+.cargo-sizes .size-select,
+.cargo-sizes .qty-input {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  border: 2px solid #2e7d4a !important;
+}
+
+.cargo-sizes .cargo-input:focus,
+.cargo-sizes select:focus {
+  border-color: #1a5c3a !important;
+  box-shadow: 0 0 0 2px rgba(46, 125, 74, 0.2) !important;
+}
+
+/* Select dropdown options */
+.cargo-sizes select option {
+  background-color: #ffffff;
+  color: #333333;
+  padding: 8px;
 }
 
 .size-input {

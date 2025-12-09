@@ -371,3 +371,46 @@ div[style*="background-color: rgb(232, 245, 233)"] {
   color: #4ade80 !important;
   border-left: 4px solid #27ae60 !important;
 }
+
+
+/* Corrected Drawer/Accordion Button Styles */
+.drawer-btn,
+.accordion-btn,
+.order-drawer-btn,
+.collapsible-btn {
+  background-color: #1a2332 !important;
+  border: 2px solid #3a5070 !important;
+  border-radius: 12px !important;
+  padding: 18px 24px !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.drawer-btn:hover,
+.accordion-btn:hover {
+  background-color: #2a3f5f !important;
+  border-color: #f6b800 !important;
+  transform: translateX(5px);
+}
+
+.drawer-btn span,
+.accordion-btn span {
+  color: #ffffff !important;
+}
+
+/* Icons inside the button */
+.drawer-btn svg,
+.drawer-btn span:first-child,
+.drawer-btn span:last-child {
+  color: #f6b800 !important;
+}
