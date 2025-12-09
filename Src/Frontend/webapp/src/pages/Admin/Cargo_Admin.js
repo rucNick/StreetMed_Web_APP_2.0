@@ -18,6 +18,7 @@ const SIZE_OPTIONS = [
 const CATEGORY_OPTIONS = [
   "Clothes",
   "Food",
+  "Beverage",
   "FirstAid",
   "Hygiene",
   "Bedding",

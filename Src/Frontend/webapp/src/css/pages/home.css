@@ -85,10 +85,86 @@
 }
 
 /* ===========================================
-   HOME ITEMS HEADER
+   ITEMS HEADER - Updated Layout
+   Removed justify-content: space-between
    =========================================== */
+.items-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
 .home-page .items-title {
   color: var(--text-primary);
+}
+
+/* ===========================================
+   CATEGORY FILTER BUTTONS
+   =========================================== */
+.category-filter-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.category-filter-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #3a5070;
+  background-color: #1a2332;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.category-filter-btn:hover {
+  border-color: var(--primary-gold);
+  background-color: #2a3f5f;
+}
+
+.category-filter-btn.active {
+  border: 2px solid var(--primary-gold);
+  background-color: var(--primary-gold);
+  color: var(--bg-dark-primary);
+}
+
+/* Light theme category filter buttons */
+.home-page .category-filter-container,
+.user-dashboard .category-filter-container {
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.home-page .category-filter-btn,
+.user-dashboard .category-filter-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-medium);
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.home-page .category-filter-btn:hover,
+.user-dashboard .category-filter-btn:hover {
+  border-color: var(--primary-blue);
+  background-color: var(--bg-light-blue);
+}
+
+.home-page .category-filter-btn.active,
+.user-dashboard .category-filter-btn.active {
+  border: 2px solid var(--primary-blue);
+  background-color: var(--primary-blue);
+  color: var(--text-on-dark);
 }
 
 /* ===========================================
@@ -184,6 +260,17 @@
 /* ===========================================
    HOME RESPONSIVE OVERRIDES
    =========================================== */
+@media (max-width: 768px) {
+  .category-filter-container {
+    gap: 8px;
+  }
+
+  .category-filter-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
 @media (max-width: 600px) {
   .home-page .dashboard-greeting {
     font-size: var(--font-size-2xl);
@@ -202,5 +289,27 @@
   .home-page .itemDetailImage {
     width: 220px;
     height: 220px;
+  }
+
+  .items-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .category-filter-container {
+    width: 100%;
+  }
+
+  .category-filter-btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 5px);
+    text-align: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .category-filter-btn {
+    min-width: 100%;
   }
 }

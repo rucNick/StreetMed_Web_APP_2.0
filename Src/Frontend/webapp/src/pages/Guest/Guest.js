@@ -335,34 +335,24 @@ const Guest = ({ onLogout }) => {
         {/* ---------- ITEM GRID SECTION ---------- */}
         {showItemGrid && (
             <div ref={itemsSectionRef} style={{ marginTop: 30, width: "100%" }}>
-              <div className="items-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Updated Header Layout - removed justify-content: space-between */}
+              <div className="items-header">
                 <h3 className="section-title">Available Items</h3>
                 <span
-                  className="custom-order-link"
-                  style={{ cursor: 'pointer', textDecoration: 'underline', color: '#3498db' }}
+                  className="custom-order-link items-miss-link"
                   onClick={() => setShowCustomItemModal(true)}
                 >
                   Can't find what you need? Add Custom Item
                 </span>
               </div>
 
-              {/* === CATEGORY FILTER BUTTONS === */}
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '15px', marginBottom: '20px' }}>
+              {/* === CATEGORY FILTER BUTTONS - Using CSS Classes === */}
+              <div className="category-filter-container">
                   {uniqueCategories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      style={{
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        border: selectedCategory === cat ? '2px solid #f6b800' : '1px solid #3a5070',
-                        backgroundColor: selectedCategory === cat ? '#f6b800' : '#1a2332',
-                        color: selectedCategory === cat ? '#0f1c38' : '#ffffff',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        transition: 'all 0.3s ease'
-                      }}
+                      className={`category-filter-btn ${selectedCategory === cat ? 'active' : ''}`}
                     >
                       {cat}
                     </button>
@@ -461,28 +451,89 @@ const Guest = ({ onLogout }) => {
       {/* ---------- CUSTOM ITEM MODAL ---------- */}
       {showCustomItemModal && (
         <div className="modal-overlay">
-          <div className="modal-content feedback-card">
-            <h2>Request Custom Item</h2>
+          <div className="modal-content" style={{
+            backgroundColor: '#1a2332',
+            padding: '30px',
+            borderRadius: '16px',
+            maxWidth: '450px',
+            width: '90%'
+          }}>
+            <h2 style={{color: '#fff', marginTop: 0, marginBottom: '20px', textAlign: 'center'}}>Request Custom Item</h2>
+            
             <div style={{marginBottom: '15px'}}>
-                <label>Item Name:</label>
+                <label style={{color: '#fff', display: 'block', marginBottom: '8px', fontWeight: '600'}}>Item Name:</label>
                 <input 
                     type="text" 
                     value={customItemName} 
                     onChange={e => setCustomItemName(e.target.value)}
                     placeholder="E.g. Extra thick blanket"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #3a5070',
+                      backgroundColor: '#fff',
+                      fontSize: '14px',
+                      boxSizing: 'border-box'
+                    }}
                 />
             </div>
-            <div style={{marginBottom: '15px'}}>
-                <label>Quantity:</label>
+            <div style={{marginBottom: '20px'}}>
+                <label style={{color: '#fff', display: 'block', marginBottom: '8px', fontWeight: '600'}}>Quantity:</label>
                 <input 
                     type="number" 
                     min="1"
                     value={customItemQuantity}
                     onChange={e => setCustomItemQuantity(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #3a5070',
+                      backgroundColor: '#fff',
+                      fontSize: '14px',
+                      boxSizing: 'border-box'
+                    }}
                 />
             </div>
-            <button className="feedback-submit-btn" onClick={handleAddCustomItemToCart}>Add to Cart</button>
-            <button className="feedback-cancel-btn" onClick={() => setShowCustomItemModal(false)}>Cancel</button>
+            
+            {/* Action Buttons */}
+            <div style={{display: 'flex', gap: '15px', marginTop: '25px', justifyContent: 'center'}}>
+              <button 
+                onClick={handleAddCustomItemToCart}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  backgroundColor: '#f6b800',
+                  color: '#0f1c38',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Add to Cart
+              </button>
+              <button 
+                onClick={() => setShowCustomItemModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  color: '#ccc',
+                  border: '2px solid #3a5070',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -491,13 +542,11 @@ const Guest = ({ onLogout }) => {
       {showCart && (
         <div className="modal-overlay">
           <div className="modal-content feedback-card" style={{maxWidth: '800px', width: '90%'}}>
-             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-                <h2 style={{margin:0}}>Your Cart</h2>
-                <button onClick={toggleCart} style={{background:'none', border:'none', color:'#fff', fontSize:'24px', cursor:'pointer'}}>×</button>
-             </div>
+             {/* Header */}
+             <h2 style={{margin: '0 0 20px 0', color: '#fff'}}>Your Cart</h2>
 
              <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
-                {/* Left Side: Items */}
+                {/* Items Section */}
                 <div style={{background: '#0f1c38', padding: '15px', borderRadius: '10px'}}>
                     <h3 style={{color: '#f6b800', marginTop:0}}>Items</h3>
                     {cart.length === 0 ? <p style={{color: '#ccc'}}>Cart is empty</p> : (
@@ -516,14 +565,14 @@ const Guest = ({ onLogout }) => {
                                         onChange={(e) => handleCartQuantityChange(i, e.target.value)}
                                         style={{width: '60px', padding: '5px', borderRadius: '4px'}}
                                     />
-                                    <button onClick={() => handleRemoveCartItem(i)} style={{color: '#ff6b6b', background: 'none', border: 'none', cursor: 'pointer'}}>Remove</button>
+                                    <button onClick={() => handleRemoveCartItem(i)} style={{color: '#ff6b6b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600'}}>Remove</button>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                {/* Right Side: Guest Details Form */}
+                {/* Delivery Details Form */}
                 <div style={{background: '#0f1c38', padding: '15px', borderRadius: '10px'}}>
                     <h3 style={{color: '#f6b800', marginTop:0}}>Delivery Details</h3>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
@@ -551,10 +600,53 @@ const Guest = ({ onLogout }) => {
                 </div>
              </div>
 
-             {cartError && <div style={{background: 'rgba(231,76,60,0.2)', color: '#ff6b6b', padding: '10px', marginTop: '15px', borderRadius: '5px'}}>{cartError}</div>}
-             {cartMessage && <div style={{background: 'rgba(39,174,96,0.2)', color: '#4ade80', padding: '10px', marginTop: '15px', borderRadius: '5px'}}>{cartMessage}</div>}
+             {/* Error/Success Messages */}
+             {cartError && <div style={{background: 'rgba(231,76,60,0.2)', color: '#ff6b6b', padding: '10px', marginTop: '15px', borderRadius: '5px', border: '1px solid #e74c3c'}}>{cartError}</div>}
+             {cartMessage && <div style={{background: 'rgba(39,174,96,0.2)', color: '#4ade80', padding: '10px', marginTop: '15px', borderRadius: '5px', border: '1px solid #27ae60'}}>{cartMessage}</div>}
 
-             <button className="feedback-submit-btn" onClick={handlePlaceOrder} style={{marginTop: '20px'}}>Place Order</button>
+             {/* Action Buttons - Place Order and Close together at bottom */}
+             <div style={{display: 'flex', gap: '15px', marginTop: '25px', justifyContent: 'center'}}>
+                <button 
+                    onClick={handlePlaceOrder} 
+                    style={{
+                        flex: 1,
+                        maxWidth: '200px',
+                        padding: '14px 28px',
+                        backgroundColor: '#f6b800',
+                        color: '#0f1c38',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#e5a800'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#f6b800'}
+                >
+                    Place Order
+                </button>
+                <button 
+                    onClick={toggleCart} 
+                    style={{
+                        flex: 1,
+                        maxWidth: '200px',
+                        padding: '14px 28px',
+                        backgroundColor: 'transparent',
+                        color: '#ccc',
+                        border: '2px solid #3a5070',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => {e.target.style.borderColor = '#ff6b6b'; e.target.style.color = '#ff6b6b';}}
+                    onMouseOut={(e) => {e.target.style.borderColor = '#3a5070'; e.target.style.color = '#ccc';}}
+                >
+                    Close
+                </button>
+             </div>
           </div>
         </div>
       )}

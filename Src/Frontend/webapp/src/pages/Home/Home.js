@@ -28,6 +28,9 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
+  
+  // ============== Category Filter State ==============
+  const [selectedCategory, setSelectedCategory] = useState("All");
   console.log("New Order and Cargo Items States initialized");
 
   // ============== Customize Item Related State ==============
@@ -37,6 +40,16 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
 
   // Initialize navigate hook for page navigation (Profile, Feedback, Order History)
   const navigate = useNavigate();
+
+  // ============== Derived: Unique Categories & Filtered Items ==============
+  const uniqueCategories = [
+    "All",
+    ...new Set(cargoItems.map(item => item.category).filter(Boolean))
+  ];
+  
+  const filteredItems = selectedCategory === "All"
+    ? cargoItems
+    : cargoItems.filter(item => item.category === selectedCategory);
 
   // Get auth token from storage
   const getAuthToken = () => {
@@ -58,6 +71,8 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
       const response = await publicAxios.get('/api/cargo/items');
       console.log("fetchCargoItems: Received response", response);
       setCargoItems(response.data);
+      // Reset category filter when fetching new items
+      setSelectedCategory("All");
     } catch (error) {
       console.error("Failed to fetch cargo items:", error);
       
@@ -398,31 +413,38 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
 
         {showNewOrder && (
           <div style={{ marginTop: 30, width: "100%" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div className="items-header">
-                <h3 className="items-title">Available Items</h3>
-                <span
-                  className="items-miss-link"
-                  onClick={handleOpenCustomItemModal}
-                >
-                  Didn't find items you want? Click here.
-                </span>
-              </div>
+            {/* Updated Header Layout - removed justify-content: space-between */}
+            <div className="items-header">
+              <h3 className="items-title">Available Items</h3>
+              <span
+                className="items-miss-link"
+                onClick={handleOpenCustomItemModal}
+              >
+                Didn't find items you want? Click here.
+              </span>
             </div>
 
-            <div className="itemGrid" style={{ marginTop: 12 }}>
+            {/* === CATEGORY FILTER BUTTONS === */}
+            <div className="category-filter-container">
+              {uniqueCategories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`category-filter-btn ${selectedCategory === cat ? 'active' : ''}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* === ITEMS GRID === */}
+            <div className="itemGrid">
               {isLoadingItems ? (
                 <p>Loading items...</p>
-              ) : cargoItems.length === 0 ? (
-                <p>No items found in cargo.</p>
+              ) : filteredItems.length === 0 ? (
+                <p>No items found in this category.</p>
               ) : (
-                cargoItems.map((item) => (
+                filteredItems.map((item) => (
                   <div
                     key={item.id}
                     className="itemCard"
@@ -459,36 +481,89 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
 
       {showItemDetailModal && selectedItem && (
         <div className="modalOverlay">
-          <div className="itemDetailContent">
+          <div style={{
+            backgroundColor: '#1a2332',
+            padding: '30px',
+            borderRadius: '16px',
+            maxWidth: '500px',
+            width: '90%',
+            textAlign: 'center'
+          }}>
+            {/* Item Name - Large centered title */}
+            <h2 style={{
+              color: '#fff',
+              fontSize: '28px',
+              fontWeight: '600',
+              margin: '0 0 20px 0'
+            }}>{selectedItem.name}</h2>
+
+            {/* Item Image */}
             {selectedItem.imageId ? (
-              <img
-                src={`${baseURL}/api/cargo/images/${selectedItem.imageId}`}
-                alt={selectedItem.name}
-                className="itemDetailImage"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;color:#666;height:100%;">No Image</div>';
-                }}
-              />
+              <div style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                padding: '15px',
+                marginBottom: '15px',
+                display: 'inline-block'
+              }}>
+                <img
+                  src={`${baseURL}/api/cargo/images/${selectedItem.imageId}`}
+                  alt={selectedItem.name}
+                  style={{
+                    maxWidth: '250px',
+                    maxHeight: '200px',
+                    objectFit: 'contain',
+                    display: 'block'
+                  }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
             ) : (
-              <div className="itemDetailImage" style={{ display:'flex',alignItems:'center',justifyContent:'center',color:'#666' }}>
+              <div style={{
+                backgroundColor: '#fff',
+                borderRadius: '12px',
+                padding: '40px',
+                marginBottom: '15px',
+                display: 'inline-block',
+                color: '#666'
+              }}>
                 No Image
               </div>
             )}
 
-            <h3 className="detail-title">{selectedItem.name}</h3>
-            <p className="detail-desc">{selectedItem.description}</p>
-            <p className="detail-meta">
-              Category: {selectedItem.category || "N/A"}
-            </p>
+            {/* Description */}
+            <p style={{
+              color: '#9ca3af',
+              fontSize: '16px',
+              margin: '0 0 20px 0'
+            }}>{selectedItem.description}</p>
 
+            {/* Size Selector (if applicable) */}
             {selectedItem.sizeQuantities &&
               Object.keys(selectedItem.sizeQuantities).length > 0 && (
-                <div className="detail-row">
-                  <label>Size:</label>
+                <div style={{ marginBottom: '15px', textAlign: 'left' }}>
+                  <label style={{
+                    color: '#fff',
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    fontSize: '16px'
+                  }}>Size:</label>
                   <select
                     value={selectedSize}
                     onChange={(e) => setSelectedSize(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: '#fff',
+                      fontSize: '16px',
+                      boxSizing: 'border-box'
+                    }}
                   >
                     {Object.entries(selectedItem.sizeQuantities).map(([s, q]) => (
                       <option key={s} value={s}>
@@ -499,21 +574,66 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                 </div>
               )}
 
-            <div className="detail-row">
-              <label>Quantity:</label>
+            {/* Quantity Input */}
+            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+              <label style={{
+                color: '#fff',
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '600',
+                fontSize: '16px'
+              }}>Quantity:</label>
               <input
                 type="number"
                 min="1"
                 value={selectedQuantity}
                 onChange={(e) => setSelectedQuantity(Number(e.target.value))}
-                style={{ width: 80 }}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#fff',
+                  fontSize: '16px',
+                  boxSizing: 'border-box'
+                }}
               />
             </div>
 
-            <button className="add-btn" onClick={handleAddSelectedItemToCart}>
+            {/* Add to Cart Button - Blue full width */}
+            <button 
+              onClick={handleAddSelectedItemToCart}
+              style={{
+                width: '100%',
+                padding: '16px',
+                backgroundColor: '#1e5aa8',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '18px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                marginBottom: '15px',
+                transition: 'background-color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#1a4f94'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#1e5aa8'}
+            >
               Add to Cart
             </button>
-            <button className="cancel-btn" onClick={closeItemDetailModal}>
+
+            {/* Cancel - Gray text button */}
+            <button 
+              onClick={closeItemDetailModal}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#9ca3af',
+                fontSize: '16px',
+                cursor: 'pointer',
+                padding: '10px'
+              }}
+            >
               Cancel
             </button>
           </div>
@@ -522,153 +642,270 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
 
       {showCustomItemModal && (
         <div className="modalOverlay">
-          <div className="modalContent">
-            <h3>Add a custom item</h3>
+          <div className="modalContent" style={{
+            backgroundColor: '#1a2332',
+            padding: '30px',
+            borderRadius: '16px',
+            maxWidth: '450px',
+            width: '90%'
+          }}>
+            <h3 style={{color: '#fff', marginTop: 0, marginBottom: '20px', textAlign: 'center'}}>Add a custom item</h3>
 
-            <div className="formGroup">
-              <label>Item Name:</label>
+            <div className="formGroup" style={{marginBottom: '15px'}}>
+              <label style={{color: '#fff', display: 'block', marginBottom: '8px', fontWeight: '600'}}>Item Name:</label>
               <input
                 type="text"
                 value={customItemName}
                 onChange={(e) => setCustomItemName(e.target.value)}
-                className="input"
+                placeholder="E.g. Extra thick blanket"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #3a5070',
+                  backgroundColor: '#fff',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
               />
             </div>
 
-            <div className="formGroup">
-              <label>Quantity:</label>
+            <div className="formGroup" style={{marginBottom: '20px'}}>
+              <label style={{color: '#fff', display: 'block', marginBottom: '8px', fontWeight: '600'}}>Quantity:</label>
               <input
                 type="number"
                 min="1"
                 value={customItemQuantity}
                 onChange={(e) => setCustomItemQuantity(e.target.value)}
-                className="input"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid #3a5070',
+                  backgroundColor: '#fff',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+                }}
               />
             </div>
 
-            <button className="button" onClick={handleAddCustomItemToCart}>
-              Add to Cart
-            </button>
-            <button className="cancelButton" onClick={() => setShowCustomItemModal(false)}>
-              Cancel
-            </button>
+            {/* Action Buttons */}
+            <div style={{display: 'flex', gap: '15px', marginTop: '25px', justifyContent: 'center'}}>
+              <button 
+                onClick={handleAddCustomItemToCart}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  backgroundColor: '#f6b800',
+                  color: '#0f1c38',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Add to Cart
+              </button>
+              <button 
+                onClick={() => setShowCustomItemModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  backgroundColor: 'transparent',
+                  color: '#ccc',
+                  border: '2px solid #3a5070',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {showCart && (
         <div className="modalOverlay">
-          <div className="cartContent">
-            <button className="cartClose" onClick={toggleCart}>
-              ×
-            </button>
-            <div className="cartLeft">
-              <h3>Cart</h3>
-              {cart.length === 0 ? (
-                <p>No items in cart.</p>
-              ) : (
-                cart.map((c, i) => (
-                  <div key={i} className="cartItem">
-                    {c.imageId ? (
-                      <img
-                        src={`${baseURL}/api/cargo/images/${c.imageId}`}
-                        alt={c.name}
-                        className="cartItemImage"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.style.display = 'none';
-                          e.target.parentElement.innerHTML += '<div class="cartItemImagePlaceholder"></div>';
-                        }}
-                      />
-                    ) : (
-                      <div className="cartItemImagePlaceholder" />
-                    )}
-                    <div className="cartItemInfo">
-                      <h4>{c.name}</h4>
-                      {c.description && <p>{c.description}</p>}
-                      {c.category && (
-                        <p style={{ fontSize: 12, color: "#999" }}>
-                          {c.category}
-                        </p>
+          <div className="cartContent" style={{
+            backgroundColor: '#1a2332',
+            borderRadius: '16px',
+            padding: '30px',
+            maxWidth: '900px',
+            width: '90%',
+            maxHeight: '85vh',
+            overflow: 'auto'
+          }}>
+            {/* Header */}
+            <h2 style={{color: '#fff', margin: '0 0 20px 0'}}>Your Cart</h2>
+            
+            <div style={{display: 'flex', gap: '20px', flexWrap: 'wrap'}}>
+              {/* Left Side: Cart Items */}
+              <div style={{flex: '2', minWidth: '300px', background: '#0f1c38', padding: '20px', borderRadius: '12px'}}>
+                <h3 style={{color: '#f6b800', marginTop: 0}}>Items</h3>
+                {cart.length === 0 ? (
+                  <p style={{color: '#ccc'}}>No items in cart.</p>
+                ) : (
+                  cart.map((c, i) => (
+                    <div key={i} style={{
+                      borderBottom: '1px solid #333',
+                      padding: '15px 0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '15px'
+                    }}>
+                      {c.imageId ? (
+                        <img
+                          src={`${baseURL}/api/cargo/images/${c.imageId}`}
+                          alt={c.name}
+                          style={{width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', background: '#fff'}}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div style={{width: '60px', height: '60px', borderRadius: '8px', background: '#333'}} />
                       )}
+                      <div style={{flex: 1}}>
+                        <h4 style={{color: '#fff', margin: '0 0 5px 0', fontSize: '16px'}}>{c.displayName || c.name}</h4>
+                        {c.category && (
+                          <p style={{fontSize: '12px', color: '#999', margin: 0}}>{c.category}</p>
+                        )}
+                      </div>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                        <input
+                          type="number"
+                          min="0"
+                          value={c.quantity}
+                          onChange={(e) => handleCartQuantityChange(i, e.target.value)}
+                          disabled={isPlacingOrder}
+                          style={{width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid #3a5070', textAlign: 'center'}}
+                        />
+                        <button
+                          onClick={() => handleRemoveCartItem(i)}
+                          disabled={isPlacingOrder}
+                          style={{color: '#ff6b6b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600'}}
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
-                    <div className="amountSection">
-                      <span>Amount</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={c.quantity}
-                        onChange={(e) =>
-                          handleCartQuantityChange(i, e.target.value)
-                        }
-                        disabled={isPlacingOrder}
-                      />
-                    </div>
-                    <button
-                      className="removeButton"
-                      onClick={() => handleRemoveCartItem(i)}
-                      disabled={isPlacingOrder}
-                    >
-                      Remove
-                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Right Side: Order Details */}
+              <div style={{flex: '1', minWidth: '280px', background: '#0f1c38', padding: '20px', borderRadius: '12px'}}>
+                <h3 style={{color: '#f6b800', marginTop: 0}}>Order Details</h3>
+                
+                {/* Overview List */}
+                {cart.length > 0 && (
+                  <div style={{marginBottom: '20px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px'}}>
+                    <p style={{color: '#aaa', fontSize: '13px', margin: '0 0 8px 0'}}>Summary:</p>
+                    <ul style={{listStyle: 'disc', paddingLeft: '20px', margin: 0}}>
+                      {cart.map((c, idx) => (
+                        <li key={idx} style={{color: '#fff', fontSize: '14px', marginBottom: '4px'}}>
+                          {c.displayName || c.name} × {c.quantity}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ))
-              )}
+                )}
+
+                <div style={{marginBottom: '15px'}}>
+                  <label style={{color: '#fff', display: 'block', marginBottom: '6px', fontWeight: '600'}}>Delivery Address*</label>
+                  <input
+                    type="text"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    disabled={isPlacingOrder}
+                    style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #3a5070', boxSizing: 'border-box'}}
+                  />
+                </div>
+
+                <div style={{marginBottom: '15px'}}>
+                  <label style={{color: '#fff', display: 'block', marginBottom: '6px', fontWeight: '600'}}>Phone Number*</label>
+                  <input
+                    type="text"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    disabled={isPlacingOrder}
+                    style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #3a5070', boxSizing: 'border-box'}}
+                  />
+                </div>
+
+                <div style={{marginBottom: '15px'}}>
+                  <label style={{color: '#fff', display: 'block', marginBottom: '6px', fontWeight: '600'}}>Notes*</label>
+                  <input
+                    type="text"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    disabled={isPlacingOrder}
+                    style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #3a5070', boxSizing: 'border-box'}}
+                  />
+                </div>
+
+                {/* Error/Success Messages */}
+                {cartError && (
+                  <div style={{background: 'rgba(231,76,60,0.2)', color: '#ff6b6b', padding: '10px', marginBottom: '15px', borderRadius: '6px', border: '1px solid #e74c3c', fontSize: '14px'}}>
+                    {cartError}
+                  </div>
+                )}
+                {cartMessage && (
+                  <div style={{background: 'rgba(39,174,96,0.2)', color: '#4ade80', padding: '10px', marginBottom: '15px', borderRadius: '6px', border: '1px solid #27ae60', fontSize: '14px'}}>
+                    {cartMessage}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="cartRight">
-              <h3>Overview</h3>
-              <ul className="overviewList">
-                {cart.map((c, idx) => (
-                  <li key={idx}>
-                    {c.name} x{c.quantity}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="formGroup">
-                <label>Delivery Address:</label>
-                <input
-                  type="text"
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="input"
-                  disabled={isPlacingOrder}
-                />
-              </div>
-
-              <div className="formGroup">
-                <label>Phone Number:</label>
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="input"
-                  disabled={isPlacingOrder}
-                />
-              </div>
-
-              <div className="formGroup">
-                <label>Notes:</label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="input"
-                  disabled={isPlacingOrder}
-                />
-              </div>
-
-              {cartError && <p className="errorText">{cartError}</p>}
-              {cartMessage && <p className="successText">{cartMessage}</p>}
-
+            {/* Action Buttons - Place Order and Close together at bottom */}
+            <div style={{display: 'flex', gap: '15px', marginTop: '25px', justifyContent: 'center'}}>
               <button 
-                className="placeOrderButton" 
                 onClick={handlePlaceOrder}
                 disabled={isPlacingOrder}
-                style={{ opacity: isPlacingOrder ? 0.6 : 1 }}
+                style={{
+                  flex: 1,
+                  maxWidth: '200px',
+                  padding: '14px 28px',
+                  backgroundColor: isPlacingOrder ? '#8a7a00' : '#f6b800',
+                  color: '#0f1c38',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  cursor: isPlacingOrder ? 'not-allowed' : 'pointer',
+                  opacity: isPlacingOrder ? 0.7 : 1,
+                  transition: 'all 0.3s ease'
+                }}
               >
                 {isPlacingOrder ? "Placing Order..." : "Place Order"}
+              </button>
+              <button 
+                onClick={toggleCart}
+                disabled={isPlacingOrder}
+                style={{
+                  flex: 1,
+                  maxWidth: '200px',
+                  padding: '14px 28px',
+                  backgroundColor: 'transparent',
+                  color: '#ccc',
+                  border: '2px solid #3a5070',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Close
               </button>
             </div>
           </div>
