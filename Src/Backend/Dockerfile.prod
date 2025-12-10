@@ -1,0 +1,16 @@
+# Cloud Run Production Dockerfile
+
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Copy the JAR built by Maven
+COPY target/*.jar app.jar
+
+# Cloud Run expects port 8080
+EXPOSE 8080
+
+ENV PORT=8080
+
+# Run with production profile
+ENTRYPOINT ["sh", "-c", "exec java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dserver.port=${PORT} -Dserver.address=0.0.0.0 -Dspring.profiles.active=prod -jar /app/app.jar"]
