@@ -1,0 +1,183 @@
+name: Backend CI/CD for Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/Backend/**'
+      - 'Src/Backend/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/Backend/**'
+      - 'Src/Backend/**'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: streetmedgo
+  SERVICE_NAME: streetmed-backend
+  REGION: us-central1
+  # Cloud SQL instance connection name format: project:region:instance
+  CLOUD_SQL_INSTANCE: streetmedgo:us-central1:streetmed
+  ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
+  REPOSITORY: streetmedgo-repo
+  SERVICE_ACCOUNT: github-actions@streetmedgo.iam.gserviceaccount.com
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+        
+      - name: Build with Maven
+        run: |
+          # Handle both case variations of the path
+          if [ -d "src/Backend" ]; then
+            cd src/Backend && mvn clean package -DskipTests
+          elif [ -d "Src/Backend" ]; then
+            cd Src/Backend && mvn clean package -DskipTests
+          else
+            echo "Backend directory not found"
+            exit 1
+          fi
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Find Backend Directory
+        id: find-backend
+        run: |
+          if [ -d "src/Backend" ]; then
+            echo "backend_dir=src/Backend" >> $GITHUB_OUTPUT
+          elif [ -d "Src/Backend" ]; then
+            echo "backend_dir=Src/Backend" >> $GITHUB_OUTPUT
+          else
+            echo "Backend directory not found"
+            exit 1
+          fi
+        
+      - name: Build with Maven
+        run: cd ${{ steps.find-backend.outputs.backend_dir }} && mvn clean package -DskipTests
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.ARTIFACT_REGISTRY }}
+          
+      - name: Build and Push Docker image
+        run: |
+          cd ${{ steps.find-backend.outputs.backend_dir }}
+          
+          # Create Cloud Run optimized Dockerfile
+          cat > Dockerfile.cloudrun << 'EOF'
+          # Cloud Run Production Dockerfile
+          # Cloud Run handles TLS termination, so we run HTTP internally on port 8080
+          
+          FROM eclipse-temurin:21-jre-alpine
+          
+          WORKDIR /app
+          
+          # Copy the JAR built by Maven
+          COPY target/*.jar app.jar
+          
+          # Cloud Run expects port 8080
+          EXPOSE 8080
+          
+          ENV PORT=8080
+          
+          # Health check endpoint
+          HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+            CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+          
+          # Run with production profile
+          ENTRYPOINT ["sh", "-c", "exec java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dserver.port=${PORT} -Dserver.address=0.0.0.0 -Dspring.profiles.active=prod -jar /app/app.jar"]
+          EOF
+          
+          # Build image path
+          IMAGE_PATH="${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}"
+          
+          # Build with buildx for linux/amd64
+          docker buildx create --use --name cloudrun-builder || true
+          docker buildx build \
+            --platform linux/amd64 \
+            --load \
+            -f Dockerfile.cloudrun \
+            -t ${IMAGE_PATH}:${{ github.sha }} \
+            -t ${IMAGE_PATH}:latest \
+            .
+          
+          # Push images
+          docker push ${IMAGE_PATH}:${{ github.sha }}
+          docker push ${IMAGE_PATH}:latest
+          
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --add-cloudsql-instances ${{ env.CLOUD_SQL_INSTANCE }} \
+            --min-instances=1 \
+            --max-instances=10 \
+            --no-cpu-throttling \
+            --cpu=1 \
+            --memory=1Gi \
+            --port=8080 \
+            --timeout=600s \
+            --cpu-boost \
+            --service-account=${{ env.SERVICE_ACCOUNT }} \
+            --set-env-vars="CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" \
+            --set-env-vars="CLOUD_SQL_INSTANCE=${{ env.CLOUD_SQL_INSTANCE }}" \
+            --set-env-vars="MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" \
+            --set-env-vars="MYSQL_USER=${{ secrets.MYSQL_USER }}" \
+            --set-env-vars="MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" \
+            --set-env-vars="MONGODB_URI=${{ secrets.MONGODB_URI }}" \
+            --set-env-vars="MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }}" \
+            --set-env-vars="MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" \
+            --set-env-vars="MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" \
+            --set-env-vars="CLIENT_AUTH_KEY=${{ secrets.CLIENT_AUTH_KEY }}" \
+            --allow-unauthenticated
+          
+      - name: Get Backend URL
+        run: |
+          BACKEND_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "=============================================="
+          echo "✅ Backend deployed successfully!"
+          echo "=============================================="
+          echo "Backend URL: $BACKEND_URL"
+          echo "Health Check: ${BACKEND_URL}/health"
+          echo "=============================================="
