@@ -1,176 +1,218 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
 import './CertificateHelper.css';
 
-const CertificateHelper = () => {
-  const [showHelper, setShowHelper] = useState(false);
-  const [tlsStatus, setTlsStatus] = useState(null);
-  const [isChecking, setIsChecking] = useState(false);
+/**
+ * CertificateHelper - Handles self-signed certificate acceptance inline
+ * Uses an iframe to let users accept the certificate without leaving the page
+ */
+const CertificateHelper = ({ onCertificateAccepted }) => {
+  const [status, setStatus] = useState('checking'); // 'checking' | 'needs-acceptance' | 'accepting' | 'accepted' | 'hidden'
+  const [showIframe, setShowIframe] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   
-  useEffect(() => {
-    if (process.env.REACT_APP_ENVIRONMENT === 'development' && 
-        process.env.REACT_APP_USE_TLS === 'true') {
-      checkTLSConnection();
-    }
-    
-    // Listen for certificate errors from axios
-    const handleCertError = (event) => {
-      console.log('Certificate error event received:', event.detail);
-      setShowHelper(true);
-    };
-    
-    window.addEventListener('certificate-error', handleCertError);
-    
-    return () => {
-      window.removeEventListener('certificate-error', handleCertError);
-    };
-  }, []);
+  const certCheckUrl = process.env.REACT_APP_CERT_CHECK_URL || 
+                       'https://localhost:8443/api/test/tls/status';
   
-  const checkTLSConnection = async () => {
-    setIsChecking(true);
+  const checkTLSConnection = useCallback(async () => {
     try {
-      const certCheckUrl = process.env.REACT_APP_CERT_CHECK_URL || 
-                          'https://localhost:8443/api/test/tls/status';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      const response = await axios.get(certCheckUrl, {
-        timeout: 5000,
-        validateStatus: () => true // Accept any status code
+      const response = await fetch(certCheckUrl, {
+        method: 'GET',
+        signal: controller.signal,
+        mode: 'cors',
+        credentials: 'include'
       });
       
-      if (response.status === 200) {
-        setTlsStatus(response.data);
-        setShowHelper(false);
-        console.log('TLS connection successful:', response.data);
-      } else {
-        setShowHelper(true);
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        console.log('TLS connection successful');
+        setStatus('accepted');
+        onCertificateAccepted?.();
+        return true;
       }
     } catch (error) {
-      console.error('TLS connection check failed:', error);
-      
-      if (error.code === 'ERR_CERT_AUTHORITY_INVALID' || 
-          error.code === 'ECONNREFUSED' ||
-          error.message?.includes('self signed certificate') ||
-          error.message?.includes('Network Error')) {
-        setShowHelper(true);
+      console.log('TLS check failed:', error.message);
+      // Certificate not accepted or server not reachable
+      if (error.name === 'AbortError') {
+        console.log('TLS check timed out');
       }
-    } finally {
-      setIsChecking(false);
     }
-  };
+    return false;
+  }, [certCheckUrl, onCertificateAccepted]);
   
-  const acceptCertificate = () => {
-    const certUrl = process.env.REACT_APP_CERT_CHECK_URL || 
-                   'https://localhost:8443/api/test/tls/status';
-    
-    // Open in new tab to accept certificate
-    const newWindow = window.open(certUrl, '_blank');
-    
-    // Show instructions
-    alert(
-      'A new tab has been opened.\n\n' +
-      '1. You may see a security warning - this is expected for local development\n' +
-      '2. Click "Advanced" or "Show Details"\n' +
-      '3. Click "Proceed to localhost (unsafe)" or "Accept the Risk and Continue"\n' +
-      '4. Once you see the TLS status page, close that tab and click "Check Connection" here'
-    );
-    
-    // Focus back on the original window
-    if (newWindow) {
-      setTimeout(() => {
-        window.focus();
-      }, 100);
+  useEffect(() => {
+    // Only run in development with TLS enabled
+    if (process.env.REACT_APP_ENVIRONMENT !== 'development' || 
+        process.env.REACT_APP_USE_TLS !== 'true') {
+      setStatus('hidden');
+      return;
     }
     
-    setRetryCount(retryCount + 1);
+    // Check if already dismissed this session
+    if (sessionStorage.getItem('tls-cert-accepted') === 'true') {
+      setStatus('hidden');
+      return;
+    }
+    
+    checkTLSConnection().then(success => {
+      if (!success) {
+        setStatus('needs-acceptance');
+      }
+    });
+  }, [checkTLSConnection]);
+  
+  // Poll for certificate acceptance when iframe is shown
+  useEffect(() => {
+    if (!showIframe) return;
+    
+    const pollInterval = setInterval(async () => {
+      const success = await checkTLSConnection();
+      if (success) {
+        setShowIframe(false);
+        sessionStorage.setItem('tls-cert-accepted', 'true');
+        clearInterval(pollInterval);
+      }
+    }, 2000);
+    
+    return () => clearInterval(pollInterval);
+  }, [showIframe, checkTLSConnection]);
+  
+  const handleAcceptCertificate = () => {
+    setStatus('accepting');
+    setShowIframe(true);
+    setRetryCount(prev => prev + 1);
   };
   
-  const handleRecheck = () => {
-    setShowHelper(false);
-    setTimeout(() => {
-      checkTLSConnection();
-    }, 500);
+  const handleIframeLoad = () => {
+    // The iframe loaded - certificate might be accepted now
+    // We'll verify with the polling mechanism
+    console.log('Certificate iframe loaded');
   };
   
-  const dismissHelper = () => {
-    setShowHelper(false);
-    // Store dismissal in session storage
+  const handleDismiss = () => {
+    setStatus('hidden');
     sessionStorage.setItem('tls-helper-dismissed', 'true');
   };
   
-  // Don't show in production or if dismissed
-  if (process.env.REACT_APP_ENVIRONMENT !== 'development' || 
-      sessionStorage.getItem('tls-helper-dismissed') === 'true') {
+  const handleRetryCheck = async () => {
+    setStatus('checking');
+    const success = await checkTLSConnection();
+    if (!success) {
+      setStatus('needs-acceptance');
+    }
+  };
+  
+  // Don't render in production or if hidden
+  if (status === 'hidden' || status === 'accepted') {
     return null;
   }
   
-  if (!showHelper) return null;
-  
   return (
-    <div className="certificate-helper">
-      <div className="certificate-helper-content">
-        <div className="certificate-helper-icon">⚠️</div>
+    <div className="certificate-helper-overlay">
+      <div className="certificate-helper-modal">
+        {/* Header */}
+        <div className="cert-modal-header">
+          <div className="cert-modal-icon">🔐</div>
+          <h2>Secure Connection Setup</h2>
+        </div>
         
-        <div className="certificate-helper-text">
-          <h3>Secure Connection Setup Required</h3>
-          <p>
-            Your backend is using HTTPS with a self-signed certificate. 
-            This is normal for local development but requires one-time acceptance.
-          </p>
-          
-          {tlsStatus && (
-            <div className="tls-status">
-              <strong>Current Status:</strong> {tlsStatus.message || 'Unknown'}
+        {/* Content based on status */}
+        {status === 'checking' && (
+          <div className="cert-modal-content">
+            <div className="cert-spinner"></div>
+            <p>Checking secure connection...</p>
+          </div>
+        )}
+        
+        {status === 'needs-acceptance' && !showIframe && (
+          <div className="cert-modal-content">
+            <p className="cert-description">
+              This application uses HTTPS with a development certificate. 
+              Your browser needs to trust this certificate to establish a secure connection.
+            </p>
+            
+            <div className="cert-steps">
+              <div className="cert-step">
+                <span className="step-number">1</span>
+                <span>Click the button below to load the certificate</span>
+              </div>
+              <div className="cert-step">
+                <span className="step-number">2</span>
+                <span>In the frame, click "Advanced" → "Proceed to localhost"</span>
+              </div>
+              <div className="cert-step">
+                <span className="step-number">3</span>
+                <span>The app will automatically continue once accepted</span>
+              </div>
             </div>
-          )}
-        </div>
-        
-        <div className="certificate-helper-actions">
-          <button 
-            onClick={acceptCertificate}
-            className="cert-button cert-button-primary"
-            disabled={isChecking}
-          >
-            Accept Certificate
-          </button>
-          
-          <button 
-            onClick={handleRecheck}
-            className="cert-button cert-button-secondary"
-            disabled={isChecking}
-          >
-            {isChecking ? 'Checking...' : 'Check Connection'}
-          </button>
-          
-          <button 
-            onClick={dismissHelper}
-            className="cert-button cert-button-text"
-          >
-            Dismiss
-          </button>
-        </div>
-        
-        {retryCount > 0 && (
-          <div className="certificate-helper-hint">
-            <p>
-              <strong>Still seeing this message?</strong> Make sure you:
-            </p>
-            <ol>
-              <li>Accepted the certificate in the new tab</li>
-              <li>The backend server is running on port 8443</li>
-              <li>Clicked "Check Connection" after accepting</li>
-            </ol>
-            <p>
-              Alternative: Visit{' '}
-              <a 
-                href="https://localhost:8443" 
-                target="_blank" 
-                rel="noopener noreferrer"
+            
+            <div className="cert-modal-actions">
+              <button 
+                className="cert-btn cert-btn-primary"
+                onClick={handleAcceptCertificate}
               >
-                https://localhost:8443
-              </a>{' '}
-              directly and accept the certificate.
+                Accept Certificate
+              </button>
+              <button 
+                className="cert-btn cert-btn-secondary"
+                onClick={handleDismiss}
+              >
+                Skip (Limited Functionality)
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {(status === 'accepting' || showIframe) && (
+          <div className="cert-modal-content">
+            <p className="cert-iframe-instruction">
+              <strong>Accept the certificate in the frame below:</strong>
+              <br />
+              Click "Advanced" → "Proceed to localhost (unsafe)"
             </p>
+            
+            <div className="cert-iframe-container">
+              <iframe
+                src={certCheckUrl.replace('/status', '/cert-test')}
+                title="Certificate Acceptance"
+                onLoad={handleIframeLoad}
+                className="cert-iframe"
+              />
+            </div>
+            
+            <div className="cert-iframe-help">
+              <p>
+                <strong>Don't see the security warning?</strong> The certificate may already be accepted.
+              </p>
+              <div className="cert-modal-actions">
+                <button 
+                  className="cert-btn cert-btn-primary"
+                  onClick={handleRetryCheck}
+                >
+                  Check Connection
+                </button>
+                <button 
+                  className="cert-btn cert-btn-link"
+                  onClick={() => window.open(certCheckUrl, '_blank')}
+                >
+                  Open in New Tab
+                </button>
+              </div>
+            </div>
+            
+            {retryCount > 1 && (
+              <div className="cert-troubleshooting">
+                <strong>Still having trouble?</strong>
+                <ul>
+                  <li>Make sure the backend is running on port 8443</li>
+                  <li>Try opening <a href={certCheckUrl} target="_blank" rel="noopener noreferrer">{certCheckUrl}</a> directly</li>
+                  <li>Check if another application is using port 8443</li>
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

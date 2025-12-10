@@ -24,6 +24,7 @@ const Login = ({ onLoginSuccess }) => {
         console.log("Using secure login with encryption over HTTPS");
         const loginData = { username, password };
         const encryptedData = await encrypt(JSON.stringify(loginData));
+        
         const response = await fetch(`${baseURL}/api/auth/login`, {
           method: "POST",
           headers: {
@@ -35,10 +36,20 @@ const Login = ({ onLoginSuccess }) => {
           mode: 'cors'
         });
 
+        // --- UPDATED ERROR HANDLING LOGIC ---
         if (!response.ok) {
           const responseText = await response.text();
+          let errorMessage = `Server error: ${response.status}`;
+
+          // Attempt to decrypt the error response (since backend sends encrypted errors)
           try {
-            const errorData = JSON.parse(responseText);
+            const decryptedError = await decrypt(responseText);
+            const errorData = JSON.parse(decryptedError);
+
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+
             if (errorData.httpsRequired) {
               setMessage("Secure connection required. Redirecting...");
               if (window.location.protocol !== 'https:') {
@@ -48,11 +59,19 @@ const Login = ({ onLoginSuccess }) => {
               }
               return;
             }
-          } catch {
-            // not JSON, handle as generic error
+          } catch (decryptionError) {
+            // If decryption fails, try parsing as plain JSON (fallback)
+            try {
+              const plainError = JSON.parse(responseText);
+              if (plainError.message) errorMessage = plainError.message;
+            } catch (jsonError) {
+              console.warn("Could not parse error response", responseText);
+            }
           }
-          throw new Error(`Server error: ${response.status}`);
+          
+          throw new Error(errorMessage);
         }
+        // ------------------------------------
 
         const encryptedResponse = await response.text();
         const decryptedResponse = await decrypt(encryptedResponse);
@@ -64,6 +83,10 @@ const Login = ({ onLoginSuccess }) => {
             username: data.username,
             userId: data.userId,
             role: data.role,
+            email: data.email || "",
+            phone: data.phone || "",
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
             authToken: data.authToken,
             volunteerSubRole: data.volunteerSubRole
           };
@@ -75,6 +98,7 @@ const Login = ({ onLoginSuccess }) => {
           throw new Error(data.message || "Login failed");
         }
       } else {
+        // Fallback for non-secure mode (if applicable)
         const response = await secureAxios.post('/api/auth/login', { username, password });
         if (response.data.authenticated || response.data.status === "success") {
           setMessage("Login success!");
@@ -82,6 +106,10 @@ const Login = ({ onLoginSuccess }) => {
             username: response.data.username,
             userId: response.data.userId,
             role: response.data.role,
+            email: response.data.email || "",
+            phone: response.data.phone || "",
+            firstName: response.data.firstName || "",
+            lastName: response.data.lastName || "",
             authToken: response.data.authToken,
             volunteerSubRole: response.data.volunteerSubRole
           };
@@ -102,7 +130,7 @@ const Login = ({ onLoginSuccess }) => {
         setMessage("Session error. Please refresh the page.");
         setShowSessionErrorModal(true);
       } else {
-        setMessage("Login error: " + error.message);
+        setMessage(error.message);
       }
     }
   };
@@ -133,7 +161,6 @@ const Login = ({ onLoginSuccess }) => {
       </header>
       <div className="login-content-wrapper">
         <div className="login-card">
-           {/* New logo and title inside the card */}
            <img src="/Untitled.png" alt="Logo" className="login-card-logo" />
           <h1 className="login-card-title">Log In</h1>
           <form className="login-form" onSubmit={handleSubmit}>
@@ -142,7 +169,7 @@ const Login = ({ onLoginSuccess }) => {
                 type="text"
                 id="username"
                 name="username"
-                placeholder="Username"
+                placeholder="Username or Email" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required

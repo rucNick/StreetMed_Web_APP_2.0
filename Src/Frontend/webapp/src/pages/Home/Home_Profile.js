@@ -3,20 +3,19 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encrypt, decrypt, getSessionId, isInitialized } from "../../security/ecdhClient";
 import { secureAxios } from "../../config/axiosConfig";
-import '../../index.css'; 
 
 const Home_Profile = ({
   username,
   email,
-  password,
   phone,
   userId,
+  firstName,
+  lastName,
   onLogout,
   onProfileUpdate, 
 }) => {
   const navigate = useNavigate();
 
-  // State for profile update
   const [profileOption, setProfileOption] = useState("username");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newUsername, setNewUsername] = useState("");
@@ -24,13 +23,14 @@ const Home_Profile = ({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [newFirstName, setNewFirstName] = useState(firstName || "");
+  const [newLastName, setNewLastName] = useState(lastName || "");
   const [profileError, setProfileError] = useState("");
   const [profileMessage, setProfileMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
 
-  // Get auth token from storage
   const getAuthToken = () => {
     const storedUser = sessionStorage.getItem("auth_user") || localStorage.getItem("auth_user");
     if (storedUser) {
@@ -40,41 +40,39 @@ const Home_Profile = ({
     return null;
   };
 
-  // Handle HTTPS requirement errors
-  const handleHttpsError = (error) => {
-    if (error.response?.status === 403 && error.response?.data?.httpsRequired) {
-      setProfileError("Secure connection required for profile updates.");
-      if (window.location.protocol !== 'https:') {
-        setTimeout(() => {
-          window.location.href = window.location.href.replace('http:', 'https:');
-        }, 1500);
-      }
-      return true;
-    }
-    return false;
-  };
-
-  // Handle certificate errors
-  const handleCertificateError = (error) => {
+  const handleApiError = (error, defaultMessage) => {
+    console.error("API Error:", error);
+    
     if (error.code === 'ERR_CERT_AUTHORITY_INVALID' || 
         error.message?.includes('certificate')) {
       setProfileError("Certificate error. Please accept the certificate and try again.");
-      window.dispatchEvent(new CustomEvent('certificate-error', { 
-        detail: { url: baseURL }
-      }));
-      return true;
+      const certUrl = process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443';
+      window.open(`${certUrl}/api/test/tls/status`, '_blank');
+      return;
     }
-    return false;
+    
+    if (error.response?.status === 403 && error.response?.data?.httpsRequired) {
+      setProfileError("Secure connection required for this operation.");
+      return;
+    }
+    
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      setProfileError("Cannot connect to server. Please try again.");
+      return;
+    }
+    
+    setProfileError(error.response?.data?.message || error.message || defaultMessage);
   };
 
-  // Handle submission of profile update
   const handleSubmitProfile = async () => {
     setProfileError("");
     setProfileMessage("");
     setIsLoading(true);
 
     try {
-      // --- For username update ---
+      const authToken = getAuthToken();
+
+      // --- Username update ---
       if (profileOption === "username") {
         const usernameRegex = /^[A-Za-z]+$/;
         if (!newUsername.trim() || !usernameRegex.test(newUsername.trim())) {
@@ -95,14 +93,13 @@ const Home_Profile = ({
         };
 
         if (isInitialized() && getSessionId()) {
-          // Use encrypted request over HTTPS
           const encryptedData = await encrypt(JSON.stringify(userData));
           const response = await fetch(`${baseURL}/api/auth/update/username`, {
             method: "PUT",
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
-              "X-Auth-Token": getAuthToken() || ""
+              "X-Auth-Token": authToken || ""
             },
             body: encryptedData,
             credentials: 'include',
@@ -114,49 +111,26 @@ const Home_Profile = ({
           const data = JSON.parse(decryptedResponse);
 
           if (!response.ok || data.status !== "success") {
-            throw new Error(data.message || `Username update failed: ${response.status}`);
+            throw new Error(data.message || "Username update failed");
           }
-
-          setProfileMessage("Profile updated successfully.");
-          if (onProfileUpdate) {
-            onProfileUpdate({
-              username: newUsername.trim(),
-              email,
-              phone,
-              userId,
-            });
-          }
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
         } else {
-          // Use secureAxios for non-encrypted HTTPS request
           const response = await secureAxios.put('/api/auth/update/username', userData, {
-            headers: {
-              "X-Auth-Token": getAuthToken() || ""
-            }
+            headers: { "X-Auth-Token": authToken || "" }
           });
           
-          if (response.data.status === "success") {
-            setProfileMessage("Profile updated successfully.");
-            if (onProfileUpdate) {
-              onProfileUpdate({
-                username: newUsername.trim(),
-                email,
-                phone,
-                userId,
-              });
-            }
-            setTimeout(() => {
-              navigate("/");
-            }, 1500);
-          } else {
-            setProfileError(response.data.message || "Failed to update username.");
+          if (response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update username");
           }
         }
+
+        setProfileMessage("Username updated successfully!");
+        if (onProfileUpdate) {
+          onProfileUpdate({ username: newUsername.trim(), email, phone, userId, firstName, lastName });
+        }
+        setTimeout(() => navigate("/"), 1500);
       }
 
-      // --- For email update ---
+      // --- Email update ---
       else if (profileOption === "email") {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!newEmail.trim() || !emailRegex.test(newEmail.trim())) {
@@ -189,7 +163,7 @@ const Home_Profile = ({
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
-              "X-Auth-Token": getAuthToken() || ""
+              "X-Auth-Token": authToken || ""
             },
             body: encryptedData,
             credentials: 'include',
@@ -201,67 +175,34 @@ const Home_Profile = ({
           const data = JSON.parse(decryptedResponse);
 
           if (!response.ok || data.status !== "success") {
-            throw new Error(data.message || `Email update failed: ${response.status}`);
+            throw new Error(data.message || "Email update failed");
           }
-
-          setProfileMessage("Profile updated successfully.");
-          if (onProfileUpdate) {
-            onProfileUpdate({
-              username,
-              email: newEmail.trim(),
-              phone,
-              userId,
-            });
-          }
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
         } else {
           const response = await secureAxios.put('/api/auth/update/email', userData, {
-            headers: {
-              "X-Auth-Token": getAuthToken() || ""
-            }
+            headers: { "X-Auth-Token": authToken || "" }
           });
           
-          if (response.data.status === "success") {
-            setProfileMessage("Profile updated successfully.");
-            if (onProfileUpdate) {
-              onProfileUpdate({
-                username,
-                email: newEmail.trim(),
-                phone,
-                userId,
-              });
-            }
-            setTimeout(() => {
-              navigate("/");
-            }, 1500);
-          } else {
-            setProfileError(response.data.message || "Failed to update email.");
+          if (response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update email");
           }
         }
+
+        setProfileMessage("Email updated successfully!");
+        if (onProfileUpdate) {
+          onProfileUpdate({ username, email: newEmail.trim(), phone, userId, firstName, lastName });
+        }
+        setTimeout(() => navigate("/"), 1500);
       }
 
-      // --- For password update (ALWAYS requires HTTPS) ---
+      // --- Password update ---
       else if (profileOption === "password") {
-        // Check if we're on HTTPS
-        if (window.location.protocol !== 'https:') {
-          setProfileError("Password updates require a secure HTTPS connection. Redirecting...");
-          setTimeout(() => {
-            window.location.href = window.location.href.replace('http:', 'https:');
-          }, 1500);
+        if (newPassword.length < 8) {
+          setProfileError("Password must be at least 8 characters long.");
           setIsLoading(false);
           return;
         }
-
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!newPassword.trim() || !passwordRegex.test(newPassword.trim())) {
-          setProfileError("Password must be alphanumeric and at least 8 characters long.");
-          setIsLoading(false);
-          return;
-        }
-        if (newPassword.trim() !== confirmPassword.trim()) {
-          setProfileError("The two passwords do not match.");
+        if (newPassword !== confirmPassword) {
+          setProfileError("Passwords do not match.");
           setIsLoading(false);
           return;
         }
@@ -285,7 +226,7 @@ const Home_Profile = ({
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
-              "X-Auth-Token": getAuthToken() || ""
+              "X-Auth-Token": authToken || ""
             },
             body: encryptedData,
             credentials: 'include',
@@ -297,43 +238,35 @@ const Home_Profile = ({
           const data = JSON.parse(decryptedResponse);
 
           if (!response.ok || data.status !== "success") {
-            throw new Error(data.message || `Password update failed: ${response.status}`);
+            throw new Error(data.message || "Password update failed");
           }
-
-          setProfileMessage("Password updated successfully. Redirecting to login...");
-          setTimeout(() => {
-            onLogout();
-            navigate("/login");
-          }, 1500);
         } else {
           const response = await secureAxios.put('/api/auth/update/password', userData, {
-            headers: {
-              "X-Auth-Token": getAuthToken() || ""
-            }
+            headers: { "X-Auth-Token": authToken || "" }
           });
           
-          if (response.data.status === "success") {
-            setProfileMessage("Password updated successfully. Redirecting to login...");
-            setTimeout(() => {
-              onLogout();
-              navigate("/login");
-            }, 1500);
-          } else {
-            setProfileError(response.data.message || "Failed to update password.");
+          if (response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update password");
           }
         }
+
+        setProfileMessage("Password updated! Redirecting to login...");
+        setTimeout(() => {
+          onLogout();
+          navigate("/login");
+        }, 1500);
       }
 
-      // --- For phone update ---
+      // --- Phone update ---
       else if (profileOption === "phone") {
         const phoneRegex = /^\d{10}$/;
         if (!newPhone.trim() || !phoneRegex.test(newPhone.trim())) {
-          setProfileError("Phone number must be a 10-digit US number.");
+          setProfileError("Phone number must be a 10-digit number.");
           setIsLoading(false);
           return;
         }
         if (newPhone.trim() === phone) {
-          setProfileError("New phone number must be different from the current one.");
+          setProfileError("New phone must be different from the current one.");
           setIsLoading(false);
           return;
         }
@@ -357,7 +290,7 @@ const Home_Profile = ({
             headers: {
               "Content-Type": "text/plain",
               "X-Session-ID": getSessionId(),
-              "X-Auth-Token": getAuthToken() || ""
+              "X-Auth-Token": authToken || ""
             },
             body: encryptedData,
             credentials: 'include',
@@ -369,227 +302,512 @@ const Home_Profile = ({
           const data = JSON.parse(decryptedResponse);
 
           if (!response.ok || data.status !== "success") {
-            throw new Error(data.message || `Phone update failed: ${response.status}`);
+            throw new Error(data.message || "Phone update failed");
           }
-
-          setProfileMessage("Profile updated successfully.");
-          if (onProfileUpdate) {
-            onProfileUpdate({
-              username,
-              email,
-              phone: newPhone.trim(),
-              userId,
-            });
-          }
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
         } else {
           const response = await secureAxios.put('/api/auth/update/phone', userData, {
-            headers: {
-              "X-Auth-Token": getAuthToken() || ""
-            }
+            headers: { "X-Auth-Token": authToken || "" }
           });
           
-          if (response.data.status === "success") {
-            setProfileMessage("Profile updated successfully.");
-            if (onProfileUpdate) {
-              onProfileUpdate({
-                username,
-                email,
-                phone: newPhone.trim(),
-                userId,
-              });
-            }
-            setTimeout(() => {
-              navigate("/");
-            }, 1500);
-          } else {
-            setProfileError(response.data.message || "Failed to update phone number.");
+          if (response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update phone");
           }
         }
+
+        setProfileMessage("Phone number updated successfully!");
+        if (onProfileUpdate) {
+          onProfileUpdate({ username, email, phone: newPhone.trim(), userId, firstName, lastName });
+        }
+        setTimeout(() => navigate("/"), 1500);
       }
+
+      // --- Name update ---
+      else if (profileOption === "name") {
+        if (!newFirstName.trim() && !newLastName.trim()) {
+          setProfileError("Please enter at least first or last name.");
+          setIsLoading(false);
+          return;
+        }
+
+        const userData = {
+          userId: userId.toString(),
+          firstName: newFirstName.trim(),
+          lastName: newLastName.trim(),
+          authenticated: "true",
+        };
+
+        if (isInitialized() && getSessionId()) {
+          const encryptedData = await encrypt(JSON.stringify(userData));
+          const response = await fetch(`${baseURL}/api/auth/update/name`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "text/plain",
+              "X-Session-ID": getSessionId(),
+              "X-Auth-Token": authToken || ""
+            },
+            body: encryptedData,
+            credentials: 'include',
+            mode: 'cors'
+          });
+
+          const encryptedResponse = await response.text();
+          const decryptedResponse = await decrypt(encryptedResponse);
+          const data = JSON.parse(decryptedResponse);
+
+          if (!response.ok || data.status !== "success") {
+            throw new Error(data.message || "Name update failed");
+          }
+        } else {
+          const response = await secureAxios.put('/api/auth/update/name', userData, {
+            headers: { "X-Auth-Token": authToken || "" }
+          });
+          
+          if (response.data.status !== "success") {
+            throw new Error(response.data.message || "Failed to update name");
+          }
+        }
+
+        setProfileMessage("Name updated successfully!");
+        if (onProfileUpdate) {
+          onProfileUpdate({ 
+            username, email, phone, userId, 
+            firstName: newFirstName.trim(), 
+            lastName: newLastName.trim() 
+          });
+        }
+        setTimeout(() => navigate("/"), 1500);
+      }
+
     } catch (error) {
-      console.error("Error updating profile", error);
-      
-      // Check for certificate errors first
-      if (handleCertificateError(error)) {
-        // Error already handled
-      } else if (handleHttpsError(error)) {
-        // Error already handled
-      } else {
-        setProfileError(error.message || "Failed to update profile.");
-      }
+      handleApiError(error, "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const profileOptions = [
+    { value: 'name', label: 'Name', icon: '👤' },
+    { value: 'username', label: 'Username', icon: '🏷️' },
+    { value: 'email', label: 'Email', icon: '✉️' },
+    { value: 'phone', label: 'Phone', icon: '📱' },
+    { value: 'password', label: 'Password', icon: '🔐' },
+  ];
+
+  const needsPassword = ['email', 'phone', 'password'].includes(profileOption);
+
   return (
-    <div className="profile-container">
-      <h2>Update Profile</h2>
-      <br></br>
-      
-      {/* Security indicator */}
-      <div style={{ marginBottom: '15px', fontSize: '14px' }}>
-        {window.location.protocol === 'https:' ? (
-          <span style={{color: '#27ae60'}}>🔒 Secure Connection</span>
-        ) : (
-          <span style={{color: '#e67e22'}}>⚠️ Consider using HTTPS for secure profile updates</span>
-        )}
-      </div>
-      
-      <p>Current Username: <strong>{username}</strong></p>
-      <div className="profile-formGroup">
-        <label>Select field to update:</label>
-        <div className="profile-radioGroup">
-          <label>
-            <input
-              type="radio"
-              value="username"
-              checked={profileOption === "username"}
-              onChange={(e) => setProfileOption(e.target.value)}
-              disabled={isLoading}
-            />
-            Username
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="email"
-              checked={profileOption === "email"}
-              onChange={(e) => setProfileOption(e.target.value)}
-              disabled={isLoading}
-            />
-            Email
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="password"
-              checked={profileOption === "password"}
-              onChange={(e) => setProfileOption(e.target.value)}
-              disabled={isLoading}
-            />
-            Password {window.location.protocol !== 'https:' && <span style={{color: '#c0392b'}}>(HTTPS Required)</span>}
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="phone"
-              checked={profileOption === "phone"}
-              onChange={(e) => setProfileOption(e.target.value)}
-              disabled={isLoading}
-            />
-            Phone Number
-          </label>
-        </div>
+    <div style={styles.pageContainer}>
+      {/* Header */}
+      <div style={styles.header}>
+        <button style={styles.backButton} onClick={() => navigate(-1)}>
+          ← Back
+        </button>
       </div>
 
-      {(profileOption === "email" ||
-        profileOption === "password" ||
-        profileOption === "phone") && (
-        <div className="profile-formGroup">
-          <label>Current Password:</label>
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            className="profile-input"
-            disabled={isLoading}
-          />
-        </div>
-      )}
+      <div style={styles.contentWrapper}>
+        <h1 style={styles.title}>Update Profile</h1>
 
-      {profileOption === "username" && (
-        <div className="profile-formGroup">
-          <label>New Username:</label>
-          <input
-            type="text"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value)}
-            className="profile-input"
-            placeholder="Only letters"
-            disabled={isLoading}
-          />
-        </div>
-      )}
-
-      {profileOption === "email" && (
-        <div className="profile-formGroup">
-          <label>New Email:</label>
-          <input
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            className="profile-input"
-            placeholder="example@domain.com"
-            disabled={isLoading}
-          />
-        </div>
-      )}
-
-      {profileOption === "password" && (
-        <>
-          <div className="profile-formGroup">
-            <label>New Password:</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="profile-input"
-              placeholder="Alphanumeric, min 8 chars"
-              disabled={isLoading}
-            />
+        {/* Current User Info Card */}
+        <div style={styles.userInfoCard}>
+          <div style={styles.avatar}>
+            {(firstName?.[0] || username?.[0] || '?').toUpperCase()}
           </div>
-          <div className="profile-formGroup">
-            <label>Confirm New Password:</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="profile-input"
-              placeholder="Confirm new password"
-              disabled={isLoading}
-            />
+          <div style={styles.userDetails}>
+            <span style={styles.userName}>
+              {username}{(firstName || lastName) ? ` (${[firstName, lastName].filter(Boolean).join(' ')})` : ''}
+            </span>
+            <span style={styles.userEmail}>{email}</span>
           </div>
-        </>
-      )}
-
-      {profileOption === "phone" && (
-        <div className="profile-formGroup">
-          <label>New Phone Number:</label>
-          <input
-            type="text"
-            value={newPhone}
-            onChange={(e) => setNewPhone(e.target.value)}
-            className="profile-input"
-            placeholder="10-digit number"
-            disabled={isLoading}
-          />
         </div>
-      )}
 
-      {profileError && <p className="profile-errorText">{profileError}</p>}
-      {profileMessage && <p className="profile-successText">{profileMessage}</p>}
+        {/* Main Card */}
+        <div style={styles.card}>
+          {/* Option Selector */}
+          <div style={styles.optionGrid}>
+            {profileOptions.map((option) => (
+              <button
+                key={option.value}
+                style={{
+                  ...styles.optionButton,
+                  ...(profileOption === option.value ? styles.optionButtonActive : {})
+                }}
+                onClick={() => {
+                  setProfileOption(option.value);
+                  setProfileError("");
+                  setProfileMessage("");
+                  setCurrentPassword("");
+                }}
+                disabled={isLoading}
+              >
+                <span style={styles.optionIcon}>{option.icon}</span>
+                <span style={styles.optionLabel}>{option.label}</span>
+              </button>
+            ))}
+          </div>
 
-      <button 
-        className="profile-button" 
-        onClick={handleSubmitProfile}
-        disabled={isLoading}
-        style={{ opacity: isLoading ? 0.6 : 1 }}
-      >
-        {isLoading ? 'Updating...' : 'Submit Profile Update'}
-      </button>
-      <button 
-        className="profile-cancelButton" 
-        onClick={() => navigate(-1)}
-        disabled={isLoading}
-      >
-        Cancel
-      </button>
+          <div style={styles.divider} />
+
+          {/* Form Fields */}
+          <div style={styles.formSection}>
+            {/* Name Fields */}
+            {profileOption === "name" && (
+              <>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>First Name</label>
+                  <input
+                    style={styles.input}
+                    type="text"
+                    value={newFirstName}
+                    onChange={(e) => setNewFirstName(e.target.value)}
+                    placeholder="Enter first name"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Last Name</label>
+                  <input
+                    style={styles.input}
+                    type="text"
+                    value={newLastName}
+                    onChange={(e) => setNewLastName(e.target.value)}
+                    placeholder="Enter last name"
+                    disabled={isLoading}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Username Field */}
+            {profileOption === "username" && (
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>New Username</label>
+                <input
+                  style={styles.input}
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="Letters only"
+                  disabled={isLoading}
+                />
+                <span style={styles.hint}>Current: {username}</span>
+              </div>
+            )}
+
+            {/* Email Field */}
+            {profileOption === "email" && (
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>New Email</label>
+                <input
+                  style={styles.input}
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  disabled={isLoading}
+                />
+                <span style={styles.hint}>Current: {email}</span>
+              </div>
+            )}
+
+            {/* Phone Field */}
+            {profileOption === "phone" && (
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>New Phone Number</label>
+                <input
+                  style={styles.input}
+                  type="tel"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="10-digit number"
+                  disabled={isLoading}
+                />
+                <span style={styles.hint}>Current: {phone || 'Not set'}</span>
+              </div>
+            )}
+
+            {/* Password Fields */}
+            {profileOption === "password" && (
+              <>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>New Password</label>
+                  <input
+                    style={styles.input}
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min. 8 characters"
+                    disabled={isLoading}
+                  />
+                  {newPassword && (
+                    <div style={styles.strengthBar}>
+                      <div style={{
+                        ...styles.strengthFill,
+                        width: newPassword.length >= 8 ? '100%' : `${(newPassword.length / 8) * 100}%`,
+                        backgroundColor: newPassword.length >= 8 ? '#27ae60' : '#f39c12'
+                      }} />
+                    </div>
+                  )}
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Confirm New Password</label>
+                  <input
+                    style={styles.input}
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter password"
+                    disabled={isLoading}
+                  />
+                  {confirmPassword && newPassword && (
+                    <span style={{
+                      ...styles.matchText,
+                      color: newPassword === confirmPassword ? '#27ae60' : '#e74c3c'
+                    }}>
+                      {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Current Password (for sensitive changes) */}
+            {needsPassword && (
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Current Password</label>
+                <input
+                  style={styles.input}
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  disabled={isLoading}
+                />
+                <span style={styles.hint}>Required for security verification</span>
+              </div>
+            )}
+
+            {/* Error/Success Messages */}
+            {profileError && <div style={styles.errorBox}>{profileError}</div>}
+            {profileMessage && <div style={styles.successBox}>{profileMessage}</div>}
+
+            {/* Action Buttons */}
+            <button 
+              style={{
+                ...styles.primaryButton,
+                opacity: isLoading ? 0.6 : 1
+              }}
+              onClick={handleSubmitProfile}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Updating...' : 'Save Changes'}
+            </button>
+
+            <button 
+              style={styles.cancelButton}
+              onClick={() => navigate(-1)}
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
+};
+
+const styles = {
+  pageContainer: {
+    minHeight: '100vh',
+    backgroundColor: '#1a1a2e',
+    padding: '20px',
+    boxSizing: 'border-box'
+  },
+  header: {
+    marginBottom: '20px'
+  },
+  backButton: {
+    padding: '10px 20px',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: '#fff',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+    transition: 'all 0.2s ease'
+  },
+  contentWrapper: {
+    maxWidth: '500px',
+    margin: '0 auto'
+  },
+  title: {
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#fff',
+    margin: '0 0 25px 0',
+    textAlign: 'center'
+  },
+  userInfoCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: '16px 20px',
+    borderRadius: '12px',
+    marginBottom: '20px'
+  },
+  avatar: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    backgroundColor: '#f78702',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '20px',
+    fontWeight: '700'
+  },
+  userDetails: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px'
+  },
+  userName: {
+    color: '#fff',
+    fontSize: '16px',
+    fontWeight: '600'
+  },
+  userEmail: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: '13px'
+  },
+  card: {
+    backgroundColor: '#d4c5a9',
+    borderRadius: '16px',
+    padding: '25px',
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)'
+  },
+  optionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '10px',
+    marginBottom: '20px'
+  },
+  optionButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '14px 10px',
+    backgroundColor: '#fff',
+    border: '2px solid transparent',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
+  },
+  optionButtonActive: {
+    border: '2px solid #003e7e',
+    backgroundColor: 'rgba(0, 62, 126, 0.08)'
+  },
+  optionIcon: {
+    fontSize: '20px'
+  },
+  optionLabel: {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#333'
+  },
+  divider: {
+    height: '1px',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    margin: '0 0 20px 0'
+  },
+  formSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
+  },
+  inputGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px'
+  },
+  label: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#333'
+  },
+  input: {
+    padding: '14px 16px',
+    fontSize: '14px',
+    border: '2px solid #e0e0e0',
+    borderRadius: '10px',
+    backgroundColor: '#fff',
+    color: '#333',
+    outline: 'none',
+    transition: 'border-color 0.2s ease'
+  },
+  hint: {
+    fontSize: '11px',
+    color: '#888'
+  },
+  strengthBar: {
+    height: '4px',
+    backgroundColor: '#e0e0e0',
+    borderRadius: '2px',
+    overflow: 'hidden',
+    marginTop: '4px'
+  },
+  strengthFill: {
+    height: '100%',
+    borderRadius: '2px',
+    transition: 'all 0.3s ease'
+  },
+  matchText: {
+    fontSize: '12px',
+    marginTop: '2px'
+  },
+  errorBox: {
+    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    border: '1px solid rgba(231, 76, 60, 0.3)',
+    color: '#c0392b',
+    padding: '12px 14px',
+    borderRadius: '8px',
+    fontSize: '13px'
+  },
+  successBox: {
+    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+    border: '1px solid rgba(39, 174, 96, 0.3)',
+    color: '#27ae60',
+    padding: '12px 14px',
+    borderRadius: '8px',
+    fontSize: '13px'
+  },
+  primaryButton: {
+    padding: '14px',
+    fontSize: '15px',
+    fontWeight: '600',
+    border: 'none',
+    borderRadius: '10px',
+    backgroundColor: '#f78702',
+    color: '#fff',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    marginTop: '8px'
+  },
+  cancelButton: {
+    padding: '12px',
+    fontSize: '14px',
+    fontWeight: '600',
+    border: 'none',
+    borderRadius: '10px',
+    backgroundColor: '#003e7e',
+    color: '#fff',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
+  }
 };
 
 export default Home_Profile;

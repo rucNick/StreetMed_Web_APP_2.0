@@ -219,4 +219,5 @@ public class UserService {
         user.setEmail(newEmail);
         return userRepository.save(user);
     }
+
 }

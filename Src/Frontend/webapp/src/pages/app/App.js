@@ -27,7 +27,15 @@ import '../../index.css';
 
 function App({ securityInitialized = false }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState({ username: "", userId: null, role: "" });
+  const [userData, setUserData] = useState({ 
+    username: "", 
+    userId: null, 
+    role: "",
+    email: "",
+    phone: "",
+    firstName: "",
+    lastName: ""
+  });
   const [tlsStatus, setTlsStatus] = useState(null);
 
   // Check TLS connection on app load
@@ -66,15 +74,24 @@ function App({ securityInitialized = false }) {
   // On logout, clear the session data
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setUserData({ username: "", userId: null, role: "" });
+    setUserData({ 
+      username: "", 
+      userId: null, 
+      role: "",
+      email: "",
+      phone: "",
+      firstName: "",
+      lastName: ""
+    });
     sessionStorage.removeItem("auth_user");
     localStorage.removeItem("ecdh_session_id");
   };
 
   // Handle profile updates
   const handleProfileUpdate = (updatedData) => {
-    setUserData(updatedData);
-    sessionStorage.setItem("auth_user", JSON.stringify(updatedData));
+    const newUserData = { ...userData, ...updatedData };
+    setUserData(newUserData);
+    sessionStorage.setItem("auth_user", JSON.stringify(newUserData));
   };
 
   // Show security initialization error if needed
@@ -169,6 +186,8 @@ function App({ securityInitialized = false }) {
                   email={userData.email}
                   phone={userData.phone}
                   userId={userData.userId}
+                  firstName={userData.firstName}
+                  lastName={userData.lastName}
                   onLogout={handleLogout}
                 />
               )
@@ -186,7 +205,9 @@ function App({ securityInitialized = false }) {
               username={userData.username} 
               email={userData.email} 
               phone={userData.phone} 
-              userId={userData.userId} 
+              userId={userData.userId}
+              firstName={userData.firstName}
+              lastName={userData.lastName}
               onLogout={handleLogout}
               onProfileUpdate={handleProfileUpdate}
             />

@@ -444,6 +444,19 @@ public class AuthService {
             response.put("email", user.getEmail());
         }
 
+        // Add firstName and lastName from metadata (empty string if not set)
+        UserMetadata metadata = user.getMetadata();
+        if (metadata != null && metadata.getFirstName() != null && !metadata.getFirstName().isEmpty()) {
+            response.put("firstName", metadata.getFirstName());
+        } else {
+            response.put("firstName", "");
+        }
+        if (metadata != null && metadata.getLastName() != null && !metadata.getLastName().isEmpty()) {
+            response.put("lastName", metadata.getLastName());
+        } else {
+            response.put("lastName", "");
+        }
+
         response.put("authToken", authToken);
         response.put("tokenType", "dev");
         response.put("secure", request.isSecure());
