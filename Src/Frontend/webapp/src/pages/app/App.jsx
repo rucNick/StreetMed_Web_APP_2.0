@@ -165,7 +165,7 @@ function App({ securityInitialized = false }) {
           fontSize: '12px',
           zIndex: 9999
         }}>
-          TLS: {tlsStatus.success ? 'âœ?Secure' : 'âœ?Not Connected'}
+          <div style={{ position: 'fixed', bottom: 10, right: 10, padding: '5px 10px', backgroundColor: 'rgb(76, 175, 80)', color: 'white', borderRadius: 4, fontSize: 12, zIndex: 9999 }}>TLS: [OK]</div>
         </div>
       )}
       
