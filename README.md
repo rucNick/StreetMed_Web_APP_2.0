@@ -128,7 +128,7 @@ gcloud run services logs read streetmed-frontend --region=us-central1 --limit=50
 
 ### For Local Development Setup
 Please install all required dependencies listed in:
-📋 **[Required Dependencies Guide](Required_dependencies.md)**
+📋 **[Required Dependencies Guide](Requried_dependencies.md)**
 
 ---
 
