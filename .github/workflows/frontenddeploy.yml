@@ -1,0 +1,211 @@
+name: Frontend CI/CD for Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/Frontend/**'
+      - 'Src/Frontend/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/Frontend/**'
+      - 'Src/Frontend/**'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: streetmedgo
+  SERVICE_NAME: streetmed-frontend
+  REGION: us-central1
+  ARTIFACT_REGISTRY: us-central1-docker.pkg.dev
+  REPOSITORY: streetmedgo-repo
+  SERVICE_ACCOUNT: github-actions@streetmedgo.iam.gserviceaccount.com
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+        
+      - name: Find Frontend Directory
+        id: find-frontend
+        run: |
+          if [ -d "src/Frontend/webapp" ]; then
+            echo "frontend_dir=src/Frontend/webapp" >> $GITHUB_OUTPUT
+          elif [ -d "Src/Frontend/webapp" ]; then
+            echo "frontend_dir=Src/Frontend/webapp" >> $GITHUB_OUTPUT
+          else
+            echo "Frontend directory not found"
+            exit 1
+          fi
+          
+      - name: Install dependencies
+        run: cd ${{ steps.find-frontend.outputs.frontend_dir }} && npm ci
+        
+      - name: Build
+        run: cd ${{ steps.find-frontend.outputs.frontend_dir }} && npm run build
+        env:
+          VITE_BASE_URL: https://streetmed-backend-900663028964.us-central1.run.app
+          VITE_SECURE_BASE_URL: https://streetmed-backend-900663028964.us-central1.run.app
+          VITE_USE_TLS: false
+          VITE_ENVIRONMENT: production
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      
+      - name: Find Frontend Directory
+        id: find-frontend
+        run: |
+          if [ -d "src/Frontend/webapp" ]; then
+            echo "frontend_dir=src/Frontend/webapp" >> $GITHUB_OUTPUT
+          elif [ -d "Src/Frontend/webapp" ]; then
+            echo "frontend_dir=Src/Frontend/webapp" >> $GITHUB_OUTPUT
+          else
+            echo "Frontend directory not found"
+            exit 1
+          fi
+          
+      - name: Install dependencies
+        run: cd ${{ steps.find-frontend.outputs.frontend_dir }} && npm ci
+        
+      - name: Build
+        run: cd ${{ steps.find-frontend.outputs.frontend_dir }} && npm run build
+        env:
+          VITE_BASE_URL: https://streetmed-backend-900663028964.us-central1.run.app
+          VITE_SECURE_BASE_URL: https://streetmed-backend-900663028964.us-central1.run.app
+          VITE_USE_TLS: false
+          VITE_ENVIRONMENT: production
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.ARTIFACT_REGISTRY }}
+          
+      - name: Build and Push Docker image
+        run: |
+          cd ${{ steps.find-frontend.outputs.frontend_dir }}
+          
+          # Create nginx config
+          cat > nginx.conf << 'EOF'
+          server {
+              listen 8080;
+              server_name localhost;
+              
+              root /usr/share/nginx/html;
+              index index.html;
+              
+              # Gzip compression
+              gzip on;
+              gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+              
+              # Handle SPA routing - serve index.html for all routes
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+              
+              # Cache static assets
+              location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+                  expires 1y;
+                  add_header Cache-Control "public, immutable";
+              }
+              
+              # Health check endpoint
+              location /health {
+                  access_log off;
+                  return 200 "healthy\n";
+                  add_header Content-Type text/plain;
+              }
+          }
+          EOF
+          
+          # Create Dockerfile for Cloud Run
+          cat > Dockerfile.cloudrun << 'EOF'
+          FROM nginx:alpine
+          
+          # Copy built assets
+          COPY dist /usr/share/nginx/html
+          
+          # Copy nginx config
+          COPY nginx.conf /etc/nginx/conf.d/default.conf
+          
+          # Cloud Run expects port 8080
+          EXPOSE 8080
+          
+          # Start nginx
+          CMD ["nginx", "-g", "daemon off;"]
+          EOF
+          
+          # Build image path
+          IMAGE_PATH="${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}"
+          
+          # Build with buildx for linux/amd64
+          docker buildx create --use --name cloudrun-builder || true
+          docker buildx build \
+            --platform linux/amd64 \
+            --load \
+            -f Dockerfile.cloudrun \
+            -t ${IMAGE_PATH}:${{ github.sha }} \
+            -t ${IMAGE_PATH}:latest \
+            .
+          
+          # Push images
+          docker push ${IMAGE_PATH}:${{ github.sha }}
+          docker push ${IMAGE_PATH}:latest
+          
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --min-instances=0 \
+            --max-instances=5 \
+            --cpu=1 \
+            --memory=256Mi \
+            --port=8080 \
+            --timeout=60s \
+            --service-account=${{ env.SERVICE_ACCOUNT }} \
+            --allow-unauthenticated
+          
+      - name: Get Frontend URL
+        run: |
+          FRONTEND_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "=============================================="
+          echo "✅ Frontend deployed successfully!"
+          echo "=============================================="
+          echo "Frontend URL: $FRONTEND_URL"
+          echo "=============================================="
