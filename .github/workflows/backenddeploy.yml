@@ -144,6 +144,7 @@ jobs:
       - name: Deploy to Cloud Run
         id: deploy
         run: |
+          # Use ^||^ as delimiter to handle commas in CORS_ALLOWED_ORIGINS
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
             --region ${{ env.REGION }} \
@@ -158,14 +159,7 @@ jobs:
             --timeout=600s \
             --cpu-boost \
             --service-account=${{ env.SERVICE_ACCOUNT }} \
-            --set-env-vars="CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" \
-            --set-env-vars="CLOUD_SQL_INSTANCE=${{ env.CLOUD_SQL_INSTANCE }}" \
-            --set-env-vars="MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" \
-            --set-env-vars="MYSQL_USER=${{ secrets.MYSQL_USER }}" \
-            --set-env-vars="MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" \
-            --set-env-vars="MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" \
-            --set-env-vars="MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" \
-            --set-env-vars="CLIENT_AUTH_KEY=${{ secrets.CLIENT_AUTH_KEY }}" \
+            --set-env-vars="^||^CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}||CLOUD_SQL_INSTANCE=${{ env.CLOUD_SQL_INSTANCE }}||MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}||MYSQL_USER=${{ secrets.MYSQL_USER }}||MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}||MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}||MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}||CLIENT_AUTH_KEY=${{ secrets.CLIENT_AUTH_KEY }}" \
             --allow-unauthenticated
           
       - name: Get Backend URL
