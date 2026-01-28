@@ -19,7 +19,7 @@ const Cargo_Volunteer = () => {
       if (err.code === 'ERR_CERT_AUTHORITY_INVALID') {
         setError('Certificate error. Please accept the certificate and try again.');
         window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
+          detail: { url: import.meta.env.VITE_BASE_URL }
         }));
       } else {
         setError(err.response?.data?.message || err.message);

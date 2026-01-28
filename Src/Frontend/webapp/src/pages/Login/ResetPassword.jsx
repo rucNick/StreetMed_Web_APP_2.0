@@ -16,7 +16,7 @@ const Reset_Password = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const getAxios = () => {
-    const isDev = process.env.REACT_APP_ENVIRONMENT === 'development'
+    const isDev = import.meta.env.VITE_ENVIRONMENT === 'development'
     return isDev ? publicAxios : secureAxios
   }
 
@@ -139,15 +139,15 @@ const Reset_Password = () => {
     if (err.code === 'ERR_CERT_AUTHORITY_INVALID' || 
         err.message?.includes('certificate')) {
       setError('Certificate error. Please accept the certificate and try again.')
-      const certUrl = process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443'
+      const certUrl = import.meta.env.VITE_SECURE_BASE_URL || 'https://localhost:8443'
       window.open(`${certUrl}/api/test/tls/status`, '_blank')
       return
     }
     
     if (err.response?.status === 403 && err.response?.data?.httpsRequired) {
-      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+      if (import.meta.env.VITE_ENVIRONMENT === 'development') {
         setError('HTTPS required. Please accept the certificate first.')
-        const certUrl = process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443'
+        const certUrl = import.meta.env.VITE_SECURE_BASE_URL || 'https://localhost:8443'
         window.open(`${certUrl}/api/test/tls/status`, '_blank')
       } else {
         setError('Secure connection required.')
@@ -168,7 +168,7 @@ const Reset_Password = () => {
       {/* Header */}
       <div style={styles.header}>
         <button style={styles.goBackButton} onClick={handleGoBack}>
-          ← Go Back
+          �?Go Back
         </button>
       </div>
 
@@ -341,7 +341,7 @@ const Reset_Password = () => {
                     ...styles.matchIndicator,
                     color: newPassword === confirmPassword ? '#27ae60' : '#e74c3c'
                   }}>
-                    {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                    {newPassword === confirmPassword ? '�?Passwords match' : '�?Passwords do not match'}
                   </span>
                 )}
               </div>
@@ -369,7 +369,7 @@ const Reset_Password = () => {
                 }}
                 disabled={isLoading}
               >
-                ← Back to Step 1
+                �?Back to Step 1
               </button>
             </>
           )}

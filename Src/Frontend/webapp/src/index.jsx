@@ -10,14 +10,14 @@ const CertificateGate = ({ children }) => {
   const [status, setStatus] = useState('checking'); // 'checking' | 'needs-cert' | 'ready'
   const [showIframe, setShowIframe] = useState(false);
   
-  const certCheckUrl = process.env.REACT_APP_CERT_CHECK_URL || 
+  const certCheckUrl = import.meta.env.VITE_CERT_CHECK_URL || 
                        'https://localhost:8443/api/test/tls/status';
   const certTestUrl = certCheckUrl.replace('/status', '/cert-test');
   
   // Check if HTTPS connection works
   const checkConnection = async () => {
     // Skip check if TLS is disabled
-    if (process.env.REACT_APP_USE_TLS !== 'true') {
+    if (import.meta.env.VITE_USE_TLS !== 'true') {
       return true;
     }
     
@@ -53,7 +53,7 @@ const CertificateGate = ({ children }) => {
       }
       
       // Skip certificate check if TLS is disabled
-      if (process.env.REACT_APP_USE_TLS !== 'true') {
+      if (import.meta.env.VITE_USE_TLS !== 'true') {
         setStatus('ready');
         return;
       }
@@ -137,7 +137,7 @@ const CertificateGate = ({ children }) => {
                 </div>
                 <div style={styles.step}>
                   <span style={styles.stepNum}>2</span>
-                  <span>In the frame, click "Advanced" â†’ "Proceed to localhost"</span>
+                  <span>In the frame, click "Advanced" â†?"Proceed to localhost"</span>
                 </div>
                 <div style={styles.step}>
                   <span style={styles.stepNum}>3</span>
@@ -164,7 +164,7 @@ const CertificateGate = ({ children }) => {
             <>
               <div style={styles.iframeInstruction}>
                 <strong>ðŸ‘‡ Accept the certificate below:</strong><br/>
-                Click "Advanced" â†’ "Proceed to localhost (unsafe)"
+                Click "Advanced" â†?"Proceed to localhost (unsafe)"
               </div>
               
               <div style={styles.iframeContainer}>
@@ -400,7 +400,7 @@ const SecurityInitializer = ({ children }) => {
         // Small delay for auth setup
         const isProduction = window.location.hostname !== 'localhost' && 
                             !window.location.hostname.includes('127.0.0.1');
-        if (isProduction || process.env.REACT_APP_USE_LOCAL_AUTH === 'true') {
+        if (isProduction || import.meta.env.VITE_USE_LOCAL_AUTH === 'true') {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
         

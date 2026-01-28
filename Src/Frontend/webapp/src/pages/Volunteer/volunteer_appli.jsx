@@ -95,7 +95,7 @@ const VolunteerAppli = () => {
       if (error.code === 'ERR_CERT_AUTHORITY_INVALID') {
         setMessage('Certificate error. Please accept the certificate and try again.');
         window.dispatchEvent(new CustomEvent('certificate-error', { 
-          detail: { url: process.env.REACT_APP_BASE_URL }
+          detail: { url: import.meta.env.VITE_BASE_URL }
         }));
       } else {
         setMessage(error.response?.data?.message || 'Submission failed');

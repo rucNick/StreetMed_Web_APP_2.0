@@ -10,7 +10,7 @@ const CertificateHelper = ({ onCertificateAccepted }) => {
   const [showIframe, setShowIframe] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   
-  const certCheckUrl = process.env.REACT_APP_CERT_CHECK_URL || 
+  const certCheckUrl = import.meta.env.VITE_CERT_CHECK_URL || 
                        'https://localhost:8443/api/test/tls/status';
   
   const checkTLSConnection = useCallback(async () => {
@@ -45,8 +45,8 @@ const CertificateHelper = ({ onCertificateAccepted }) => {
   
   useEffect(() => {
     // Only run in development with TLS enabled
-    if (process.env.REACT_APP_ENVIRONMENT !== 'development' || 
-        process.env.REACT_APP_USE_TLS !== 'true') {
+    if (import.meta.env.VITE_ENVIRONMENT !== 'development' || 
+        import.meta.env.VITE_USE_TLS !== 'true') {
       setStatus('hidden');
       return;
     }
@@ -141,7 +141,7 @@ const CertificateHelper = ({ onCertificateAccepted }) => {
               </div>
               <div className="cert-step">
                 <span className="step-number">2</span>
-                <span>In the frame, click "Advanced" â†’ "Proceed to localhost"</span>
+                <span>In the frame, click "Advanced" â†?"Proceed to localhost"</span>
               </div>
               <div className="cert-step">
                 <span className="step-number">3</span>
@@ -171,7 +171,7 @@ const CertificateHelper = ({ onCertificateAccepted }) => {
             <p className="cert-iframe-instruction">
               <strong>Accept the certificate in the frame below:</strong>
               <br />
-              Click "Advanced" â†’ "Proceed to localhost (unsafe)"
+              Click "Advanced" â†?"Proceed to localhost (unsafe)"
             </p>
             
             <div className="cert-iframe-container">

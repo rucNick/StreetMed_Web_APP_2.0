@@ -2,20 +2,20 @@ import axios from 'axios';
 
 // Determine which base URL to use based on environment and requirements
 const getBaseURL = (requireSecure = false) => {
-  const environment = process.env.REACT_APP_ENVIRONMENT;
+  const environment = import.meta.env.VITE_ENVIRONMENT;
   
   // In production, always use HTTPS
   if (environment === 'production') {
-    return process.env.REACT_APP_BASE_URL;
+    return import.meta.env.VITE_BASE_URL;
   }
   
   // In development, check if secure connection is required
   if (requireSecure) {
-    return process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443';
+    return import.meta.env.VITE_SECURE_BASE_URL || 'https://localhost:8443';
   }
   
   // Default to HTTP in development for easier setup
-  return process.env.REACT_APP_BASE_URL_HTTP || 'http://localhost:8080';
+  return import.meta.env.VITE_BASE_URL_HTTP || 'http://localhost:8080';
 };
 
 // Helper to get auth headers
@@ -39,18 +39,18 @@ const getAuthHeaders = () => {
 // Create default axios instance (uses HTTP in dev, HTTPS in prod)
 const axiosInstance = axios.create({
   baseURL: getBaseURL(false),
-  timeout: parseInt(process.env.REACT_APP_REQUEST_TIMEOUT) || 30000,
+  timeout: parseInt(import.meta.env.VITE_REQUEST_TIMEOUT) || 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  withCredentials: process.env.REACT_APP_WITH_CREDENTIALS === 'true'
+  withCredentials: import.meta.env.VITE_WITH_CREDENTIALS === 'true'
 });
 
 // Create secure axios instance (for admin/sensitive endpoints)
 export const secureAxios = axios.create({
   baseURL: getBaseURL(true),
-  timeout: parseInt(process.env.REACT_APP_REQUEST_TIMEOUT) || 30000,
+  timeout: parseInt(import.meta.env.VITE_REQUEST_TIMEOUT) || 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -61,7 +61,7 @@ export const secureAxios = axios.create({
 // Create public axios instance (always uses HTTP in dev)
 export const publicAxios = axios.create({
   baseURL: getBaseURL(false),
-  timeout: parseInt(process.env.REACT_APP_REQUEST_TIMEOUT) || 30000,
+  timeout: parseInt(import.meta.env.VITE_REQUEST_TIMEOUT) || 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -82,7 +82,7 @@ axiosInstance.interceptors.request.use(
     }
     
     // Log request in debug mode
-    if (process.env.REACT_APP_DEBUG_MODE === 'true') {
+    if (import.meta.env.VITE_DEBUG_MODE === 'true') {
       console.log('Request:', config.method?.toUpperCase(), config.url);
     }
     
@@ -119,7 +119,7 @@ secureAxios.interceptors.request.use(
     // Fix relative URLs - IMPORTANT FIX
     if (config.url && !config.url.startsWith('http')) {
       // For development, route auth endpoints to HTTP unless explicitly requiring HTTPS
-      const isDev = process.env.REACT_APP_ENVIRONMENT === 'development';
+      const isDev = import.meta.env.VITE_ENVIRONMENT === 'development';
       const isAdminEndpoint = config.url.includes('/admin');
       
       if (isDev && !isAdminEndpoint) {
@@ -131,7 +131,7 @@ secureAxios.interceptors.request.use(
       }
     }
     
-    if (process.env.REACT_APP_DEBUG_MODE === 'true') {
+    if (import.meta.env.VITE_DEBUG_MODE === 'true') {
       console.log('Secure Request:', config.method?.toUpperCase(), config.url);
       console.log('Headers:', config.headers);
     }
@@ -146,14 +146,14 @@ secureAxios.interceptors.request.use(
 
 // Response interceptor for error handling
 const responseInterceptor = (response) => {
-  if (process.env.REACT_APP_DEBUG_MODE === 'true') {
+  if (import.meta.env.VITE_DEBUG_MODE === 'true') {
     console.log('Response:', response.status, response.config.url);
   }
   return response;
 };
 
 const errorInterceptor = async (error) => {
-  if (process.env.REACT_APP_DEBUG_MODE === 'true') {
+  if (import.meta.env.VITE_DEBUG_MODE === 'true') {
     console.error('Response error:', error);
   }
   
@@ -162,7 +162,7 @@ const errorInterceptor = async (error) => {
       error.message?.includes('self signed certificate')) {
     console.error('Certificate error detected. Please accept the self-signed certificate.');
     
-    if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+    if (import.meta.env.VITE_ENVIRONMENT === 'development') {
       // Try to open certificate acceptance page
       window.open('https://localhost:8443/api/test/tls/status', '_blank');
       
@@ -182,7 +182,7 @@ const errorInterceptor = async (error) => {
     console.error('Connection failed. Checking server availability...');
     
     // In development, try fallback from HTTPS to HTTP
-    if (process.env.REACT_APP_ENVIRONMENT === 'development' && 
+    if (import.meta.env.VITE_ENVIRONMENT === 'development' && 
         error.config?.url?.includes('https://localhost:8443')) {
       
       console.log('Attempting HTTP fallback...');

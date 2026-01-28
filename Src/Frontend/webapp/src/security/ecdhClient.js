@@ -6,14 +6,14 @@ const crypto = window.crypto.subtle;
 
 // Use HTTPS for security endpoints
 const getSecureBaseURL = () => {
-  const environment = process.env.REACT_APP_ENVIRONMENT;
+  const environment = import.meta.env.VITE_ENVIRONMENT;
   
   if (environment === 'production') {
-    return process.env.REACT_APP_BASE_URL;
+    return import.meta.env.VITE_BASE_URL;
   }
   
   // Always use HTTPS for security endpoints in development
-  return process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443';
+  return import.meta.env.VITE_SECURE_BASE_URL || 'https://localhost:8443';
 };
 
 const baseURL = getSecureBaseURL();
@@ -99,8 +99,8 @@ const createClientSignature = async (timestamp) => {
  * Handle certificate errors in development
  */
 const handleCertificateError = (error) => {
-  if (process.env.REACT_APP_ENVIRONMENT === 'development' && 
-      process.env.REACT_APP_ALLOW_SELF_SIGNED_CERT === 'true') {
+  if (import.meta.env.VITE_ENVIRONMENT === 'development' && 
+      import.meta.env.VITE_ALLOW_SELF_SIGNED_CERT === 'true') {
     
     console.warn('Self-signed certificate detected. Opening certificate acceptance page...');
     
@@ -475,7 +475,7 @@ export const bypassKeyExchangeForDevelopment = () => {
     return false;
   }
   
-  if (process.env.REACT_APP_USE_TLS === 'true') {
+  if (import.meta.env.VITE_USE_TLS === 'true') {
     console.error('Cannot bypass key exchange when TLS is enabled!');
     return false;
   }
@@ -497,7 +497,7 @@ export const secureApiCall = async (url, method, data) => {
   try {
     // Ensure we're using HTTPS
     const secureUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
-    if (!secureUrl.startsWith('https') && process.env.REACT_APP_ENVIRONMENT !== 'development') {
+    if (!secureUrl.startsWith('https') && import.meta.env.VITE_ENVIRONMENT !== 'development') {
       throw new Error('Secure API calls must use HTTPS');
     }
     
