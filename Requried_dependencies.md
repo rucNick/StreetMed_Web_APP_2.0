@@ -61,15 +61,6 @@ npm --version
 | **Linux** | `sudo apt install mysql-server` |
 | **Docker** | `docker run --name mysql -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 -d mysql:8.0` |
 
-### 5. MongoDB 6.0+ (Local Development Only)
-
-| Platform | Installation |
-|----------|-------------|
-| **macOS** | `brew tap mongodb/brew && brew install mongodb-community` |
-| **Windows** | [MongoDB Community Edition](https://www.mongodb.com/try/download/community) |
-| **Linux** | [MongoDB Installation Guide](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/) |
-| **Docker** | `docker run --name mongodb -p 27017:27017 -d mongo:6.0` |
-
 ---
 
 ## Optional Tools
@@ -128,19 +119,6 @@ docker-compose up -d
    GRANT ALL PRIVILEGES ON streetmed.* TO 'streetmed_user'@'localhost';
    FLUSH PRIVILEGES;
    EXIT;
-   ```
-
-#### MongoDB Setup
-
-1. Start MongoDB service
-2. Connect to MongoDB:
-   ```bash
-   mongosh
-   ```
-3. Create database:
-   ```javascript
-   use streetmed
-   db.createCollection("test")
    ```
 
 ---
