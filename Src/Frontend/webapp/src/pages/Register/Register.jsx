@@ -534,7 +534,7 @@ const Register = () => {
                 onClick={() => setStep(1)}
                 className="back-step-btn-enhanced"
               >
-                â†?Back to Step 1
+                Back to Step 1
               </button>
             </form>
           )}

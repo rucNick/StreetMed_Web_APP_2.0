@@ -141,7 +141,7 @@ const CertificateHelper = ({ onCertificateAccepted }) => {
               </div>
               <div className="cert-step">
                 <span className="step-number">2</span>
-                <span>In the frame, click "Advanced" â†?"Proceed to localhost"</span>
+                <span>In the frame, click "Advanced" "Proceed to localhost"</span>
               </div>
               <div className="cert-step">
                 <span className="step-number">3</span>
@@ -171,7 +171,7 @@ const CertificateHelper = ({ onCertificateAccepted }) => {
             <p className="cert-iframe-instruction">
               <strong>Accept the certificate in the frame below:</strong>
               <br />
-              Click "Advanced" â†?"Proceed to localhost (unsafe)"
+              Click "Advanced" "Proceed to localhost (unsafe)"
             </p>
             
             <div className="cert-iframe-container">

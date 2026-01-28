@@ -168,7 +168,7 @@ const Reset_Password = () => {
       {/* Header */}
       <div style={styles.header}>
         <button style={styles.goBackButton} onClick={handleGoBack}>
-          �?Go Back
+          Go Back
         </button>
       </div>
 
@@ -341,7 +341,7 @@ const Reset_Password = () => {
                     ...styles.matchIndicator,
                     color: newPassword === confirmPassword ? '#27ae60' : '#e74c3c'
                   }}>
-                    {newPassword === confirmPassword ? '�?Passwords match' : '�?Passwords do not match'}
+                    {newPassword === confirmPassword ? 'Passwords match' : 'Passwords do not match'}
                   </span>
                 )}
               </div>
@@ -369,7 +369,7 @@ const Reset_Password = () => {
                 }}
                 disabled={isLoading}
               >
-                �?Back to Step 1
+                Back to Step 1
               </button>
             </>
           )}

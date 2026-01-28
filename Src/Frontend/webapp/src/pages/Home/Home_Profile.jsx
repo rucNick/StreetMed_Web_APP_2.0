@@ -400,7 +400,7 @@ const profileOptions = [
       {/* Header */}
       <div style={styles.header}>
         <button style={styles.backButton} onClick={() => navigate(-1)}>
-          �?Back
+          Back
         </button>
       </div>
 
@@ -563,7 +563,7 @@ const profileOptions = [
                       ...styles.matchText,
                       color: newPassword === confirmPassword ? '#27ae60' : '#e74c3c'
                     }}>
-                      {newPassword === confirmPassword ? '�?Passwords match' : '�?Passwords do not match'}
+                      {newPassword === confirmPassword ? 'Passwords match' : 'Passwords do not match'}
                     </span>
                   )}
                 </div>
