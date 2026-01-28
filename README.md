@@ -155,7 +155,6 @@ docker-compose up -d --build
 
 This single command will:
 - Start MySQL database on port 3307
-- Start MongoDB on port 27017
 - Build and start the Spring Boot backend on ports 8080 (HTTP) and 8443 (HTTPS)
 
 #### Step 2: Start the Frontend
@@ -223,7 +222,7 @@ npm install
 npm run dev
 ```
 
-**Note:** For local setup, ensure MySQL and MongoDB are installed and running. See [Required Dependencies Guide](Required_dependencies.md) for details.
+**Note:** For local setup, ensure MySQL is installed and running. See [Required Dependencies Guide](Required_dependencies.md) for details.
 
 ---
 
