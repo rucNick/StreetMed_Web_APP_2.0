@@ -4,8 +4,15 @@
 
 This repository contains the StreetMedGo application, including both the backend and frontend code, along with UI/UX design patterns.
 
-## Web App Overview (Currently Undeployed)
-**WEB URL: https://app.streetmedatpitt.org/** 
+## 🌐 Live Application
+
+| Environment | URL |
+|-------------|-----|
+| **Production Frontend** | https://streetmed-frontend-900663028964.us-central1.run.app |
+| **Production Backend** | https://streetmed-backend-900663028964.us-central1.run.app |
+| **Custom Domain** | https://app.streetmedatpitt.org (pending DNS configuration) |
+
+## Web App Overview
 
 StreetMedGo is a comprehensive platform designed to support the operations of StreetMed@Pitt, a non-profit organization providing medical outreach to underserved communities. The web application serves three primary user roles:
 
@@ -19,35 +26,115 @@ The platform integrates several key systems:
 - Order creation and fulfillment tracking
 - Inventory management with automatic stock reservation
 - Volunteer application and approval workflow
+- ECDH encryption for secure communications
 
 ## Repository Structure
 
 ```
 StreetMed/
+├── .github/
+│   └── workflows/
+│       ├── backenddeploy.yml   # Backend CI/CD to Google Cloud Run
+│       └── frontenddeploy.yml  # Frontend CI/CD to Google Cloud Run
 ├── Src/
-│   ├── Backend/          # Spring Boot backend application
-│   │   ├── Dockerfile    # Docker configuration for backend
-│   │   └── docker-compose.yml  # Multi-container orchestration
-│   └── Frontend/webapp/  # React frontend application
-├── docs/                 # Supporting documents for development
+│   ├── Backend/                # Spring Boot backend application
+│   │   ├── Dockerfile          # Docker configuration for backend
+│   │   └── docker-compose.yml  # Multi-container orchestration (local dev)
+│   └── Frontend/webapp/        # React frontend application
+├── docs/                       # Supporting documents for development
 └── Required_dependencies.md
 ```
 
+---
+
+## 🚀 Deployment
+
+### Production Environment (Google Cloud Run)
+
+The application is deployed on **Google Cloud Run** with automatic CI/CD via GitHub Actions.
+
+| Component | Service | Region |
+|-----------|---------|--------|
+| Frontend | streetmed-frontend | us-central1 |
+| Backend | streetmed-backend | us-central1 |
+| Database | Cloud SQL (MySQL 8.0) | us-central1 |
+
+### Deployment Workflow
+
+Deployments are **automatic** when changes are pushed to the `main` branch:
+
+### Monitoring Deployments
+
+```bash
+# Check deployment status
+gcloud run services list --region=us-central1
+
+# View backend logs
+gcloud run services logs read streetmed-backend --region=us-central1 --limit=50
+
+# View frontend logs
+gcloud run services logs read streetmed-frontend --region=us-central1 --limit=50
+```
+
+---
+
+## 🌿 Git Branching Strategy
+
+> ⚠️ **Important**: The `main` branch is for **production deployment only**.
+
+### Branch Rules
+
+| Branch | Purpose | Deploys to |
+|--------|---------|------------|
+| `main` | Production-ready code only | Google Cloud Run (automatic) |
+| `feature/*` | New features | Local development only |
+| `bugfix/*` | Bug fixes | Local development only |
+| `hotfix/*` | Urgent production fixes | Merge to main after testing |
+
+### Development Workflow
+
+1. **Create a feature branch** from `main`:
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Develop and test locally** using Docker or local setup
+
+3. **Push your feature branch** and create a Pull Request:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+4. **Code review** - Get approval from team members
+
+5. **Merge to main** - This triggers automatic deployment
+
+### Branch Naming Conventions
+
+- `feature/add-user-notifications` - New features
+- `bugfix/fix-login-error` - Bug fixes
+- `hotfix/critical-security-patch` - Urgent fixes
+- `refactor/cleanup-order-service` - Code refactoring
+
+---
+
 ## Prerequisites
 
-### For Docker Setup (Recommended)
+### For Docker Setup (Recommended for Local Development)
 - Docker Desktop (see installation guide below)
 - Docker Compose (included with Docker Desktop)
 
 ### For Local Development Setup
 Please install all required dependencies listed in:
-📋 **[Required Dependencies Guide](Requried_dependencies.md)**
+📋 **[Required Dependencies Guide](Required_dependencies.md)**
 
 ---
 
-## Quick Start
+## Quick Start (Local Development)
 
-You can run the application using either **Docker** (recommended) or **local development setup**.
+You can run the application locally using either **Docker** (recommended) or **local development setup**.
 
 ### Option 1: Using Docker (Recommended) 🐳
 
@@ -81,7 +168,7 @@ cd Src/Frontend/webapp
 npm install
 
 # Start the development server
-npm start
+npm run dev
 ```
 
 #### Managing Docker Services
@@ -114,20 +201,9 @@ docker-compose down
 docker-compose down -v
 ```
 
-**Restart a specific service:**
-```bash
-# Restart just the backend
-docker-compose restart backend
-```
-
 **Rebuild after code changes:**
 ```bash
-# Rebuild and restart
 docker-compose up --build
-
-# Or rebuild without cache
-docker-compose build --no-cache
-docker-compose up
 ```
 
 ### Option 2: Local Development Setup
@@ -144,22 +220,52 @@ cd Src/Backend
 ```bash
 cd Src/Frontend/webapp
 npm install
-npm start
+npm run dev
 ```
 
-**Note:** For local setup, ensure MySQL and MongoDB are installed and running. See [Required Dependencies Guide](Requried_dependencies.md) for details.
+**Note:** For local setup, ensure MySQL and MongoDB are installed and running. See [Required Dependencies Guide](Required_dependencies.md) for details.
 
 ---
 
-## Verify Setup
+## Verify Local Setup
 
-Once everything is running, access the application at:
+Once everything is running locally, access the application at:
 
-- **Frontend**: http://localhost:3000
-- **Backend API (HTTP)**: http://localhost:8080
-- **Backend API (HTTPS)**: https://localhost:8443
-- **API Documentation**: http://localhost:8080/swagger-ui.html
-- **Secure API Documentation**: https://localhost:8443/swagger-ui.html
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API (HTTP) | http://localhost:8080 |
+| Backend API (HTTPS) | https://localhost:8443 |
+| API Documentation | http://localhost:8080/swagger-ui.html |
+
+---
+
+## Environment Configuration
+
+### Frontend Environment Variables
+
+Create `.env.local` for local development:
+```env
+VITE_BASE_URL=http://localhost:8080
+VITE_SECURE_BASE_URL=https://localhost:8443
+VITE_ENVIRONMENT=development
+```
+
+Production environment is configured via `.env.production`:
+```env
+VITE_BASE_URL=https://streetmed-backend-900663028964.us-central1.run.app
+VITE_ENVIRONMENT=production
+```
+
+### Backend Environment Variables
+
+Local development uses `application-local.properties`.
+
+Production environment variables are configured in Google Cloud Run:
+- `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`
+- `CORS_ALLOWED_ORIGINS`
+- `CLIENT_AUTH_KEY`
+- `MAIL_USERNAME`, `MAIL_PASSWORD`
 
 ---
 
@@ -169,14 +275,9 @@ Once everything is running, access the application at:
 
 1. **Download Docker Desktop for Windows**
    - Visit: https://www.docker.com/products/docker-desktop
-   - Click "Download for Windows"
-   - Requires Windows 10 64-bit: Pro, Enterprise, or Education (Build 16299 or later)
+   - Requires Windows 10 64-bit: Pro, Enterprise, or Education
 
-2. **Install Docker Desktop**
-   - Run the installer (Docker Desktop Installer.exe)
-   - Follow the installation wizard
-   - Enable WSL 2 (Windows Subsystem for Linux) if prompted
-   - Restart your computer
+2. **Install and restart your computer**
 
 3. **Verify Installation**
    ```bash
@@ -188,15 +289,9 @@ Once everything is running, access the application at:
 
 1. **Download Docker Desktop for Mac**
    - Visit: https://www.docker.com/products/docker-desktop
-   - Choose the version for your chip:
-     - **Apple Silicon (M1/M2/M3)**: Download for Apple Silicon
-     - **Intel Chip**: Download for Intel
+   - Choose version for your chip (Apple Silicon or Intel)
 
-2. **Install Docker Desktop**
-   - Open the downloaded .dmg file
-   - Drag Docker to Applications folder
-   - Launch Docker from Applications
-   - Grant necessary permissions when prompted
+2. **Install and launch Docker from Applications**
 
 3. **Verify Installation**
    ```bash
@@ -206,126 +301,75 @@ Once everything is running, access the application at:
 
 ### Linux (Ubuntu/Debian)
 
-1. **Update package index**
-   ```bash
-   sudo apt-get update
-   ```
-
-2. **Install prerequisites**
-   ```bash
-   sudo apt-get install \
-       apt-transport-https \
-       ca-certificates \
-       curl \
-       gnupg \
-       lsb-release
-   ```
-
-3. **Add Docker's official GPG key**
-   ```bash
-   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-   ```
-
-4. **Set up the stable repository**
-   ```bash
-   echo \
-     "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-     $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-   ```
-
-5. **Install Docker Engine**
-   ```bash
-   sudo apt-get update
-   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
-   ```
-
-6. **Start Docker service**
-   ```bash
-   sudo systemctl start docker
-   sudo systemctl enable docker
-   ```
-
-7. **Add your user to docker group (optional, to run without sudo)**
-   ```bash
-   sudo usermod -aG docker $USER
-   newgrp docker
-   ```
-
-8. **Verify Installation**
-   ```bash
-   docker --version
-   docker compose version
-   ```
-
-
-
-### Cleaning Up Docker Resources
-
 ```bash
-# Remove all stopped containers, unused networks, dangling images
-docker system prune
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
 
-# Remove everything (including volumes)
-docker system prune -a --volumes
+# Add user to docker group
+sudo usermod -aG docker $USER
+newgrp docker
 
-# Check disk usage
-docker system df
+# Verify
+docker --version
 ```
 
 ---
-### Frontend Issues
 
-**Cannot connect to backend:**
+## Troubleshooting
+
+### Frontend Cannot Connect to Backend
 - Verify backend is running: `docker-compose ps`
 - Check backend logs: `docker-compose logs backend`
-- Ensure ports are not blocked by firewall
+- Ensure CORS is configured correctly
 
-**npm install fails:**
-```bash
-# Clear npm cache
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### HTTPS Certificate Issues
-
-When accessing https://localhost:8443, you may see a certificate warning. This is normal for development. You can:
+### HTTPS Certificate Issues (Local Development)
+When accessing https://localhost:8443, you may see a certificate warning. This is normal for development:
 - Click "Advanced" and proceed (Chrome/Edge)
 - Click "Accept the Risk and Continue" (Firefox)
-- Or configure your browser to trust the self-signed certificate
+
+### Production Issues
+```bash
+# Check service status
+gcloud run services describe streetmed-backend --region=us-central1
+
+# View recent logs
+gcloud run services logs read streetmed-backend --region=us-central1 --limit=100
+```
 
 ---
 
+## API Documentation
 
-## Development Workflow
+- **Local**: http://localhost:8080/swagger-ui.html
+- **Production**: https://streetmed-backend-900663028964.us-central1.run.app/swagger-ui.html
 
-### Making Backend Changes
+For detailed API documentation, see [API Documentation](docs/API_readme.md).
 
-1. Make your code changes
-2. Rebuild and restart:
-   ```bash
-   docker-compose up -d --build backend
-   ```
+---
 
-### Making Database Schema Changes
+## Contributing
 
-1. Update entity classes in the backend
-2. Restart backend with rebuild:
-   ```bash
-   docker-compose down
-   docker-compose up --build
-   ```
+1. Create a feature branch from `main`
+2. Make your changes and test locally
+3. Submit a Pull Request
+4. Get code review approval
+5. Merge to `main` (triggers automatic deployment)
 
-### Resetting Database Data
+---
 
-```bash
-# Stop services and remove volumes
-docker-compose down -v
+## Tech Stack
 
-# Start fresh
-docker-compose up -d
-```
+| Component | Technology |
+|-----------|------------|
+| Frontend | React 18, Vite 7, React Router 7 |
+| Backend | Spring Boot 3.4, Java 21 |
+| Database | MySQL 8.0 (Cloud SQL), MongoDB |
+| Deployment | Google Cloud Run |
+| CI/CD | GitHub Actions |
+| Security | ECDH Key Exchange, AES-GCM Encryption, BCrypt |
+
 ---
 
 **Happy Coding! 🚀**
+.
