@@ -1,6 +1,6 @@
 package com.backend.streetmed_backend.service.cargoService;
 
-import com.backend.streetmed_backend.document.CargoImage;
+import com.backend.streetmed_backend.entity.CargoImage;
 import com.backend.streetmed_backend.entity.CargoItem;
 import com.backend.streetmed_backend.repository.Cargo.CargoItemRepository;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class CargoItemService {
         // Handle image if provided
         if (image != null && !image.isEmpty()) {
             CargoImage savedImage = cargoImageService.storeImage(image, null);
-            item.setImageId(savedImage.getId()); // This should now work as both are Strings
+            item.setImageId(savedImage.getId());
         }
 
         item.setCreatedAt(LocalDateTime.now());
@@ -107,7 +107,7 @@ public class CargoItemService {
 
         // Handle image update
         if (image != null && !image.isEmpty()) {
-            String oldImageId = existingItem.getImageId();
+            Integer oldImageId = existingItem.getImageId();
             if (oldImageId != null) {
                 try {
                     cargoImageService.deleteImage(oldImageId);
@@ -200,7 +200,7 @@ public class CargoItemService {
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
         // Delete associated image if exists
-        String imageId = item.getImageId();
+        Integer imageId = item.getImageId();
         if (imageId != null) {
             cargoImageService.deleteImage(imageId);
         }

@@ -1,9 +1,6 @@
 package com.backend.streetmed_backend.controller.Inventory;
 
-import com.backend.streetmed_backend.document.CargoImage;
-import com.backend.streetmed_backend.repository.Order.OrderAssignmentRepository;
-import com.backend.streetmed_backend.repository.Order.OrderItemRepository;
-import com.backend.streetmed_backend.repository.Order.OrderRepository;
+import com.backend.streetmed_backend.entity.CargoImage;
 import com.backend.streetmed_backend.service.cargoService.CargoImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -54,7 +51,7 @@ public class CargoImageController {
     }
 
     @GetMapping("/{imageId}")
-    public ResponseEntity<?> getImage(@PathVariable String imageId) {
+    public ResponseEntity<?> getImage(@PathVariable Integer imageId) {
         try {
             CargoImage image = cargoImageService.getImage(imageId);
             return ResponseEntity.ok()
@@ -67,7 +64,7 @@ public class CargoImageController {
 
     @DeleteMapping("/{imageId}")
     public ResponseEntity<?> deleteImage(
-            @PathVariable String imageId,
+            @PathVariable Integer imageId,
             @RequestHeader("Authentication-Status") String authStatus) {
 
         try {

@@ -33,9 +33,9 @@ public class CargoItem {
     @Column(name = "quantity")
     private Map<String, Integer> sizeQuantities = new HashMap<>();
 
-    // Reference to MongoDB image - Changed from Integer to String
+    // Reference to SQL image - Changed from String to Integer
     @Column(name = "image_id")
-    private String imageId;
+    private Integer imageId;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -125,12 +125,12 @@ public class CargoItem {
         this.sizeQuantities = sizeQuantities;
     }
 
-    // Changed getter to return String instead of Integer
-    public String getImageId() {
+    // Changed getter to return Integer instead of String
+    public Integer getImageId() {
         return imageId;
     }
 
-    public void setImageId(String imageId) {
+    public void setImageId(Integer imageId) {
         this.imageId = imageId;
     }
 
