@@ -752,7 +752,7 @@ const Cargo_Admin = ({ userData }) => {
                 </div>
 
                 <div className="image-upload">
-                  <label>Update Image (optional):</label>
+                  <div style={{ color: '#333' }}> Update Image (optional):</div>
                   <input
                     type="file"
                     accept="image/*"
