@@ -82,7 +82,6 @@
 | Framework | Spring Boot | 3.4.2 |
 | Language | Java | 21 |
 | Database | MySQL (Cloud SQL) | 8.0 |
-| Image Storage | MongoDB | 6.0 |
 | ORM | JPA/Hibernate | - |
 | Email | Spring Mail | - |
 | Build Tool | Maven | 3.6+ |
@@ -168,8 +167,8 @@ com.backend.streetmed_backend/
 │   ├── Service_entity/
 │   │   └── Feedback.java
 │   └── CargoItem.java
-├── document/
-│   └── CargoImage.java
+    |-- CargoImage.java
+├
 ├── repository/
 │   ├── Cargo/
 │   │   ├── CargoItemRepository.java
