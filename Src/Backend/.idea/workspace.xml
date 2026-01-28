@@ -5,15 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97fd2ed9-4030-49ad-8e56-208430180310" name="Changes" comment="move the private methods from controllers to the util class">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/entity/CargoImage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Inventory/CargoImageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/controller/Inventory/CargoImageController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/document/CargoImage.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/entity/CargoItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/entity/CargoItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/repository/Cargo/CargoImageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/repository/Cargo/CargoImageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/service/cargoService/CargoImageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/service/cargoService/CargoImageService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/service/cargoService/CargoItemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/backend/streetmed_backend/service/cargoService/CargoItemService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile.cloudrun" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile.prod" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application-local.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application-local.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application-prod.properties" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +24,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Interface" />
-        <option value="Dockerfile" />
         <option value="Class" />
+        <option value="Dockerfile" />
       </list>
     </option>
   </component>
