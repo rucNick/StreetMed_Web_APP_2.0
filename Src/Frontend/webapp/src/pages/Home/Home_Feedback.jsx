@@ -11,7 +11,7 @@ const Home_Feedback = ({ username }) => {
   const [feedbackError, setFeedbackError] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
 
-  const baseURL = process.env.REACT_APP_BASE_URL;
+  const baseURL = import.meta.env.VITE_BASE_URL;
 
   // Handle submission of feedback
   const handleSubmitFeedback = async () => {

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import '../../index.css'; 
 
 const Guest = ({ onLogout }) => {
-  const baseURL = process.env.REACT_APP_BASE_URL;
+  const baseURL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
 
   // ========== General State ==========
@@ -318,7 +318,7 @@ const Guest = ({ onLogout }) => {
             >
                 <span>&#128722;</span> {/* Shopping Cart Icon */}
                 <span>{showItemGrid ? "Hide Items" : "Make a New Order"}</span>
-                <span style={{ marginLeft: 'auto' }}>{showItemGrid ? "▲" : "▼"}</span>
+                <span style={{ marginLeft: 'auto' }}>{showItemGrid ? "^" : "v"}</span>
             </button>
 
             <button 
@@ -327,7 +327,7 @@ const Guest = ({ onLogout }) => {
             >
                 <span>&#128179;</span> {/* Card/Cart Icon */}
                 <span>View Cart ({cart.length})</span>
-                <span style={{ marginLeft: 'auto' }}>▶</span>
+                <span style={{ marginLeft: 'auto' }}>&gt;</span>
             </button>
 
         </div>
@@ -662,7 +662,7 @@ const Guest = ({ onLogout }) => {
                   <p style={{color: '#f6b800', margin: '0 0 5px 0'}}>Items:</p>
                   {currentOrder.items.map((it, idx) => (
                       <div key={idx} style={{color: '#ccc', fontSize: '14px'}}>
-                         • {it.displayName || it.name} x {it.quantity}
+                         - {it.displayName || it.name} x {it.quantity}
                       </div>
                   ))}
               </div>

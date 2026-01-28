@@ -29,7 +29,7 @@ const Home_Profile = ({
   const [profileMessage, setProfileMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
+  const baseURL = import.meta.env.VITE_SECURE_BASE_URL || import.meta.env.VITE_BASE_URL;
 
   const getAuthToken = () => {
     const storedUser = sessionStorage.getItem("auth_user") || localStorage.getItem("auth_user");
@@ -46,7 +46,7 @@ const Home_Profile = ({
     if (error.code === 'ERR_CERT_AUTHORITY_INVALID' || 
         error.message?.includes('certificate')) {
       setProfileError("Certificate error. Please accept the certificate and try again.");
-      const certUrl = process.env.REACT_APP_SECURE_BASE_URL || 'https://localhost:8443';
+      const certUrl = import.meta.env.VITE_SECURE_BASE_URL || 'https://localhost:8443';
       window.open(`${certUrl}/api/test/tls/status`, '_blank');
       return;
     }
@@ -385,13 +385,13 @@ const Home_Profile = ({
     }
   };
 
-  const profileOptions = [
-    { value: 'name', label: 'Name', icon: '👤' },
-    { value: 'username', label: 'Username', icon: '🏷️' },
-    { value: 'email', label: 'Email', icon: '✉️' },
-    { value: 'phone', label: 'Phone', icon: '📱' },
-    { value: 'password', label: 'Password', icon: '🔐' },
-  ];
+const profileOptions = [
+  { value: 'name', label: 'Name', icon: '👤' },
+  { value: 'username', label: 'Username', icon: '🏷️' },
+  { value: 'email', label: 'Email', icon: '✉️' },
+  { value: 'phone', label: 'Phone', icon: '📱' },
+  { value: 'password', label: 'Password', icon: '🔐' },
+];
 
   const needsPassword = ['email', 'phone', 'password'].includes(profileOption);
 
@@ -400,7 +400,7 @@ const Home_Profile = ({
       {/* Header */}
       <div style={styles.header}>
         <button style={styles.backButton} onClick={() => navigate(-1)}>
-          ← Back
+          �?Back
         </button>
       </div>
 
@@ -563,7 +563,7 @@ const Home_Profile = ({
                       ...styles.matchText,
                       color: newPassword === confirmPassword ? '#27ae60' : '#e74c3c'
                     }}>
-                      {newPassword === confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                      {newPassword === confirmPassword ? '�?Passwords match' : '�?Passwords do not match'}
                     </span>
                   )}
                 </div>

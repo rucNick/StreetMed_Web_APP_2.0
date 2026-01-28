@@ -14,7 +14,7 @@ import SessionErrorModal from '../../components/SessionErrorModal';
 const Register = () => {
   const navigate = useNavigate();
   const [securityInitialized, setSecurityInitialized] = useState(false);
-  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
+  const baseURL = import.meta.env.VITE_SECURE_BASE_URL || import.meta.env.VITE_BASE_URL;
   const [showSessionErrorModal, setShowSessionErrorModal] = useState(false);
 
   // --- 1. Embedded CSS for Enhanced Mobile View ---
@@ -534,7 +534,7 @@ const Register = () => {
                 onClick={() => setStep(1)}
                 className="back-step-btn-enhanced"
               >
-                ‚Üê Back to Step 1
+                ‚Ü?Back to Step 1
               </button>
             </form>
           )}

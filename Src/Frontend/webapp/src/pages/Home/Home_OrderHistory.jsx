@@ -11,7 +11,7 @@ const Home_OrderHistory = ({ userId }) => {
   const [ordersError, setOrdersError] = useState("");
   const [cancellingOrderId, setCancellingOrderId] = useState(null);
 
-  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
+  const baseURL = import.meta.env.VITE_SECURE_BASE_URL || import.meta.env.VITE_BASE_URL;
 
   // Get auth token from storage
   const getAuthToken = () => {

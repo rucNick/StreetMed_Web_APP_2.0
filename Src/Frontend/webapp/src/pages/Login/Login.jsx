@@ -13,7 +13,7 @@ const Login = ({ onLoginSuccess }) => {
   const [message, setMessage] = useState("");
   const [showSessionErrorModal, setShowSessionErrorModal] = useState(false);
 
-  const baseURL = process.env.REACT_APP_SECURE_BASE_URL || process.env.REACT_APP_BASE_URL;
+  const baseURL = import.meta.env.VITE_SECURE_BASE_URL || import.meta.env.VITE_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

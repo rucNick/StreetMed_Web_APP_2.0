@@ -41,11 +41,11 @@ function App({ securityInitialized = false }) {
   // Check TLS connection on app load
   useEffect(() => {
     const checkTLS = async () => {
-      if (process.env.REACT_APP_USE_TLS === 'true') {
+      if (import.meta.env.VITE_USE_TLS === 'true') {
         const result = await checkTLSConnection();
         setTlsStatus(result);
         
-        if (!result.success && process.env.REACT_APP_ENVIRONMENT === 'development') {
+        if (!result.success && import.meta.env.VITE_ENVIRONMENT === 'development') {
           console.warn('TLS connection check failed:', result.error);
         }
       }
@@ -95,7 +95,7 @@ function App({ securityInitialized = false }) {
   };
 
   // Show security initialization error if needed
-  if (!securityInitialized && process.env.REACT_APP_USE_AUTH === 'true') {
+  if (!securityInitialized && import.meta.env.VITE_USE_AUTH === 'true') {
     return (
       <div
         style={{
@@ -109,7 +109,7 @@ function App({ securityInitialized = false }) {
       >
         <h2>Security Error</h2>
         <p>Secure connection could not be established.</p>
-        {process.env.REACT_APP_ENVIRONMENT === 'development' && (
+        {import.meta.env.VITE_ENVIRONMENT === 'development' && (
           <>
             <p>Make sure the backend is running on https://localhost:8443</p>
             <p>You may need to accept the self-signed certificate.</p>
@@ -153,7 +153,7 @@ function App({ securityInitialized = false }) {
       <CertificateHelper />
       
       {/* TLS Status Indicator (optional - for debugging) */}
-      {process.env.REACT_APP_DEBUG_MODE === 'true' && tlsStatus && (
+      {import.meta.env.VITE_DEBUG_MODE === 'true' && tlsStatus && (
         <div style={{
           position: 'fixed',
           bottom: '10px',
@@ -165,7 +165,7 @@ function App({ securityInitialized = false }) {
           fontSize: '12px',
           zIndex: 9999
         }}>
-          TLS: {tlsStatus.success ? '✓ Secure' : '✗ Not Connected'}
+          <div style={{ position: 'fixed', bottom: 10, right: 10, padding: '5px 10px', backgroundColor: 'rgb(76, 175, 80)', color: 'white', borderRadius: 4, fontSize: 12, zIndex: 9999 }}>TLS: [OK]</div>
         </div>
       )}
       
