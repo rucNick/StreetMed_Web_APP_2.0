@@ -163,8 +163,6 @@ jobs:
             --set-env-vars="MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" \
             --set-env-vars="MYSQL_USER=${{ secrets.MYSQL_USER }}" \
             --set-env-vars="MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" \
-            --set-env-vars="MONGODB_URI=${{ secrets.MONGODB_URI }}" \
-            --set-env-vars="MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }}" \
             --set-env-vars="MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" \
             --set-env-vars="MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" \
             --set-env-vars="CLIENT_AUTH_KEY=${{ secrets.CLIENT_AUTH_KEY }}" \
