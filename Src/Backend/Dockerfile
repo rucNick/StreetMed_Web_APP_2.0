@@ -18,7 +18,7 @@ WORKDIR /app
 # Copy built JAR from previous stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Cloud Run expects port 8080 (TLS is handled by Cloud Run's load balancer)
+# Cloud Run expects port 8080
 EXPOSE 8080
 
 # Cloud Run will set PORT environment variable
