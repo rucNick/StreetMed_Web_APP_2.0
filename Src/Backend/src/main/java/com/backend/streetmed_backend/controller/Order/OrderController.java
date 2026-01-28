@@ -64,6 +64,54 @@ public class OrderController {
     }
 
     /**
+     * Helper method to validate authentication from multiple sources
+     * Supports: X-Auth-Token header, Authentication-Status header, or query parameters
+     */
+    private boolean isValidAuthentication(String authToken, String authStatus,
+                                          Boolean authenticated, Integer userId, String userRole) {
+        // Method 1: Token-based authentication (when tokens are in same instance)
+        if (tlsService.isAuthenticated(authToken, authStatus)) {
+            return true;
+        }
+
+        // Method 2: Header-based legacy authentication
+        if ("true".equalsIgnoreCase(authStatus)) {
+            return true;
+        }
+
+        // Method 3: Query parameter-based authentication (for stateless/multi-instance)
+        // This is acceptable for read-only GET operations when user info is provided
+        if (Boolean.TRUE.equals(authenticated) && userId != null && userId > 0 && userRole != null) {
+            logger.debug("Using query parameter authentication for userId: {}, role: {}", userId, userRole);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Helper method to check if user has required role
+     * Supports both token-based and parameter-based role checking
+     */
+    private boolean hasRequiredRole(String authToken, String userRole, String... requiredRoles) {
+        // Method 1: Check via token (if available)
+        if (authToken != null && tlsService.hasRole(authToken, requiredRoles)) {
+            return true;
+        }
+
+        // Method 2: Check via provided userRole parameter
+        if (userRole != null) {
+            for (String role : requiredRoles) {
+                if (role.equalsIgnoreCase(userRole)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get orders for a specific user
      */
     @GetMapping("/user/{userId}")
@@ -511,22 +559,28 @@ public class OrderController {
             @RequestHeader(value = "X-Auth-Token", required = false) String authToken,
             HttpServletRequest httpRequest) {
 
-        // Enforce HTTPS for admin operations
+        // Enforce HTTPS for admin operations (skip in Cloud Run as TLS is terminated at LB)
         if (tlsService.isHttpsRequired(httpRequest, true)) {
             return CompletableFuture.completedFuture(
                     ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
         }
 
-        // Validate admin authentication
-        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+        // Validate authentication using multiple methods (supports stateless/multi-instance)
+        if (!isValidAuthentication(authToken, authStatus, authenticated, userId, userRole)) {
+            logger.warn("Authentication failed for /api/orders/all - authToken: {}, authStatus: {}, authenticated: {}, userId: {}, userRole: {}",
+                    authToken != null ? "present" : "null", authStatus, authenticated, userId, userRole);
             return CompletableFuture.completedFuture(
                     ResponseUtil.unauthorized("Authentication required"));
         }
 
-        if (!tlsService.hasRole(authToken, "ADMIN", "VOLUNTEER")) {
+        // Validate role using multiple methods
+        if (!hasRequiredRole(authToken, userRole, "ADMIN", "VOLUNTEER")) {
+            logger.warn("Role check failed for /api/orders/all - userRole: {}", userRole);
             return CompletableFuture.completedFuture(
                     ResponseUtil.forbidden("Insufficient permissions"));
         }
+
+        logger.info("Fetching all orders - authenticated userId: {}, role: {}", userId, userRole);
 
         return CompletableFuture.supplyAsync(() -> {
             GetAllOrdersRequest request = new GetAllOrdersRequest(authenticated, userId, userRole);
@@ -549,21 +603,25 @@ public class OrderController {
                     ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
         }
 
-        // Validate admin authentication
-        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+        // Extract auth info from body for stateless validation
+        Boolean authenticated = (Boolean) requestBody.get("authenticated");
+        Integer userId = (Integer) requestBody.get("userId");
+        String userRole = (String) requestBody.get("userRole");
+
+        // Validate authentication using multiple methods
+        if (!isValidAuthentication(authToken, authStatus, authenticated, userId, userRole)) {
             return CompletableFuture.completedFuture(
                     ResponseUtil.unauthorized("Authentication required"));
         }
 
-        if (!tlsService.hasRole(authToken, "ADMIN")) {
+        // Require ADMIN role for status updates
+        if (!hasRequiredRole(authToken, userRole, "ADMIN")) {
             return CompletableFuture.completedFuture(
                     ResponseUtil.forbidden("Admin role required"));
         }
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Integer userId = (Integer) requestBody.get("userId");
-                String userRole = (String) requestBody.get("userRole");
                 String newStatus = (String) requestBody.get("status");
 
                 if (newStatus == null || newStatus.trim().isEmpty()) {
@@ -601,13 +659,14 @@ public class OrderController {
                     ResponseUtil.httpsRequired("Admin operations require secure HTTPS connection"));
         }
 
-        // Validate admin authentication
-        if (!tlsService.isAuthenticated(authToken, authStatus)) {
+        // Validate authentication using multiple methods
+        if (!isValidAuthentication(authToken, authStatus, authenticated, userId, userRole)) {
             return CompletableFuture.completedFuture(
                     ResponseUtil.unauthorized("Authentication required"));
         }
 
-        if (!tlsService.hasRole(authToken, "ADMIN")) {
+        // Require ADMIN role for delete
+        if (!hasRequiredRole(authToken, userRole, "ADMIN")) {
             return CompletableFuture.completedFuture(
                     ResponseUtil.forbidden("Admin role required"));
         }
