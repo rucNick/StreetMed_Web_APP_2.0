@@ -18,20 +18,37 @@ const getBaseURL = (requireSecure = false) => {
   return import.meta.env.VITE_BASE_URL_HTTP || 'http://localhost:8080';
 };
 
-// Helper to get auth headers
-const getAuthHeaders = () => {
-  const authData = sessionStorage.getItem('auth_user');
+// Helper to get auth data from storage (checks both localStorage and sessionStorage)
+const getAuthData = () => {
+  // Try sessionStorage first (preferred for security)
+  let authData = sessionStorage.getItem('auth_user');
+  
+  // Fall back to localStorage if not in sessionStorage
+  if (!authData) {
+    authData = localStorage.getItem('auth_user');
+  }
+  
   if (authData) {
     try {
-      const user = JSON.parse(authData);
-      return {
-        'Admin-Username': user.username,
-        'Authentication-Status': 'true',
-        'X-Auth-Token': user.authToken || ''
-      };
+      return JSON.parse(authData);
     } catch (e) {
       console.error('Error parsing auth data:', e);
     }
+  }
+  return null;
+};
+
+// Helper to get auth headers
+const getAuthHeaders = () => {
+  const user = getAuthData();
+  if (user) {
+    return {
+      'Admin-Username': user.username || '',
+      'Authentication-Status': 'true',
+      'X-Auth-Token': user.authToken || '',
+      'User-Id': user.userId ? String(user.userId) : '',
+      'User-Role': user.role || ''
+    };
   }
   return {};
 };
@@ -84,6 +101,7 @@ axiosInstance.interceptors.request.use(
     // Log request in debug mode
     if (import.meta.env.VITE_DEBUG_MODE === 'true') {
       console.log('Request:', config.method?.toUpperCase(), config.url);
+      console.log('Headers:', config.headers);
     }
     
     return config;
@@ -97,22 +115,24 @@ axiosInstance.interceptors.request.use(
 // Request interceptor for secure instance
 secureAxios.interceptors.request.use(
   (config) => {
-    const authData = sessionStorage.getItem('auth_user');
-    if (authData) {
-      try {
-        const user = JSON.parse(authData);
-        
-        // Add authentication headers
-        if (user.username) {
-          config.headers['Admin-Username'] = user.username;
-          config.headers['Authentication-Status'] = 'true';
-        }
-        
-        if (user.authToken) {
-          config.headers['X-Auth-Token'] = user.authToken;
-        }
-      } catch (e) {
-        console.error('Error setting auth headers:', e);
+    const user = getAuthData();
+    if (user) {
+      // Add authentication headers
+      if (user.username) {
+        config.headers['Admin-Username'] = user.username;
+        config.headers['Authentication-Status'] = 'true';
+      }
+      
+      if (user.authToken) {
+        config.headers['X-Auth-Token'] = user.authToken;
+      }
+      
+      if (user.userId) {
+        config.headers['User-Id'] = String(user.userId);
+      }
+      
+      if (user.role) {
+        config.headers['User-Role'] = user.role;
       }
     }
     

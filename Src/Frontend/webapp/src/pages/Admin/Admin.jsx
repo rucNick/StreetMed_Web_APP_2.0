@@ -24,6 +24,7 @@ const Admin = ({ onLogout, userData }) => {
         headers: {
           "Admin-Username": userData.username,
           "Authentication-Status": "true",
+          "X-Auth-Token": userData.authToken || '',
         },
       });
   
@@ -46,12 +47,17 @@ const Admin = ({ onLogout, userData }) => {
         }).length
       );
   
-      // Fetch orders using secure connection
+      // Fetch orders using secure connection - FIX: Use actual role from userData
       const ordersResp = await secureAxios.get('/api/orders/all', {
+        headers: {
+          "Admin-Username": userData.username,
+          "Authentication-Status": "true",
+          "X-Auth-Token": userData.authToken || '',
+        },
         params: {
           authenticated: true,
           userId: userData.userId,
-          userRole: "VOLUNTEER",
+          userRole: userData.role || "ADMIN", // FIX: Use actual role instead of hardcoded "VOLUNTEER"
         },
       });
       const orders = ordersResp.data.orders || [];
@@ -62,6 +68,7 @@ const Admin = ({ onLogout, userData }) => {
         headers: {
           "Admin-Username": userData.username,
           "Authentication-Status": "true",
+          "X-Auth-Token": userData.authToken || '',
         },
       });
       setPendingAppsCount((appsResp.data.data || []).length);
