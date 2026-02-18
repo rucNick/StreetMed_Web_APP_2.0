@@ -25,4 +25,5 @@ EXPOSE 8080
 ENV PORT=8080
 
 # Use production profile and bind to all interfaces
-ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT} -Dserver.address=0.0.0.0 -Dspring.profiles.active=prod -jar /app/app.jar"]
+# ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT} -Dserver.address=0.0.0.0 -Dspring.profiles.active=prod -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java -Dserver.address=0.0.0.0 -jar /app/app.jar"]

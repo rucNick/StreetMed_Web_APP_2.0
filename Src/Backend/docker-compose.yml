@@ -31,6 +31,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/streetmed?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: streetmed_user
       SPRING_DATASOURCE_PASSWORD: streetmed_password
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://localhost:3000"
+
 
       # Keystore Path
       TLS_KEYSTORE_PATH: /app/keystore/streetmed-keystore.p12

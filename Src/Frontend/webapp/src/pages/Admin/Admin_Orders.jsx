@@ -740,7 +740,7 @@ const AdminOrders = ({ userData }) => {
         }
         
         .status-badge.status-completed {
-          background-color: rgba(46, 204, 113, 0.9);
+          background-color: rgba(46, 204, 56, 0.9);
           color: #fff;
         }
         
