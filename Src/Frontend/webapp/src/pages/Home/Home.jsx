@@ -465,9 +465,11 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                       <div className="itemImagePlaceholder">No Image</div>
                     )}
                     <h4>{item.name}</h4>
-                    <p style={{ fontSize: 14, color: "#999" }}>
-                      {item.category}
-                    </p>
+                    {selectedCategory === "All" && (
+                      <p style={{ fontSize: 14, color: "#999" }}>
+                        {item.category}
+                      </p>
+                    )}
                     <p style={{ fontSize: 14 }}>
                       Total Stock: {item.quantity}
                     </p>
