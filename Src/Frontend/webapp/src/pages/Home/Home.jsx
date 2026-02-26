@@ -572,7 +572,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                   >
                     {Object.entries(selectedItem.sizeQuantities).map(([s, q]) => (
                       <option key={s} value={s}>
-                        {s} {s} — {q === 0 ? 'Out of Stock' : q <= 5 ? 'Limited' : 'Available'}
+                        {s} — {q === 0 ? 'Out of Stock' : q <= 5 ? 'Limited' : 'Available'}
                       </option>
                     ))}
                   </select>
