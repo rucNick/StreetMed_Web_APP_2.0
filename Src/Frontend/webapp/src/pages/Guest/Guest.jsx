@@ -388,7 +388,7 @@ const Guest = ({ onLogout }) => {
                           )}
                       </div>
                       <h4>{item.name}</h4>
-                      <p className="category">{item.category}</p>
+                      {selectedCategory === "All" && (<p className="category">{item.category}</p>)}
                       <p className="stock">In Stock: {item.quantity}</p>
                     </div>
                   ))
