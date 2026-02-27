@@ -215,10 +215,6 @@ const Guest = ({ onLogout }) => {
       setCartError("Your cart is empty.");
       return;
     }
-    if (!deliveryAddress.trim()) {
-      setCartError("Please fill in delivery address.");
-      return;
-    }
     if (!guestFirstName.trim() || !guestLastName.trim()) {
       setCartError("Please fill in first name and last name");
       return;
@@ -232,7 +228,7 @@ const Guest = ({ onLogout }) => {
       if (email.trim()) combinedUserNotes += `; Email: ${email}`;
 
       const payload = {
-        deliveryAddress,
+        deliveryAddress: deliveryAddress.trim(),
         phoneNumber: phone.trim(),
         notes: combinedUserNotes,
         items: cart.map((c) => ({
@@ -589,7 +585,7 @@ const Guest = ({ onLogout }) => {
                     <label>Phone Number (Optional)</label>
                     <input type="text" value={phone} onChange={e => setPhone(e.target.value)} />
 
-                    <label>Delivery Address*</label>
+                    <label>Delivery Address (Optional)</label>
                     <input type="text" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} />
 
                     <label>Email (Optional)</label>
