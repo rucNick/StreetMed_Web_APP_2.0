@@ -469,7 +469,12 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                       {item.category}
                     </p>
                     <p style={{ fontSize: 14 }}>
-                      Total Stock: {item.quantity}
+                     {item.quantity === 0
+                        ? <span className="status-badge status-out">Out of Stock</span>
+                        : item.quantity <= 5
+                        ? <span className="status-badge status-limited">Limited</span>
+                        : <span className="status-badge status-available">Available</span>
+                      }
                     </p>
                   </div>
                 ))
@@ -567,7 +572,7 @@ const Home = ({ username, email, phone, userId, onLogout }) => {
                   >
                     {Object.entries(selectedItem.sizeQuantities).map(([s, q]) => (
                       <option key={s} value={s}>
-                        {s} (stock: {q})
+                        {s} — {q === 0 ? 'Out of Stock' : q <= 5 ? 'Limited' : 'Available'}
                       </option>
                     ))}
                   </select>

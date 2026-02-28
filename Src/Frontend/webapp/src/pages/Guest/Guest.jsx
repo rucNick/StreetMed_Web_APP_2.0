@@ -389,7 +389,14 @@ const Guest = ({ onLogout }) => {
                       </div>
                       <h4>{item.name}</h4>
                       <p className="category">{item.category}</p>
-                      <p className="stock">In Stock: {item.quantity}</p>
+                      <p className="stock">
+                        {item.quantity == 0
+                        ? <span className="status-badge status-out">Out of Stock</span>
+                        : item.quantity <= 5
+                        ? <span className="status-badge status-limited">Limited</span>
+                        : <span className="status-badge status-available">Available</span>
+                        }
+                      </p>
                     </div>
                   ))
                 )}
@@ -425,7 +432,9 @@ const Guest = ({ onLogout }) => {
                         onChange={(e) => setSelectedSize(e.target.value)}
                     >
                         {Object.entries(selectedItem.sizeQuantities).map(([s, q]) => (
-                            <option key={s} value={s}>{s} (Avail: {q})</option>
+                            <option key={s} value={s}>
+                              {s} — {q === 0 ? 'Out of Stock' : q <= 5 ? 'Limited' : 'Available'}
+                              </option>
                         ))}
                     </select>
                 </div>
