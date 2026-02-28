@@ -22,7 +22,7 @@ const AdminOrders = ({ userData }) => {
   // Order Detail Modal State
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedOrderDetail, setSelectedOrderDetail] = useState(null);
-
+  const detailAssigned = Boolean(selectedOrderDetail?.roundId);
   // ============= COMPUTED STATS (from allOrders) =============
   const stats = {
     total: allOrders.length,
@@ -31,6 +31,14 @@ const AdminOrders = ({ userData }) => {
     completed: allOrders.filter(o => o.status === 'COMPLETED').length,
     cancelled: allOrders.filter(o => o.status === 'CANCELLED').length,
     unassigned: unassignedOrders.length
+  };
+
+  // ============= UI HELPERS (ASSIGNMENT) =============
+  const isOrderAssigned = (order) => Boolean(order?.roundId);
+
+  const updateOrderInState = (orderId, updater) => {
+    setAllOrders(prev => prev.map(o => (o.orderId === orderId ? updater(o) : o)));
+    setFilteredOrders(prev => prev.map(o => (o.orderId === orderId ? updater(o) : o)));
   };
 
   // ============= API FUNCTIONS =============
@@ -152,6 +160,8 @@ const AdminOrders = ({ userData }) => {
   // Open assignment modal
   const openAssignModal = (order, e) => {
     if (e) e.stopPropagation();
+    if (isOrderAssigned(order)) return;
+
     setSelectedOrderForAssign(order);
     setSelectedRoundId(order.roundId || '');
     setAssignModalOpen(true);
@@ -173,9 +183,14 @@ const AdminOrders = ({ userData }) => {
       );
       
       if (response.data.status === "success") {
-        alert(response.data.message);
+        const newRoundId = selectedRoundId ? parseInt(selectedRoundId, 10) : null;
+        updateOrderInState(selectedOrderForAssign.orderId, (o) => ({
+          ...o,
+          roundId: newRoundId,
+        }));
+
         setAssignModalOpen(false);
-        loadOrders();
+        loadUnassignedOrders();
       } else {
         alert(response.data.message || "Failed to assign order");
       }
@@ -432,60 +447,71 @@ const AdminOrders = ({ userData }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr 
-                      key={order.orderId}
-                      onClick={() => openDetailModal(order)}
-                      style={{ cursor: 'pointer' }}
-                      className="cargo-row"
-                    >
-                      <td>{order.orderId}</td>
-                      <td>
-                        <span className={`status-badge status-${order.status.toLowerCase()}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td>{getOrderAge(order.requestTime)}</td>
-                      <td>{getOrderTypeDisplay(order)}</td>
-                      <td>{order.userId === -1 ? 'Guest' : `User #${order.userId}`}</td>
-                      <td>
-                        <div className="order-items-cell">
-                          {order.orderItems && order.orderItems.slice(0, 3).map((item, idx) => (
-                            <span key={idx} className={`order-item-tag ${item.isCustom ? 'custom' : ''}`}>
-                              {item.itemName}
-                              {item.size && ` [${item.size}]`}
-                              ({item.quantity})
-                              {item.isCustom && <span className="custom-indicator">CUSTOM</span>}
-                            </span>
-                          ))}
-                          {order.orderItems && order.orderItems.length > 3 && (
-                            <span className="order-item-tag more">+{order.orderItems.length - 3} more</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="address-cell">{order.deliveryAddress || 'N/A'}</td>
-                      <td>
-                        {order.roundId ? (
-                          <span className="round-info">
-                            Round #{order.roundId}
+                  {filteredOrders.map((order) => {
+                    const assigned = isOrderAssigned(order);
+
+                    return (
+                      <tr
+                        key={order.orderId}
+                        onClick={() => openDetailModal(order)}
+                        style={{ cursor: 'pointer' }}
+                        className="cargo-row"
+                      >
+                        <td>{order.orderId}</td>
+                        <td>
+                          <span className={`status-badge status-${order.status.toLowerCase()}`}>
+                            {order.status}
                           </span>
-                        ) : (
-                          <span className="unassigned-label">Unassigned</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="action-buttons">
-                          <button
-                            className="manage-btn assign-btn"
-                            onClick={(e) => openAssignModal(order, e)}
-                            title="Assign to Round"
-                          >
-                            Assign
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>{getOrderAge(order.requestTime)}</td>
+                        <td>{getOrderTypeDisplay(order)}</td>
+                        <td>{order.userId === -1 ? 'Guest' : `User #${order.userId}`}</td>
+
+                        <td>
+                          <div className="order-items-cell">
+                            {order.orderItems && order.orderItems.slice(0, 3).map((item, idx) => (
+                              <span key={idx} className={`order-item-tag ${item.isCustom ? 'custom' : ''}`}>
+                                {item.itemName}
+                                {item.size && ` [${item.size}]`}
+                                ({item.quantity})
+                                {item.isCustom && <span className="custom-indicator">CUSTOM</span>}
+                              </span>
+                            ))}
+                            {order.orderItems && order.orderItems.length > 3 && (
+                              <span className="order-item-tag more">+{order.orderItems.length - 3} more</span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="address-cell">{order.deliveryAddress || 'N/A'}</td>
+
+                        <td>
+                          {order.roundId ? (
+                            <span className="round-info">Round #{order.roundId}</span>
+                          ) : (
+                            <span className="unassigned-label">Unassigned</span>
+                          )}
+                        </td>
+
+                        <td>
+                          <div className="action-buttons">
+                            <button
+                              className={`manage-btn assign-btn ${assigned ? 'assigned' : ''}`}
+                              disabled={assigned}
+                              title={assigned ? "Already assigned" : "Assign to Round"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (assigned) return;
+                                openAssignModal(order, e);
+                              }}
+                            >
+                              {assigned ? "Assigned" : "Assign"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -607,13 +633,15 @@ const AdminOrders = ({ userData }) => {
             {/* Action Buttons */}
             <div className="modal-actions order-detail-actions">
               <button
-                className="manage-btn assign-btn"
+                className={`manage-btn assign-btn ${detailAssigned ? 'assigned' : ''}`}
+                disabled={detailAssigned}
                 onClick={(e) => {
+                  if (detailAssigned) return;
                   setDetailModalOpen(false);
                   openAssignModal(selectedOrderDetail, e);
                 }}
               >
-                Assign to Round
+                {detailAssigned ? "Assigned" : "Assign to Round"}
               </button>
               
               {selectedOrderDetail.status === "PENDING" && (
@@ -947,6 +975,12 @@ const AdminOrders = ({ userData }) => {
         .assign-btn {
           background-color: #2196f3 !important;
           color: #fff !important;
+        }
+        
+        .assign-btn.assigned,
+        .assign-btn:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
         }
         
         .process-btn {
